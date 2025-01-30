@@ -1,1 +1,1 @@
-# -malakai-ravintola.github.io
+# ravintola
