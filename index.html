@@ -31,6 +31,7 @@
             <a href="#meistä" class="hover:text-gray-400">Meistä</a>
             <a href="#ruokamme" class="hover:text-gray-400">Ruokamme</a>
             <a href="#ruokalista" class="hover:text-gray-400">Ruokalista</a>
+            <a href="#varaa-pöytä" class="hover:text-gray-400">Varaa pöytä</a>
             <a href="#sijaintimme" class="hover:text-gray-400">Sijaintimme</a>
             <a href="#yhteystiedot" class="hover:text-gray-400">Yhteystiedot</a>
         </nav>
@@ -58,6 +59,7 @@
                 <a href="#meistä" class="hover:text-gray-400">Meistä</a>
                 <a href="#ruokamme" class="hover:text-gray-400">Ruokamme</a>
                 <a href="#ruokalista" class="hover:text-gray-400">Ruokalista</a>
+                <a href="#varaa-pöytä" class="hover:text-gray-400">Varaa pöytä</a>
                 <a href="#sijaintimme" class="hover:text-gray-400">Sijaintimme</a>
                 <a href="#yhteystiedot" class="hover:text-gray-400">Yhteystiedot</a>
             </div>
@@ -117,24 +119,37 @@
                     <img src="kuvat/salaatit.jpg" class="p-2 w-full">
                 </div>
 
-                <a class="absolute top-1/2 left-0 text-white text-4xl font-bold p-4 cursor-pointer" onclick="plusSlides(-1)">❮</a>
-                <a class="absolute top-1/2 right-0 text-white text-4xl font-bold p-4 cursor-pointer" onclick="plusSlides(1)">❯</a>
+                <a class="absolute top-1/2 left-0 text-white text-4xl font-bold p-4 cursor-pointer"
+                    onclick="plusSlides(-1)">❮</a>
+                <a class="absolute top-1/2 right-0 text-white text-4xl font-bold p-4 cursor-pointer"
+                    onclick="plusSlides(1)">❯</a>
 
                 <div class="flex justify-center space-x-4 mt-4">
                     <div class="w-1/4">
-                        <img class="cursor-pointer opacity-60 hover:opacity-100 transition" src="kuvat/pizzat.jpg" style="width:100%" onclick="currentSlide(1)" alt="Pizzat">
+                        <img class="cursor-pointer opacity-60 hover:opacity-100 transition" src="kuvat/pizzat.jpg"
+                            style="width:100%" onclick="currentSlide(1)" alt="Pizzat">
                     </div>
                     <div class="w-1/4">
-                        <img class="cursor-pointer opacity-60 hover:opacity-100 transition" src="kuvat/kebabit.jpg" style="width:100%" onclick="currentSlide(2)" alt="Kebabit">
+                        <img class="cursor-pointer opacity-60 hover:opacity-100 transition" src="kuvat/kebabit.jpg"
+                            style="width:100%" onclick="currentSlide(2)" alt="Kebabit">
                     </div>
                     <div class="w-1/4">
-                        <img class="cursor-pointer opacity-60 hover:opacity-100 transition" src="kuvat/salaatit.jpg" style="width:100%" onclick="currentSlide(3)" alt="Salaatit">
+                        <img class="cursor-pointer opacity-60 hover:opacity-100 transition" src="kuvat/salaatit.jpg"
+                            style="width:100%" onclick="currentSlide(3)" alt="Salaatit">
                     </div>
                 </div>
             </div>
         </section>
         <img src="kuvat/mainos.jpg" class="w-80 h-96 rounded-lg" alt="mainos">
     </main>
+
+    <!-- pöydän varaus lomake google forms -->
+    <section class="flex flex-col items-center" id="varaa-pöytä">
+        <h5 class="text-5xl p-6 mt-5 font-bold">Varaa pöytä</h5>
+        <iframe
+            src="https://docs.google.com/forms/d/e/1FAIpQLSfpF1zsQSjuDS3uQ8GC02IdOuViVYt4UVNE5mlx4hrflXxKsA/viewform?embedded=true"
+            class="w-screen h-screen">Ladataan…</iframe>
+    </section>
 
     <section class="flex flex-col items-center">
         <h5 class="text-5xl p-6 mt-5 font-bold" id="sijaintimme">Sijaintimme</h5>
@@ -144,6 +159,9 @@
             referrerpolicy="no-referrer-when-downgrade"></iframe>
     </section>
 
+
+
+    <!-- Yhteystiedot -->
     <footer class="mt-8 text-white flex flex-col bg-black p-4 md:p-8 w-full" id="yhteystiedot">
         <div
             class="flex flex-col md:flex-row justify-between items-center md:items-start text-center md:text-left space-y-4 md:space-y-0">
@@ -176,12 +194,12 @@
                 <img src="kuvat/Instagram.png" alt="Instagram" class="w-8 h-8">
             </a>
             <a href="https://www.facebook.com/malakairavintola" target="_blank"
-            class="text-xl flex items-center space-x-2  md:flex-row">
-            <img src="kuvat/facebook.png" alt="Facebook" class="w-8 h-8">
+                class="text-xl flex items-center space-x-2  md:flex-row">
+                <img src="kuvat/facebook.png" alt="Facebook" class="w-8 h-8">
                 <span>@malakairavintola</span>
             </a>
         </div>
-        
+
 
         <!-- Copyright -->
         <div class="mt-4 text-center">
