@@ -24,3 +24,18 @@ h2{
     -moz-user-drag: none;
     -o-user-drag: none;
 }
+
+#openWidget {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#openWidget:hover {
+  background-color: #222;
+}
