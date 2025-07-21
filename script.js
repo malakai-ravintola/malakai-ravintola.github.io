@@ -53,3 +53,11 @@ document.getElementById('openWidget').addEventListener('click', function() {
     'width=300,height=500'
   );
 });
+
+document.getElementById('openWidgetHeader').addEventListener('click', function() {
+  window.open(
+    'https://www.ravintolalinkki.fi/lempaala/menu/malakai-ravintola/varaa-widget/',
+    'VaraaPoyta',
+    'width=300,height=500'
+  );
+});
