@@ -48,8 +48,8 @@ function showSlides(n) {
 
 document.getElementById('openWidget').addEventListener('click', function() {
   window.open(
-    'https://www.ravintolalinkki.fi/lempaala/menu/malakai-ravintola/varaa-widget/',
-    'VaraaPoyta',
+    'https://order.site/malakai-ravintola/en/fin/lempaala/restaurant/malakai-ravintola-sf/varaa-widget/',
+    'Tilaa',
     'width=300,height=500'
   );
 });
@@ -61,3 +61,4 @@ document.getElementById('openWidgetHeader').addEventListener('click', function()
     'width=300,height=500'
   );
 });
+
