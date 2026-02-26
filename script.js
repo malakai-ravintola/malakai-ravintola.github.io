@@ -48,18 +48,15 @@ function showSlides(n) {
 
 document.getElementById('openWidget').addEventListener('click', function() {
   window.open(
-    'https://order.site/malakai-ravintola/en/fin/lempaala/restaurant/malakai-ravintola-sf/Tilaa-widget/',
-    'Tilaa',
-    'width=300,height=500'
+    'https://order.site/malakai-ravintola/en/fin/lempaala/restaurant/malakai-ravintola-sf/Tilaa-widget/','_blank'
   );
 });
 
 document.getElementById('openWidgetHeader').addEventListener('click', function() {
   window.open(
-    'https://order.site/malakai-ravintola/en/fin/lempaala/restaurant/malakai-ravintola-sf/Tilaa-widget/',
-    'Tilaa',
-    'width=300,height=500'
+    'https://order.site/malakai-ravintola/en/fin/lempaala/restaurant/malakai-ravintola-sf/Tilaa-widget/','_blank'
   );
 });
+
 
 
