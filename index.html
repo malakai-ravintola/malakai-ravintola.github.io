@@ -775,6 +775,8 @@ body:before{
 
 <a href="#sijainti">Sijaintimme</a>
 
+<a href="#tarjoukset">Tarjoukset</a>
+
 <a class="order-btn"
    href="https://order.site/malakai-ravintola">
    Tilaa nyt
@@ -2184,7 +2186,95 @@ ranskalaiset ja dippi.
 
 </div>
 
+</section> <!-- TARJOUKSET – laita tämä tickerin jälkeen ja ennen Lounas-osiota -->
+
+<section class="offers-section" id="tarjoukset">
+  <div class="container">
+
+    <div class="offers-heading">
+      <span class="offers-kicker">MALAKAI • TARJOUKSET</span>
+
+      <h2 class="display">TARJOUKSET</h2>
+
+      <p>Katso tämän hetken parhaat tarjoukset!</p>
+    </div>
+
+    <div class="offer-card">
+      <img
+        src="tarjous.jpg"
+        alt="Malakain tarjous – omavalintainen perhepizza ja 1,5L juoma 19,90 €"
+      >
+    </div>
+
+  </div>
 </section>
+
+<style>
+
+.offers-section {
+  padding: 80px 0;
+  background: #080808;
+}
+
+.offers-heading {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.offers-kicker {
+  display: inline-block;
+  background: #ffd329;
+  color: #111;
+  padding: 7px 13px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+
+.offers-heading h2 {
+  margin: 14px 0 8px;
+  color: #fff;
+  font-size: clamp(55px, 8vw, 95px);
+  line-height: .85;
+}
+
+.offers-heading p {
+  margin: 0;
+  color: #aaa;
+  font-weight: 600;
+}
+
+.offer-card {
+  max-width: 850px;
+  margin: 0 auto;
+  background: #111;
+  border: 3px solid #ed1c24;
+  box-shadow: 9px 9px 0 #ffd329;
+  overflow: hidden;
+}
+
+.offer-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@media (max-width: 600px) {
+
+  .offers-section {
+    padding: 55px 0;
+  }
+
+  .offer-card {
+    border-width: 2px;
+    box-shadow: 5px 5px 0 #ffd329;
+  }
+
+}
+
+</style>
 
 
 <section class="section"
@@ -2232,7 +2322,7 @@ Perustettu
 <div class="fact">
 
 <strong>
-    4.8★
+    4.7★
 </strong>
 
 Google
