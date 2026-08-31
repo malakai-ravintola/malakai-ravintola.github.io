@@ -766,12 +766,15 @@ body:before{
 </a>
 
 <nav class="nav">
+<a href="#aanestys">Äänestä</a>
 
 <a href="#menu">Menu</a>
 
 <a href="#lounas">Lounas</a>
 
-<a href="#meista">Meistä</a>
+<a href="#meista">Meistä</a> 
+    
+<a href="#arvostelut">Arvostelut</a>
 
 <a href="#sijainti">Sijaintimme</a>
 
@@ -780,7 +783,7 @@ body:before{
 <a class="order-btn"
    href="https://order.site/malakai-ravintola">
    Tilaa nyt
-</a>
+</a> 
 
 </nav>
 
@@ -990,49 +993,84 @@ body:before{
 </section>
 
 
-<section class="section"
-         style="padding-top:0">
+<!-- =========================================
+     MALAKAI – ÄÄNESTYS
+========================================= -->
 
-<div class="promo-grid">
+<section class="vote-section" id="aanestys">
 
+    <div class="vote-content">
 
-<div class="promo one">
+        <div class="vote-badge">
+            <div class="vote-dot"></div>
+            ÄÄNESTYS KÄYNNISSÄ
+        </div>
 
-<div class="promo-content">
+        <h2>Suomen paras lounas 2026</h2>
 
-<div class="tag">
-    MALAKAI FAVORITE
-</div>
+        <p class="vote-text">
+            Muistitko meidän lounaan? Äänestä Malakai Ravintolaa
+            Suomen parhaaksi lounaspaikaksi!
+        </p>
 
-<h3 class="display">
-    PIZZA
-</h3>
+        <div class="vote-layout">
 
-<p>
-    Valitse oma suosikkisi
-    tai rakenna oma pizza.
-</p>
+            <div class="vote-logo">
+                <div class="vote-circle">
+                    <span>Suomen</span>
+                    <strong>Paras Lounas</strong>
+                    <b>2026</b>
+                </div>
+            </div>
 
-</div>
+            <div class="vote-info">
 
-</div>
+                <div class="vote-label">
+                    ÄÄNESTYSAIKAA JÄLJELLÄ
+                </div>
 
+                <div class="countdown">
 
-<div class="promo two">
+                    <div class="time-box">
+                        <span id="days">00</span>
+                        <small>PV</small>
+                    </div>
 
-<div class="promo-content">
+                    <div class="time-box">
+                        <span id="hours">00</span>
+                        <small>T</small>
+                    </div>
 
-<div class="tag">
-    HOT & CRISPY
-</div>
+                    <div class="time-box">
+                        <span id="minutes">00</span>
+                        <small>MIN</small>
+                    </div>
 
-<h3 class="display">
-    WINGS
-</h3>
+                    <div class="time-box">
+                        <span id="seconds">00</span>
+                        <small>S</small>
+                    </div>
 
-<p>
-    Med → Hot
-</p>
+                </div>
+
+            </div>
+
+            <a
+                href="https://paraslounas.edenred.fi/fi/aanesta"
+                target="_blank"
+                rel="noopener"
+                class="vote-button"
+            >
+                Äänestä tästä
+                <span>→</span>
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
 
 </div>
 
@@ -2429,7 +2467,232 @@ Raaka-aineet
 
 </div>
 
+</section><section class="reviews-section">
+
+    <div class="reviews-header">
+
+        <div class="reviews-label">
+            ☆ ARVOSTELUT
+        </div>
+
+        <h2>
+            Mitä asiakkaamme
+            <span>sanovat</span>
+        </h2>
+
+        <div class="google-rating">
+
+            <div class="google-stars" id="googleStars">
+                ★★★★★
+            </div>
+
+            <strong id="googleRating">4.8</strong>
+
+            <span>/ 5 · <b id="googleReviewCount">155</b> Google-arvostelua</span>
+
+        </div>
+
+        <a
+            href="https://www.google.com/maps/search/?api=1&query=Malakai+Ravintola+Tampereentie+414+Lempäälä"
+            target="_blank"
+            class="leave-review"
+        >
+            Jätä arvostelu ☆
+        </a>
+
+    </div>
+
+
+    <div class="reviews-window">
+
+        <div class="reviews-track" id="reviewsTrack">
+
+            <!-- Google-arvostelut tulevat tähän automaattisesti -->
+
+        </div>
+
+    </div>
+
+
+    <a
+        href="https://www.google.com/maps/search/?api=1&query=Malakai+Ravintola+Tampereentie+414+Lempäälä"
+        target="_blank"
+        class="all-reviews"
+    >
+        Lue kaikki Google-arvostelut →
+    </a>
+
 </section>
+
+
+<style>
+
+.reviews-section {
+    background: #f3f0e7;
+    padding: 100px 0 70px;
+    overflow: hidden;
+    color: #202126;
+}
+
+.reviews-header {
+    text-align: center;
+    max-width: 850px;
+    margin: auto;
+    padding: 0 20px;
+}
+
+.reviews-label {
+    color: #4a8d00;
+    font-weight: 900;
+    letter-spacing: 2px;
+    font-size: 13px;
+}
+
+.reviews-header h2 {
+    font-size: clamp(42px, 6vw, 72px);
+    line-height: .95;
+    margin: 20px 0;
+    font-weight: 900;
+}
+
+.reviews-header h2 span {
+    color: #398b00;
+}
+
+.google-rating {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+}
+
+.google-rating strong {
+    font-size: 21px;
+}
+
+.google-stars {
+    color: #f5a400;
+    font-size: 21px;
+    letter-spacing: 2px;
+}
+
+.leave-review {
+    display: inline-block;
+    margin-top: 25px;
+    padding: 12px 22px;
+    border: 1px solid #c9c5ba;
+    border-radius: 10px;
+    color: #202126;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.reviews-window {
+    width: 100%;
+    overflow: hidden;
+    margin-top: 55px;
+}
+
+.reviews-track {
+    display: flex;
+    gap: 18px;
+    width: max-content;
+    animation: moveReviews 45s linear infinite;
+}
+
+.reviews-track:hover {
+    animation-play-state: paused;
+}
+
+.review-card {
+    width: 340px;
+    min-height: 270px;
+    background: white;
+    border-radius: 18px;
+    padding: 28px;
+    box-sizing: border-box;
+    box-shadow: 0 5px 25px rgba(0,0,0,.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.review-stars {
+    color: #f5a400;
+    font-size: 18px;
+    letter-spacing: 2px;
+}
+
+.review-text {
+    color: #4d4e53;
+    font-size: 15px;
+    line-height: 1.65;
+    margin: 18px 0;
+    flex: 1;
+}
+
+.review-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.review-author img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+}
+
+.review-author strong {
+    font-size: 14px;
+}
+
+.review-date {
+    display: block;
+    color: #888;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.all-reviews {
+    display: block;
+    text-align: center;
+    margin-top: 42px;
+    color: #398b00;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+@keyframes moveReviews {
+
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+
+}
+
+@media (max-width: 700px) {
+
+    .reviews-section {
+        padding: 70px 0 55px;
+    }
+
+    .review-card {
+        width: 290px;
+        min-height: 250px;
+    }
+
+    .google-rating {
+        flex-wrap: wrap;
+    }
+
+}
+
+</style>
 
 
 <section class="section"
