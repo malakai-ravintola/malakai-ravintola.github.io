@@ -981,7 +981,68 @@ body:before{
     14,90 €
 </strong>
 
-</div>
+</div><!-- ==========================================
+     1. EDENRED ÄÄNESTYSOSIO (Sivustosi omalla teemalla)
+     ========================================== -->
+<div class="site-theme-section">
+  <div class="yellow-tag">VAIKUTA LISTAAN</div>
+  <h2 class="section-big-title">SUOMEN PARAS LOUNAS 2026</h2>
+  <p class="section-subtext">
+    Maistuiko meidän lounas? Äänestä Malakai Ravintolaa Suomen parhaaksi lounaspaikaksi 20.9.2026 mennessä!
+  </p>
+
+  <div class="voting-red-box">
+    <div class="voting-box-header">
+      <div class="timer-title-group">
+        <span class="timer-yellow-label">ÄÄNESTYS PÄÄTTYY:</span>
+        <!-- Reaaliaikainen laskuri -->
+        <div class="countdown-display">
+          <div class="cd-item"><span id="cd-days">00</span><small>PÄIVÄÄ</small></div>
+          <div class="cd-item"><span id="cd-hours">00</span><small>TUNTIA</small></div>
+          <div class="cd-item"><span id="cd-mins">00</span><small>MIN</small></div>
+          <div class="cd-item"><span id="cd-secs">00</span><small>SEK</small></div>
+        </div>
+      </div>
+
+      <!-- Äänestyspainike -->
+      <a href="https://paraslounas.edenred.fi/fi/aanesta" target="_blank" rel="noopener noreferrer" class="action-vote-btn">
+        Äänestä! &rarr;
+      </a>
+    </div><!-- ==========================================
+     3. REAALIAIKAINEN Kello (JavaScript)
+     ========================================== -->
+<script>
+  (function() {
+    // Äänestys päättyy 20.9.2026 klo 23:59:59
+    const targetDate = new Date(2026, 8, 20, 23, 59, 59).getTime();
+
+    function updateCountdown() {
+      const now = new Date().getTime();
+      const diff = targetDate - now;
+
+      if (diff > 0) {
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById('cd-days').innerText = String(d).padStart(2, '0');
+        document.getElementById('cd-hours').innerText = String(h).padStart(2, '0');
+        document.getElementById('cd-mins').innerText = String(m).padStart(2, '0');
+        document.getElementById('cd-secs').innerText = String(s).padStart(2, '0');
+      } else {
+        document.getElementById('cd-days').innerText = '00';
+        document.getElementById('cd-hours').innerText = '00';
+        document.getElementById('cd-mins').innerText = '00';
+        document.getElementById('cd-secs').innerText = '00';
+      }
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  })();
+</script>
+  </div>
 
 </div>
 
@@ -2256,7 +2317,365 @@ Raaka-aineet
 
 </div>
 
-</section>
+</section><!-- ==========================================
+     2. ARVOSTELUOSIO (Vaalea pohja + Infinite Smooth Scroll)
+     ========================================== -->
+<div class="reviews-light-section">
+  <div class="reviews-header">
+    <div class="yellow-tag-center">ASIAKKAIDEN SUUSTA</div>
+    <h2 class="reviews-big-title">ARVOSTELUT</h2>
+  </div>
+
+  <!-- Saumattomasti ja tasaisesti rullaava karuselli -->
+  <div class="infinite-slider">
+    <div class="slider-track">
+      
+      <!-- KORTTI 1 -->
+      <div class="dark-review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">"Lempäälän parhaat pizzat ehdottomasti! Pohja on täydellisen rapea ja täytteitä on reilusti. Pizzabuffet toimii aina loistavasti."</p>
+        <div class="author-row">
+          <div class="author-avatar">M</div>
+          <div class="author-info">
+            <strong>Mikael K.</strong>
+            <span>Google-arvostelu</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KORTTI 2 -->
+      <div class="dark-review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">"Wingsit ja siipikastike olivat aivan huippuluokkaa! Todella ystävällinen asiakaspalvelu ja siisti ravintola. Suosittelen!"</p>
+        <div class="author-row">
+          <div class="author-avatar">S</div>
+          <div class="author-info">
+            <strong>Sari T.</strong>
+            <span>Google-arvostelu</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KORTTI 3 -->
+      <div class="dark-review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">"Rullakebab oli valtava ja maku aivan loistava. Suosikkipaikka aina kun tekee mieli kunnon mättöä. Nopeasti sai ruoat!"</p>
+        <div class="author-row">
+          <div class="author-avatar">J</div>
+          <div class="author-info">
+            <strong>Janne P.</strong>
+            <span>Google-arvostelu</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KORTTI 4 -->
+      <div class="dark-review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">"Upeaa ruokaa, hyvää ja joustavaa asiakaspalvelua. Hypen arvoinen paikka!"</p>
+        <div class="author-row">
+          <div class="author-avatar">F</div>
+          <div class="author-info">
+            <strong>Fredrik Y.</strong>
+            <span>Google-arvostelu</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DUPLIKAATIT SAUMATTOMAAN ANIMAATIOON -->
+      <div class="dark-review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">"Lempäälän parhaat pizzat ehdottomasti! Pohja on täydellisen rapea ja täytteitä on reilusti. Pizzabuffet toimii aina loistavasti."</p>
+        <div class="author-row">
+          <div class="author-avatar">M</div>
+          <div class="author-info">
+            <strong>Mikael K.</strong>
+            <span>Google-arvostelu</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dark-review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">"Wingsit ja siipikastike olivat aivan huippuluokkaa! Todella ystävällinen asiakaspalvelu ja siisti ravintola. Suosittelen!"</p>
+        <div class="author-row">
+          <div class="author-avatar">S</div>
+          <div class="author-info">
+            <strong>Sari T.</strong>
+            <span>Google-arvostelu</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dark-review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">"Rullakebab oli valtava ja maku aivan loistava. Suosikkipaikka aina kun tekee mieli kunnon mättöä. Nopeasti sai ruoat!"</p>
+        <div class="author-row">
+          <div class="author-avatar">J</div>
+          <div class="author-info">
+            <strong>Janne P.</strong>
+            <span>Google-arvostelu</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dark-review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">"Upeaa ruokaa, hyvää ja joustavaa asiakaspalvelua. Hypen arvoinen paikka!"</p>
+        <div class="author-row">
+          <div class="author-avatar">F</div>
+          <div class="author-info">
+            <strong>Fredrik Y.</strong>
+            <span>Google-arvostelu</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ==========================================
+     TYYLIT (CSS)
+     ========================================== -->
+<style>
+  /* 1. TEEMAN YLEISPAINOTUKSET */
+  .site-theme-section {
+    background-color: #0c0c0c;
+    background-image: radial-gradient(#222 1px, transparent 0);
+    background-size: 8px 8px;
+    color: #ffffff;
+    padding: 40px 20px;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+  }
+
+  .yellow-tag {
+    display: inline-block;
+    background-color: #ffcc00;
+    color: #000;
+    font-size: 13px;
+    font-weight: 900;
+    padding: 4px 10px;
+    transform: rotate(-1deg);
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+  }
+
+  .section-big-title {
+    font-size: 48px;
+    font-weight: 900;
+    margin: 5px 0 10px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.0;
+  }
+
+  .section-subtext {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #cccccc;
+    font-size: 15px;
+    margin-bottom: 25px;
+  }
+
+  /* Äänestyslaatikko */
+  .voting-red-box {
+    border: 2px solid #e50019;
+    background-color: rgba(18, 18, 18, 0.9);
+    border-radius: 8px;
+    padding: 25px;
+  }
+
+  .voting-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .timer-yellow-label {
+    color: #ffcc00;
+    font-size: 13px;
+    display: block;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+  }
+
+  .countdown-display {
+    display: flex;
+    gap: 10px;
+  }
+
+  .cd-item {
+    background-color: #000000;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 8px 12px;
+    text-align: center;
+    min-width: 45px;
+  }
+
+  .cd-item span {
+    color: #ffcc00;
+    font-size: 24px;
+    display: block;
+    line-height: 1;
+  }
+
+  .cd-item small {
+    color: #888888;
+    font-size: 9px;
+    font-family: sans-serif;
+    font-weight: bold;
+    display: block;
+    margin-top: 4px;
+  }
+
+  .action-vote-btn {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #444;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-family: sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+
+  .action-vote-btn:hover {
+    background-color: #ffcc00;
+    color: #000000;
+    border-color: #ffcc00;
+  }
+
+  /* 2. ARVOSTELUT VAALEALLA POHJALLA */
+  .reviews-light-section {
+    background-color: #f3efe6; /* Vaalea keltahtava tausta kuvastasi */
+    padding: 50px 0;
+    overflow: hidden;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+  }
+
+  .reviews-header {
+    padding: 0 20px;
+    margin-bottom: 30px;
+  }
+
+  .yellow-tag-center {
+    display: inline-block;
+    background-color: #ffcc00;
+    color: #000;
+    font-size: 13px;
+    font-weight: 900;
+    padding: 4px 12px;
+    transform: rotate(-1.5deg);
+    letter-spacing: 1px;
+  }
+
+  .reviews-big-title {
+    font-size: 56px;
+    color: #000000;
+    margin: 10px 0 0 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Rullaava Animaatio */
+  .infinite-slider {
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+  }
+
+  .slider-track {
+    display: flex;
+    gap: 20px;
+    animation: smoothScroll 25s linear infinite;
+    width: max-content;
+  }
+
+  .slider-track:hover {
+    animation-play-state: paused; /* Pysähtyy hiirellä osoittaessa */
+  }
+
+  .dark-review-card {
+    background-color: #141414;
+    background-image: radial-gradient(#252525 1px, transparent 0);
+    background-size: 6px 6px;
+    border: 1px solid #ffcc00; /* Keltainen korostusreuna */
+    border-radius: 12px;
+    padding: 25px;
+    width: 320px;
+    flex-shrink: 0;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+
+  .card-stars {
+    color: #ffcc00;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .card-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #dddddd;
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+
+  .author-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .author-avatar {
+    width: 38px;
+    height: 38px;
+    background-color: #e50019; /* Punainen ympyrä kuvan mukaan */
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    font-family: sans-serif;
+  }
+
+  .author-info strong {
+    display: block;
+    color: #ffffff;
+    font-size: 14px;
+  }
+
+  .author-info span {
+    color: #888888;
+    font-size: 11px;
+  }
+
+  /* Saumaton animaatio vasemmalle */
+  @keyframes smoothScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  @media (max-width: 768px) {
+    .section-big-title { font-size: 32px; }
+    .reviews-big-title { font-size: 40px; }
+    .voting-box-header { flex-direction: column; align-items: flex-start; }
+    .action-vote-btn { width: 100%; text-align: center; }
+  }
+</style>
 
 </div>
 
