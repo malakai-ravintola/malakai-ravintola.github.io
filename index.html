@@ -985,7 +985,7 @@ body:before{
 
 
 </section><!-- ==========================================
-     ÄÄNESTYS-SECTION (MALAKAIRAVINTOLA.FI TEEMA)
+     ÄÄNESTYS-SECTION (REAALIAIKAINEN LASKURI)
      ========================================== -->
 <section class="malakai-vote-section">
   <style>
@@ -1179,26 +1179,18 @@ body:before{
       box-shadow: 0 6px 20px rgba(229, 0, 25, 0.6);
     }
 
-    /* Responsiivisuus mobiilille */
     @media (max-width: 850px) {
       .vote-container {
         flex-direction: column;
         text-align: center;
       }
-
-      .vote-status {
+      .vote-status, .timer-boxes {
         justify-content: center;
       }
-
-      .timer-boxes {
-        justify-content: center;
-      }
-
       .vote-action {
         width: 100%;
         margin-top: 10px;
       }
-
       .btn-vote {
         width: 100%;
         justify-content: center;
@@ -1231,19 +1223,19 @@ body:before{
       <div class="timer-label">Äänestysaikaa jäljellä</div>
       <div class="timer-boxes">
         <div class="timer-box">
-          <div class="timer-num" id="pv">20</div>
+          <div class="timer-num" id="vote-pv">00</div>
           <div class="timer-unit">PV</div>
         </div>
         <div class="timer-box">
-          <div class="timer-num" id="t">04</div>
+          <div class="timer-num" id="vote-t">00</div>
           <div class="timer-unit">T</div>
         </div>
         <div class="timer-box">
-          <div class="timer-num" id="min">42</div>
+          <div class="timer-num" id="vote-min">00</div>
           <div class="timer-unit">MIN</div>
         </div>
         <div class="timer-box">
-          <div class="timer-num" id="s">26</div>
+          <div class="timer-num" id="vote-s">00</div>
           <div class="timer-unit">S</div>
         </div>
       </div>
@@ -1256,6 +1248,40 @@ body:before{
       </a>
     </div>
   </div>
+
+  <!-- Reaaliaikainen laskuriskripti (Päättyy 20.9.2026 klo 23:59:59) -->
+  <script>
+    (function() {
+      // Syyskuu = kuukausi 8 (JS:ssä Tammikuu on 0)
+      const targetDate = new Date(2026, 8, 20, 23, 59, 59).getTime();
+
+      function updateCountdown() {
+        const now = new Date().getTime();
+        const difference = targetDate - now;
+
+        if (difference > 0) {
+          const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+          document.getElementById("vote-pv").innerText = days < 10 ? "0" + days : days;
+          document.getElementById("vote-t").innerText = hours < 10 ? "0" + hours : hours;
+          document.getElementById("vote-min").innerText = minutes < 10 ? "0" + minutes : minutes;
+          document.getElementById("vote-s").innerText = seconds < 10 ? "0" + seconds : seconds;
+        } else {
+          document.getElementById("vote-pv").innerText = "00";
+          document.getElementById("vote-t").innerText = "00";
+          document.getElementById("vote-min").innerText = "00";
+          document.getElementById("vote-s").innerText = "00";
+        }
+      }
+
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    })();
+  </script>
+</section>
 </section>
 
 
