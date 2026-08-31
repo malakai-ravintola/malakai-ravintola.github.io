@@ -993,81 +993,172 @@ body:before{
 </section>
 
 
-<!-- =========================================
-     MALAKAI – ÄÄNESTYS
-========================================= -->
-
-<section class="vote-section" id="aanestys">
-
-    <div class="vote-content">
-
-        <div class="vote-badge">
-            <div class="vote-dot"></div>
-            ÄÄNESTYS KÄYNNISSÄ
-        </div>
-
-        <h2>Suomen paras lounas 2026</h2>
-
-        <p class="vote-text">
-            Muistitko meidän lounaan? Äänestä Malakai Ravintolaa
-            Suomen parhaaksi lounaspaikaksi!
-        </p>
-
-        <div class="vote-layout">
-
-            <div class="vote-logo">
-                <div class="vote-circle">
-                    <span>Suomen</span>
-                    <strong>Paras Lounas</strong>
-                    <b>2026</b>
-                </div>
-            </div>
-
-            <div class="vote-info">
-
-                <div class="vote-label">
-                    ÄÄNESTYSAIKAA JÄLJELLÄ
-                </div>
-
-                <div class="countdown">
-
-                    <div class="time-box">
-                        <span id="days">00</span>
-                        <small>PV</small>
-                    </div>
-
-                    <div class="time-box">
-                        <span id="hours">00</span>
-                        <small>T</small>
-                    </div>
-
-                    <div class="time-box">
-                        <span id="minutes">00</span>
-                        <small>MIN</small>
-                    </div>
-
-                    <div class="time-box">
-                        <span id="seconds">00</span>
-                        <small>S</small>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <a
-                href="https://paraslounas.edenred.fi/fi/aanesta"
-                target="_blank"
-                rel="noopener"
-                class="vote-button"
-            >
-                Äänestä tästä
-                <span>→</span>
-            </a>
-
-        </div>
-
+<div class="edenred-banner">
+  <div class="edenred-banner-content">
+    
+    <div class="edenred-badge-container">
+      <div class="edenred-badge">
+        <span class="badge-brand">Edenred</span>
+        <span class="badge-title">Suomen<br>Paras Lounas</span>
+        <span class="badge-stars">★★★★★</span>
+        <span class="badge-year">2026</span>
+        <span class="badge-footer">POWERED BY EDENRED</span>
+      </div>
     </div>
+
+    <div class="edenred-info">
+      <div class="edenred-status">
+        <span class="status-dot">•</span> ÄÄNESTYS KÄYNNISSÄ
+      </div>
+      <h2 class="edenred-title">Suomen paras lounas 2026</h2>
+      <p class="edenred-description">
+        Äänestä Malakai Ravintolaa Suomen parhaaksi lounaspaikaksi! Arvostaisimme paljon!
+      </p>
+      
+      <div class="edenred-timer-section">
+        <div class="timer-label">ÄÄNESTYSAIKAA JÄLJELLÄ</div>
+        <div class="timer-boxes">
+          <div class="timer-box"><span class="number" id="days">00</span><span class="unit">PV</span></div>
+          <div class="timer-box"><span class="number" id="hours">00</span><span class="unit">T</span></div>
+          <div class="timer-box"><span class="number" id="minutes">00</span><span class="unit">MIN</span></div>
+          <div class="timer-box"><span class="number" id="seconds">00</span><span class="unit">S</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="edenred-action">
+      <a href="https://paraslounas.edenred.fi/fi/aanesta" target="_blank" rel="noopener noreferrer" class="edenred-btn">
+        Äänestä tästä &rarr;
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .edenred-banner {
+    background-color: #4d4e58;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 40px 20px;
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+
+  .edenred-banner-content {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+
+  .edenred-badge-container {
+    flex-shrink: 0;
+  }
+  
+  .edenred-badge {
+    width: 140px;
+    height: 140px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    color: #e50019;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-sizing: border-box;
+  }
+
+  .badge-brand { font-size: 10px; font-weight: bold; }
+  .badge-title { color: #333333; font-size: 13px; font-weight: 800; line-height: 1.1; margin: 4px 0 2px 0; }
+  .badge-stars { color: #8bc53f; font-size: 10px; letter-spacing: 1px; }
+  .badge-year { font-size: 18px; font-weight: 900; margin: 2px 0; }
+  .badge-footer { color: #666; font-size: 7px; letter-spacing: 0.5px; }
+
+  .edenred-info { flex: 1; min-width: 280px; }
+  .edenred-status { color: #76d700; font-size: 13px; font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; }
+  .status-dot { font-size: 16px; margin-right: 4px; }
+  .edenred-title { font-size: 28px; font-weight: 800; margin: 0 0 10px 0; color: #ffffff; }
+  .edenred-description { font-size: 15px; color: #d1d5db; margin: 0 0 20px 0; line-height: 1.4; }
+
+  .edenred-timer-section { margin-top: 15px; }
+  .timer-label { font-size: 11px; font-weight: bold; color: #9ca3af; letter-spacing: 1px; margin-bottom: 8px; }
+  .timer-boxes { display: flex; gap: 8px; }
+  
+  .timer-box {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-width: 42px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .timer-box .number { color: #76d700; font-size: 22px; font-weight: bold; line-height: 1; }
+  .timer-box .unit { color: #9ca3af; font-size: 9px; font-weight: bold; margin-top: 4px; }
+
+  .edenred-action { flex-shrink: 0; }
+  .edenred-btn {
+    display: inline-block;
+    background-color: #76d700;
+    color: #1a1a1a;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 16px 28px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+  }
+
+  .edenred-btn:hover { background-color: #68bd00; transform: translateY(-1px); }
+
+  @media (max-width: 768px) {
+    .edenred-banner-content { flex-direction: column; align-items: flex-start; }
+    .edenred-action { width: 100%; }
+    .edenred-btn { display: block; text-align: center; }
+  }
+</style>
+
+<script>
+  (function() {
+    // Äänestys päättyy 20.9.2026 klo 23:59:59
+    const endDate = new Date(2026, 8, 20, 23, 59, 59).getTime();
+
+    function updateTimer() {
+      const now = new Date().getTime();
+      const difference = endDate - now;
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        document.getElementById('days').innerText = String(days).padStart(2, '0');
+        document.getElementById('hours').innerText = String(hours).padStart(2, '0');
+        document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
+        document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+      } else {
+        document.getElementById('days').innerText = '00';
+        document.getElementById('hours').innerText = '00';
+        document.getElementById('minutes').innerText = '00';
+        document.getElementById('seconds').innerText = '00';
+      }
+    }
+
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  })();
+</script>
 
 </section>
 
@@ -2488,7 +2579,7 @@ Raaka-aineet
 
             <strong id="googleRating">4.8</strong>
 
-            <span>/ 5 · <b id="googleReviewCount">155</b> Google-arvostelua</span>
+            <span>/ 5 · <b id="googleReviewCount">207</b> Google-arvostelua</span>
 
         </div>
 
