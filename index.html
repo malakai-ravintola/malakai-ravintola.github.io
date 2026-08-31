@@ -993,11 +993,11 @@ body:before{
 </section>
 
 
-<div class="edenred-banner">
-  <div class="edenred-banner-content">
+<div class="malakai-banner">
+  <div class="malakai-banner-content">
     
-    <div class="edenred-badge-container">
-      <div class="edenred-badge">
+    <div class="malakai-badge-container">
+      <div class="malakai-badge">
         <span class="badge-brand">Edenred</span>
         <span class="badge-title">Suomen<br>Paras Lounas</span>
         <span class="badge-stars">★★★★★</span>
@@ -1006,16 +1006,16 @@ body:before{
       </div>
     </div>
 
-    <div class="edenred-info">
-      <div class="edenred-status">
+    <div class="malakai-info">
+      <div class="malakai-status">
         <span class="status-dot">•</span> ÄÄNESTYS KÄYNNISSÄ
       </div>
-      <h2 class="edenred-title">Suomen paras lounas 2026</h2>
-      <p class="edenred-description">
-        Äänestä Malakai Ravintolaa Suomen parhaaksi lounaspaikaksi! Arvostaisimme paljon!
+      <h2 class="malakai-banner-title">Suomen paras lounas 2026</h2>
+      <p class="malakai-description">
+        Maistuiko meidän lounas? Äänestä Malakai Ravintolaa Suomen parhaaksi lounaspaikaksi! Arvostaisimme sitä todella paljon!
       </p>
       
-      <div class="edenred-timer-section">
+      <div class="malakai-timer-section">
         <div class="timer-label">ÄÄNESTYSAIKAA JÄLJELLÄ</div>
         <div class="timer-boxes">
           <div class="timer-box"><span class="number" id="days">00</span><span class="unit">PV</span></div>
@@ -1026,8 +1026,8 @@ body:before{
       </div>
     </div>
 
-    <div class="edenred-action">
-      <a href="https://paraslounas.edenred.fi/fi/aanesta" target="_blank" rel="noopener noreferrer" class="edenred-btn">
+    <div class="malakai-action">
+      <a href="https://paraslounas.edenred.fi/fi/aanesta" target="_blank" rel="noopener noreferrer" class="malakai-btn">
         Äänestä tästä &rarr;
       </a>
     </div>
@@ -1035,17 +1035,93 @@ body:before{
   </div>
 </div>
 
+
+<div class="malakai-reviews-section">
+  <div class="reviews-header">
+    <div class="reviews-tag">ARVOSTELUT</div>
+    <h2 class="reviews-title">Mitä <span>vieraat sanovat</span></h2>
+    <div class="reviews-rating">
+      <span class="stars">★★★★★</span>
+      <span class="rating-text"><strong>4,8</strong> / 5 · Google-arvostelut</span>
+    </div>
+  </div>
+
+  <div class="reviews-carousel-wrapper">
+    <div class="reviews-track" id="reviewsTrack">
+      
+      <div class="review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">Upeaa ruokaa, hyvää ja joustavaa asiakaspalvelua. Ehdottomasti suosittelujen arvoinen paikka!</p>
+        <div class="card-author">
+          <div class="avatar gold">F</div>
+          <span>Fredrik Yannopoulos</span>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">Todella hyvä lounas runsaalla salaattipöydällä ja leipävalikoimalla. Pizzat ja kebabit myös huippuluokkaa!</p>
+        <div class="card-author">
+          <div class="avatar gold">M</div>
+          <span>Maarit Suojala</span>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">Aivan mahtava lounasbuffet ja todella ystävällinen henkilökunta. Koiratkin toivotetaan lämpimästi tervetulleeksi.</p>
+        <div class="card-author">
+          <div class="avatar gold">S</div>
+          <span>Sari Seppä-Anttila</span>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">Salaattipöytä on todella hyvä ja valikoima runsas. Pelkästään sillä syö jo itsensä ähkyyn, mutta lämmin ruoka vie kielen mennessään!</p>
+        <div class="card-author">
+          <div class="avatar gold">K</div>
+          <span>Keijo Toivonen</span>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="card-stars">★★★★★</div>
+        <p class="card-text">Mahtava ruoka ja iloinen palvelu! Aina ilo käydä syömässä, oli kyseessä lounas tai viikonlopun herkuttelu.</p>
+        <div class="card-author">
+          <div class="avatar gold">E</div>
+          <span>Elina</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
 <style>
-  .edenred-banner {
-    background-color: #4d4e58;
-    color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    padding: 40px 20px;
-    border-radius: 8px;
-    box-sizing: border-box;
+  :root {
+    --malakai-bg: #121212;
+    --malakai-card-bg: #1e1e1e;
+    --malakai-accent: #e5a93b; /* Kullan/keltaisen teema */
+    --malakai-text: #ffffff;
+    --malakai-text-muted: #aaaaaa;
+    --malakai-border: #2a2a2a;
   }
 
-  .edenred-banner-content {
+  /* ÄÄNESTYS-BANNERI */
+  .malakai-banner {
+    background: linear-gradient(135deg, #181818 0%, #0d0d0d 100%);
+    border: 1px solid var(--malakai-border);
+    color: var(--malakai-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 35px 25px;
+    border-radius: 12px;
+    margin-bottom: 50px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  .malakai-banner-content {
     max-width: 1100px;
     margin: 0 auto;
     display: flex;
@@ -1055,13 +1131,11 @@ body:before{
     flex-wrap: wrap;
   }
 
-  .edenred-badge-container {
-    flex-shrink: 0;
-  }
+  .malakai-badge-container { flex-shrink: 0; }
   
-  .edenred-badge {
-    width: 140px;
-    height: 140px;
+  .malakai-badge {
+    width: 130px;
+    height: 130px;
     background-color: #ffffff;
     border-radius: 50%;
     color: #e50019;
@@ -1071,66 +1145,174 @@ body:before{
     justify-content: center;
     text-align: center;
     padding: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 15px rgba(229, 169, 59, 0.2);
     box-sizing: border-box;
   }
 
-  .badge-brand { font-size: 10px; font-weight: bold; }
-  .badge-title { color: #333333; font-size: 13px; font-weight: 800; line-height: 1.1; margin: 4px 0 2px 0; }
-  .badge-stars { color: #8bc53f; font-size: 10px; letter-spacing: 1px; }
-  .badge-year { font-size: 18px; font-weight: 900; margin: 2px 0; }
-  .badge-footer { color: #666; font-size: 7px; letter-spacing: 0.5px; }
+  .badge-brand { font-size: 9px; font-weight: bold; }
+  .badge-title { color: #111; font-size: 12px; font-weight: 800; line-height: 1.1; margin: 3px 0; }
+  .badge-stars { color: var(--malakai-accent); font-size: 9px; letter-spacing: 1px; }
+  .badge-year { font-size: 16px; font-weight: 900; margin: 2px 0; }
+  .badge-footer { color: #666; font-size: 6px; }
 
-  .edenred-info { flex: 1; min-width: 280px; }
-  .edenred-status { color: #76d700; font-size: 13px; font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; }
-  .status-dot { font-size: 16px; margin-right: 4px; }
-  .edenred-title { font-size: 28px; font-weight: 800; margin: 0 0 10px 0; color: #ffffff; }
-  .edenred-description { font-size: 15px; color: #d1d5db; margin: 0 0 20px 0; line-height: 1.4; }
+  .malakai-info { flex: 1; min-width: 280px; }
+  .malakai-status { color: var(--malakai-accent); font-size: 12px; font-weight: bold; letter-spacing: 1px; margin-bottom: 6px; }
+  .status-dot { font-size: 14px; margin-right: 4px; }
+  .malakai-banner-title { font-size: 26px; font-weight: 800; margin: 0 0 8px 0; color: #fff; }
+  .malakai-description { font-size: 14px; color: var(--malakai-text-muted); margin: 0 0 16px 0; line-height: 1.5; }
 
-  .edenred-timer-section { margin-top: 15px; }
-  .timer-label { font-size: 11px; font-weight: bold; color: #9ca3af; letter-spacing: 1px; margin-bottom: 8px; }
+  .malakai-timer-section { margin-top: 10px; }
+  .timer-label { font-size: 10px; font-weight: bold; color: var(--malakai-text-muted); letter-spacing: 1px; margin-bottom: 6px; }
   .timer-boxes { display: flex; gap: 8px; }
   
   .timer-box {
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    padding: 8px 12px;
-    min-width: 42px;
+    background-color: var(--malakai-card-bg);
+    border: 1px solid var(--malakai-border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    min-width: 45px;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
-  .timer-box .number { color: #76d700; font-size: 22px; font-weight: bold; line-height: 1; }
-  .timer-box .unit { color: #9ca3af; font-size: 9px; font-weight: bold; margin-top: 4px; }
+  .timer-box .number { color: var(--malakai-accent); font-size: 20px; font-weight: bold; line-height: 1; }
+  .timer-box .unit { color: var(--malakai-text-muted); font-size: 9px; font-weight: bold; margin-top: 4px; }
 
-  .edenred-action { flex-shrink: 0; }
-  .edenred-btn {
+  .malakai-action { flex-shrink: 0; }
+  .malakai-btn {
     display: inline-block;
-    background-color: #76d700;
-    color: #1a1a1a;
+    background-color: var(--malakai-accent);
+    color: #000;
     font-weight: bold;
     font-size: 15px;
-    padding: 16px 28px;
-    border-radius: 12px;
+    padding: 14px 26px;
+    border-radius: 8px;
     text-decoration: none;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    transition: all 0.2s ease;
   }
 
-  .edenred-btn:hover { background-color: #68bd00; transform: translateY(-1px); }
+  .malakai-btn:hover {
+    background-color: #f5b94c;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(229, 169, 59, 0.4);
+  }
+
+  /* ARVOSTELUOSIO (Karuselli) */
+  .malakai-reviews-section {
+    background-color: var(--malakai-bg);
+    color: var(--malakai-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 40px 20px;
+    border-radius: 12px;
+  }
+
+  .reviews-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .reviews-tag {
+    color: var(--malakai-accent);
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+
+  .reviews-title {
+    font-size: 32px;
+    font-weight: 900;
+    margin: 8px 0;
+  }
+
+  .reviews-title span {
+    color: var(--malakai-accent);
+  }
+
+  .reviews-rating {
+    font-size: 14px;
+    color: var(--malakai-text-muted);
+  }
+
+  .reviews-rating .stars {
+    color: var(--malakai-accent);
+    margin-right: 6px;
+  }
+
+  /* Karusellin liikkuva säiliö */
+  .reviews-carousel-wrapper {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    padding: 10px 0;
+  }
+
+  .reviews-track {
+    display: flex;
+    gap: 20px;
+    transition: transform 0.5s ease-in-out;
+    width: max-content;
+  }
+
+  .review-card {
+    background-color: var(--malakai-card-bg);
+    border: 1px solid var(--malakai-border);
+    border-radius: 10px;
+    padding: 20px;
+    width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  .card-stars {
+    color: var(--malakai-accent);
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .card-text {
+    font-size: 13px;
+    color: #dddddd;
+    line-height: 1.5;
+    margin-bottom: 15px;
+  }
+
+  .card-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--malakai-accent);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+  }
 
   @media (max-width: 768px) {
-    .edenred-banner-content { flex-direction: column; align-items: flex-start; }
-    .edenred-action { width: 100%; }
-    .edenred-btn { display: block; text-align: center; }
+    .malakai-banner-content { flex-direction: column; align-items: flex-start; }
+    .malakai-action { width: 100%; }
+    .malakai-btn { display: block; text-align: center; }
   }
 </style>
 
+
 <script>
   (function() {
-    // Äänestys päättyy 20.9.2026 klo 23:59:59
+    // 1. REAALIAIKAINEN ÄÄNESTYSLASKURI (päättyy 20.9.2026)
     const endDate = new Date(2026, 8, 20, 23, 59, 59).getTime();
 
     function updateTimer() {
@@ -1152,22 +1334,7 @@ body:before{
         document.getElementById('hours').innerText = '00';
         document.getElementById('minutes').innerText = '00';
         document.getElementById('seconds').innerText = '00';
-      }
-    }
-
-    updateTimer();
-    setInterval(updateTimer, 1000);
-  })();
-</script>
-
-</section>
-
-
-</div>
-
-</div>
-
-</div>
+      
 
 </section>
 
@@ -2558,61 +2725,27 @@ Raaka-aineet
 
 </div>
 
-</section><section class="reviews-section">
+setInterval(updateTimer, 1000);
 
-    <div class="reviews-header">
+    // 2. REAALIAIKAISESTI LIIKKUVA ARVOSTELUKARUSELLI
+    const track = document.getElementById('reviewsTrack');
+    let index = 0;
+    const cardWidth = 300; // Kortin leveys + marginaali
 
-        <div class="reviews-label">
-            ☆ ARVOSTELUT
-        </div>
+    function slideReviews() {
+      const maxIndex = track.children.length - Math.floor(window.innerWidth / cardWidth);
+      index++;
+      if (index > track.children.length - 1) {
+        index = 0; // Palaa alkuun
+      }
+      track.style.transform = `translateX(-${index * cardWidth}px)`;
+    }
 
-        <h2>
-            Mitä asiakkaamme
-            <span>sanovat</span>
-        </h2>
-
-        <div class="google-rating">
-
-            <div class="google-stars" id="googleStars">
-                ★★★★★
-            </div>
-
-            <strong id="googleRating">4.8</strong>
-
-            <span>/ 5 · <b id="googleReviewCount">207</b> Google-arvostelua</span>
-
-        </div>
-
-        <a
-            href="https://www.google.com/maps/search/?api=1&query=Malakai+Ravintola+Tampereentie+414+Lempäälä"
-            target="_blank"
-            class="leave-review"
-        >
-            Jätä arvostelu ☆
-        </a>
-
-    </div>
-
-
-    <div class="reviews-window">
-
-        <div class="reviews-track" id="reviewsTrack">
-
-            <!-- Google-arvostelut tulevat tähän automaattisesti -->
-
-        </div>
-
-    </div>
-
-
-    <a
-        href="https://www.google.com/maps/search/?api=1&query=Malakai+Ravintola+Tampereentie+414+Lempäälä"
-        target="_blank"
-        class="all-reviews"
-    >
-        Lue kaikki Google-arvostelut →
-    </a>
-
+    // Liikkuu automaattisesti 3.5 sekunnin välein
+    setInterval(slideReviews, 3500);
+  })();
+</script>
+    
 </section>
 
 
