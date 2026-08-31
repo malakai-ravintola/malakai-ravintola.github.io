@@ -982,71 +982,280 @@ body:before{
 </strong>
 
 </div>
-    <!-- ==========================================
-     1. EDENRED ÄÄNESTYSOSIO (Sivustosi omalla teemalla)
+
+
+</section><!-- ==========================================
+     ÄÄNESTYS-SECTION (MALAKAIRAVINTOLA.FI TEEMA)
      ========================================== -->
-<div class="site-theme-section">
-  <div class="yellow-tag">VAIKUTA LISTAAN</div>
-  <h2 class="section-big-title">SUOMEN PARAS LOUNAS 2026</h2>
-  <p class="section-subtext">
-    Maistuiko meidän lounas? Äänestä Malakai Ravintolaa Suomen parhaaksi lounaspaikaksi 20.9.2026 mennessä!
-  </p>
-
-  <div class="voting-red-box">
-    <div class="voting-box-header">
-      <div class="timer-title-group">
-        <span class="timer-yellow-label">ÄÄNESTYS PÄÄTTYY:</span>
-        <!-- Reaaliaikainen laskuri -->
-        <div class="countdown-display">
-          <div class="cd-item"><span id="cd-days">00</span><small>PÄIVÄÄ</small></div>
-          <div class="cd-item"><span id="cd-hours">00</span><small>TUNTIA</small></div>
-          <div class="cd-item"><span id="cd-mins">00</span><small>MIN</small></div>
-          <div class="cd-item"><span id="cd-secs">00</span><small>SEK</small></div>
-        </div>
-      </div>
-
-      <!-- Äänestyspainike -->
-      <a href="https://paraslounas.edenred.fi/fi/aanesta" target="_blank" rel="noopener noreferrer" class="action-vote-btn">
-        Äänestä! &rarr;
-      </a>
-    </div><!-- ==========================================
-     3. REAALIAIKAINEN Kello (JavaScript)
-     ========================================== -->
-  <script>
-  (function() {
-    // Äänestys päättyy 20.9.2026 klo 23:59:59
-    const targetDate = new Date(2026, 8, 20, 23, 59, 59).getTime();
-
-    function updateCountdown() {
-      const now = new Date().getTime();
-      const diff = targetDate - now;
-
-      if (diff > 0) {
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-        document.getElementById('cd-days').innerText = String(d).padStart(2, '0');
-        document.getElementById('cd-hours').innerText = String(h).padStart(2, '0');
-        document.getElementById('cd-mins').innerText = String(m).padStart(2, '0');
-        document.getElementById('cd-secs').innerText = String(s).padStart(2, '0');
-      } else {
-        document.getElementById('cd-days').innerText = '00';
-        document.getElementById('cd-hours').innerText = '00';
-        document.getElementById('cd-mins').innerText = '00';
-        document.getElementById('cd-secs').innerText = '00';
-      }
+<section class="malakai-vote-section">
+  <style>
+    .malakai-vote-section {
+      background-color: #141414;
+      background-image: radial-gradient(#252525 1px, transparent 0);
+      background-size: 6px 6px;
+      border: 1px solid #ffcc00;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 1100px;
+      margin: 40px auto;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-  })();
-</script>
+    .vote-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    /* Logo / Badget vasemmalla */
+    .vote-badge-wrapper {
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .vote-badge {
+      width: 160px;
+      height: 160px;
+      background: #ffffff;
+      border-radius: 50%;
+      border: 4px solid #e50019;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 15px;
+      box-shadow: 0 0 20px rgba(229, 0, 25, 0.3);
+      color: #111111;
+    }
+
+    .badge-edenred {
+      color: #e50019;
+      font-weight: 800;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .badge-title {
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin: 4px 0;
+      color: #111111;
+    }
+
+    .badge-stars {
+      color: #ffcc00;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .badge-year {
+      font-size: 22px;
+      font-weight: 900;
+      color: #e50019;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .badge-footer {
+      font-size: 8px;
+      color: #666;
+      margin-top: 4px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    /* Tekstiosio keskellä */
+    .vote-content {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .vote-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffcc00;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #ffcc00;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 8px #ffcc00;
+    }
+
+    .vote-title {
+      font-size: 36px;
+      font-weight: 900;
+      margin: 0 0 12px 0;
+      color: #ffffff;
+      line-height: 1.1;
+    }
+
+    .vote-description {
+      color: #cccccc;
+      font-size: 16px;
+      line-height: 1.5;
+      margin: 0 0 24px 0;
+    }
+
+    /* Ajastin */
+    .timer-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #888888;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .timer-boxes {
+      display: flex;
+      gap: 10px;
+    }
+
+    .timer-box {
+      background: #0d0d0d;
+      border: 1px solid #333333;
+      border-radius: 8px;
+      padding: 10px;
+      min-width: 55px;
+      text-align: center;
+    }
+
+    .timer-num {
+      font-size: 24px;
+      font-weight: 900;
+      color: #ffcc00;
+      line-height: 1;
+    }
+
+    .timer-unit {
+      font-size: 11px;
+      color: #888888;
+      font-weight: 700;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Painike oikealla */
+    .vote-action {
+      flex-shrink: 0;
+    }
+
+    .btn-vote {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background-color: #e50019;
+      color: #ffffff;
+      padding: 18px 32px;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(229, 0, 25, 0.4);
+    }
+
+    .btn-vote:hover {
+      background-color: #ff1a30;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(229, 0, 25, 0.6);
+    }
+
+    /* Responsiivisuus mobiilille */
+    @media (max-width: 850px) {
+      .vote-container {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .vote-status {
+        justify-content: center;
+      }
+
+      .timer-boxes {
+        justify-content: center;
+      }
+
+      .vote-action {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      .btn-vote {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+
+  <div class="vote-container">
+    <!-- Logolätkä -->
+    <div class="vote-badge-wrapper">
+      <div class="vote-badge">
+        <span class="badge-edenred">Edenred</span>
+        <div class="badge-title">Suomen Paras Lounas</div>
+        <div class="badge-stars">★★★★★</div>
+        <div class="badge-year">2026</div>
+        <span class="badge-footer">Powered by Edenred</span>
+      </div>
+    </div>
+
+    <!-- Sisältö & Ajastin -->
+    <div class="vote-content">
+      <div class="vote-status">
+        <span class="status-dot"></span> ÄÄNESTYS KÄYNNISSÄ
+      </div>
+      <h2 class="vote-title">Suomen paras lounas 2026</h2>
+      <p class="vote-description">
+        Maistuiko meidän lounas? Äänestä Malakai Ravintolaa Suomen parhaaksi lounaspaikaksi! Arvostaisimme tukeasi todella paljon.
+      </p>
+
+      <div class="timer-label">Äänestysaikaa jäljellä</div>
+      <div class="timer-boxes">
+        <div class="timer-box">
+          <div class="timer-num" id="pv">20</div>
+          <div class="timer-unit">PV</div>
+        </div>
+        <div class="timer-box">
+          <div class="timer-num" id="t">04</div>
+          <div class="timer-unit">T</div>
+        </div>
+        <div class="timer-box">
+          <div class="timer-num" id="min">42</div>
+          <div class="timer-unit">MIN</div>
+        </div>
+        <div class="timer-box">
+          <div class="timer-num" id="s">26</div>
+          <div class="timer-unit">S</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Painike -->
+    <div class="vote-action">
+      <a href="https://paraslounas.edenred.fi/" target="_blank" rel="noopener noreferrer" class="btn-vote">
+        Äänestä tästä &rarr;
+      </a>
+    </div>
   </div>
-
-</div>
-
 </section>
 
 
