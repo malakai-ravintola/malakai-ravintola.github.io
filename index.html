@@ -941,6 +941,41 @@ body::before {
             <strong style="font-size:28px; color:var(--white); font-family:'Anton',Impact,sans-serif;">14,90 €</strong>
         </div>
     </div>
+    <!-- MALAKAI RAVINTOLA - TILAUSLOMAKE -->
+<div style="max-width: 500px; margin: 30px auto; padding: 20px; border: 2px solid #e74c3c; border-radius: 10px; font-family: Arial, sans-serif; background-color: #ffffff; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <h2 style="text-align: center; color: #e74c3c; margin-top: 0;">Tilaa ruokaa - Malakai Ravintola</h2>
+  
+  <form action="https://formspree.io/f/mrpejwqe" method="POST">
+    
+    <label style="font-weight: bold; display: block; margin-top: 12px; color: #333;">Nimi:</label>
+    <input type="text" name="Nimi" placeholder="Etunimi ja Sukunimi" required style="width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px;">
+
+    <label style="font-weight: bold; display: block; margin-top: 12px; color: #333;">Puhelinnumero:</label>
+    <input type="tel" name="Puhelin" placeholder="040 1234567" required style="width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px;">
+
+    <label style="font-weight: bold; display: block; margin-top: 12px; color: #333;">Toimitustapa:</label>
+    <select name="Toimitustapa" required style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;">
+      <option value="Nouto">Nouto ravintolasta</option>
+      <option value="Kotiinkuljetus">Kotiinkuljetus</option>
+    </select>
+
+    <label style="font-weight: bold; display: block; margin-top: 12px; color: #333;">Osoite (jos kotiinkuljetus):</label>
+    <input type="text" name="Osoite" placeholder="Katuosoite ja paikkakunta" style="width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px;">
+
+    <label style="font-weight: bold; display: block; margin-top: 12px; color: #333;">Maksutapa:</label>
+    <select name="Maksutapa" required style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;">
+      <option value="Käteinen">Käteinen</option>
+      <option value="Korttimaksu ovelle/noudettaessa">Maksukortti (paikan päällä/ovella)</option>
+    </select>
+
+    <label style="font-weight: bold; display: block; margin-top: 12px; color: #333;">Mitä haluat tilata? (Lisää myös juomat):</label>
+    <textarea name="Tilaus" rows="4" placeholder="Esim. 1x Bolognese pizza, 1x Kebab riisillä + tölkki Coca-Cola" required style="width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px;"></textarea>
+
+    <button type="submit" style="width: 100%; background-color: #27ae60; color: white; padding: 14px; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; margin-top: 20px; cursor: pointer;">
+      Lähetä tilaus
+    </button>
+  </form>
+</div>
 
     <!-- PIZZA OSIO -->
     <div id="pizza" class="menu-section-title">
