@@ -77,8 +77,8 @@ code{background:#000;padding:1px 5px;border-radius:4px;border:1px solid #333}
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1793560105"></script>
-<script src="config.js?v=1793560105"></script>
+<script src="data.js?v=1793561451"></script>
+<script src="config.js?v=1793561451"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -168,6 +168,14 @@ function vAnn(m){S.ann=S.ann||{on:false};S.event=S.event||{on:false};S.popup=S.p
     mk("div",{class:"g2"},lab("Linkki (minne klikkaus vie)",inp(A.link,v=>A.link=v,{placeholder:"esim. lounas.html tai index.html#varaa"})),lab("Näytä asti",inp(A.until,v=>A.until=v,{type:"date"})))));
   const E=S.event;m.append(mk("div",{class:"card"},mk("h3",{text:"Tapahtumanosto (Pizzabuffet-sivu)"}),chk(E.on,v=>E.on=v,"Näytä nosto"),
     lab("Otsikko",inp(E.title,v=>E.title=v)),lab("Teksti",area(E.text,v=>E.text=v)),lab("Näytä asti",inp(E.until,v=>E.until=v,{type:"date",style:"max-width:220px"}))));
+  S.offers=S.offers||[];const oc=mk("div",{class:"card"},mk("h3",{text:"Tarjoukset (etusivu)"}),mk("p",{class:"muted",text:"Tarjous näkyy etusivun Tarjoukset-osiossa alkupäivästä loppupäivään ja poistuu sitten itsestään. Kun voimassa olevia tarjouksia ei ole, osio piilotetaan."}));
+  S.offers.forEach((o,i)=>{oc.append(mk("div",{style:"border-top:1px solid var(--line);padding-top:14px;margin-top:14px"},chk(o.on,v=>o.on=v,"Näytä tarjous"),
+    lab("Otsikko",inp(o.title,v=>o.title=v)),lab("Kuvaus",area(o.text,v=>o.text=v)),
+    mk("div",{class:"g3"},lab("Hinta",inp(o.price,v=>o.price=v,{placeholder:"19,90 €"})),lab("Normaalihinta",inp(o.was,v=>o.was=v,{placeholder:"29,00 €"})),lab("Painikkeen teksti",inp(o.cta,v=>o.cta=v,{placeholder:"Tilaa 045 353 7000"}))),
+    mk("div",{class:"g3"},lab("Alkaa",inp(o.from,v=>o.from=v,{type:"date"})),lab("Päättyy",inp(o.until,v=>o.until=v,{type:"date"})),lab("Painikkeen linkki",inp(o.link,v=>o.link=v,{placeholder:"tel:+358453537000"}))),
+    imgPicker(o.image,p=>{o.image=p;mark()}),
+    mk("button",{class:"x del",text:"Poista tarjous",onclick:()=>{if(confirm("Poistetaanko tarjous?")){S.offers.splice(i,1);mark();render()}}})))});
+  oc.append(mk("p",null,mk("button",{class:"o",text:"+ Lisää tarjous",onclick:()=>{S.offers.push({on:true,title:"",text:"",price:"",was:"",image:"",from:"",until:"",cta:"Tilaa 045 353 7000",link:"tel:+358453537000"});mark();render()}})));m.append(oc);
   const P=S.popup;m.append(mk("div",{class:"card"},mk("h3",{text:"Ponnahdusikkuna (etusivu)"}),chk(P.on,v=>P.on=v,"Näytä ponnahdusikkuna"),
     mk("p",{class:"muted",text:"Ikkuna näyttää kuvan sekä Soita- ja Varaa-painikkeet. Pystykuva (esim. 1080 × 1350) toimii parhaiten."}),
     imgPicker(P.image,p=>{P.image=p;mark()}),lab("Kuvan kuvaus (näkövammaisille ja hakukoneille)",area(P.alt,v=>P.alt=v)),lab("Näytä asti",inp(P.until,v=>P.until=v,{type:"date",style:"max-width:220px"}))))}

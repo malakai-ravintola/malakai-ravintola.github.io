@@ -32,6 +32,18 @@ if(B){const en=a=>a.replace(/\./g,":");
 if(S.dailyPrice)$$(".dp").forEach(e=>e.textContent=f(S.dailyPrice));
 {const a=$("#ann");if(a&&S.ann){if(until(S.ann)){a.textContent=S.ann.text;a.href=S.ann.link||"#";a.dataset.en=esc(S.ann.text_en||S.ann.text)}else a.hidden=true}}
 {const ev=$("#isanpaiva");if(ev&&S.event){if(until(S.event)){$("#evT").textContent=S.event.title;$("#evX").textContent=S.event.text}else ev.hidden=true}}
+{const ol=$("#offerList"),os=$("#tarjoukset");if(ol&&os){const L=(S.offers||[]).filter(o=>o.on&&(!o.until||now.date<=o.until)&&(!o.from||now.date>=o.from));
+  L.forEach(o=>{const c=document.createElement("article");c.className="h-offer";
+    c.innerHTML='<img alt="" loading="lazy"><div><p class="h-kick"></p><h3></h3><p class="ot"></p><div class="op"><b></b><s></s></div><a class="btn r"></a></div>';
+    c.querySelector("img").src=o.image||"";c.querySelector("img").alt=o.title||"";
+    const fdd=d=>d?d.split("-").reverse().slice(0,2).map(x=>+x).join(".")+".":"";
+    c.querySelector(".h-kick").textContent=o.until?"Voimassa "+(o.from?fdd(o.from)+"–":"")+fdd(o.until)+o.until.slice(0,4):"Tarjous";
+    c.querySelector("h3").textContent=o.title||"";c.querySelector(".ot").textContent=o.text||"";
+    c.querySelector(".op b").textContent=o.price||"";c.querySelector(".op s").textContent=o.was?"Norm. "+o.was:"";
+    const a=c.querySelector("a");if(o.cta){a.textContent=o.cta;a.href=o.link||"#varaa"}else a.remove();
+    c.querySelector("img").onclick=e=>{const l=document.createElement("div");l.className="lb";l.innerHTML="<img>";l.firstChild.src=e.target.src;l.onclick=()=>l.remove();document.body.appendChild(l)};
+    ol.appendChild(c)});
+  os.hidden=!L.length}}
 {const pi=$("#popImg");if(pi&&S.popup){pi.src=S.popup.image;pi.alt=S.popup.alt||""}}
 
 // --- Yläpalkki, valikko

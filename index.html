@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="fi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Malakai Ravintola Lempäälä | Pizzabuffet, kebab, burgerit ja siivet</title><meta name="description" content="Malakai Ravintola, Tampereentie 414 Lempäälä. Pizzabuffet 13,70 € / 14,90 €, päivän pizza 9,90 €, kebabit, burgerit, Sticky Fingers ja Hot Wings. Varaa pöytä: 045 353 7000.">
-<meta property="og:title" content="Malakai Ravintola Lempäälä | Pizzabuffet, kebab, burgerit ja siivet"><meta property="og:description" content="Malakai Ravintola, Tampereentie 414 Lempäälä. Pizzabuffet 13,70 € / 14,90 €, päivän pizza 9,90 €, kebabit, burgerit, Sticky Fingers ja Hot Wings. Varaa pöytä: 045 353 7000."><meta property="og:image" content="media/hero.jpg"><meta property="og:locale" content="fi_FI">
+<meta property="og:title" content="Malakai Ravintola Lempäälä | Pizzabuffet, kebab, burgerit ja siivet"><meta property="og:description" content="Malakai Ravintola, Tampereentie 414 Lempäälä. Pizzabuffet 13,70 € / 14,90 €, päivän pizza 9,90 €, kebabit, burgerit, Sticky Fingers ja Hot Wings. Varaa pöytä: 045 353 7000."><meta property="og:image" content="media/kuvat/hero-levea.jpg"><meta property="og:locale" content="fi_FI">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=1793560743"><link rel="stylesheet" href="home.css?v=1793560743">
+<link rel="stylesheet" href="styles.css?v=1793561451"><link rel="stylesheet" href="home.css?v=1793561451">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Restaurant","name":"Malakai Ravintola","address":{"@type":"PostalAddress","streetAddress":"Tampereentie 414","postalCode":"33880","addressLocality":"Lempäälä","addressCountry":"FI"},"telephone":"+358453537000","email":"malakairavintola@gmail.com","url":"https://malakairavintola.fi","servesCuisine":["Pizza","Kebab","Burgerit"],"openingHours":["Mo-Th 10:30-20:00","Fr 10:30-21:00","Sa 11:00-21:00","Su 12:00-20:00"]}</script>
 </head>
 <body class="home">
@@ -17,12 +17,19 @@
 
 <main id="top">
 <section class="h-hero">
-<video autoplay muted loop playsinline preload="auto" poster="media/hero.jpg" aria-hidden="true"><source src="media/hero.mp4" type="video/mp4"></video>
+<picture class="h-bg"><source media="(max-width:700px)" srcset="media/kuvat/hero-pysty.jpg"><img src="media/kuvat/hero-levea.jpg" alt="" fetchpriority="high"></picture>
 <div class="wrap h-hero-in">
 <p class="h-eyebrow"><span class="dotwrap"><i class="dot" id="dot"></i><span id="open"></span></span><span>Tampereentie 414, Lempäälä</span></p>
 <h1 class="h-name">Malakai<span>Ravintola</span></h1>
 <div class="btns"><a class="btn r" href="#varaa" data-en="Book a table">Varaa pöytä</a><a class="btn y" href="https://order.site/malakai-ravintola" target="_blank" rel="noopener" data-en="Order online">Tilaa kotiin</a><a class="btn o" href="ruokalista.html" data-en="Menu">Ruokalista</a></div>
 <a class="h-rating" href="https://www.google.com/search?q=Malakai+Ravintola+Lemp%C3%A4%C3%A4l%C3%A4" target="_blank" rel="noopener"><span class="stars">★★★★★</span><b>4,7</b><span>Google-arvostelut</span></a>
+</div>
+</section>
+
+<section class="h-offers" id="tarjoukset" hidden>
+<div class="wrap">
+<div class="h-head"><div><p class="h-kick" data-en="Offers">Tarjoukset</p><h2 data-en="Current offers">Voimassa nyt</h2></div><p class="h-lead">Tarjoukset ovat voimassa vain rajoitetun ajan.</p></div>
+<div class="h-offerlist" id="offerList"></div>
 </div>
 </section>
 
@@ -35,7 +42,18 @@
 <table class="pt"><tr class="h"><td colspan="2">Arkisin klo 10.30–15.00</td></tr><tr><td>Pizzabuffet</td><td>13,70 €</td></tr><tr><td>Salaattibuffet</td><td>9,90 €</td></tr><tr class="h"><td colspan="2">Viikonloppuna klo 13.00–18.00</td></tr><tr><td>Pizzabuffet</td><td>14,90 €</td></tr><tr><td>Salaattibuffet</td><td>10,90 €</td></tr></table>
 <div class="btns"><a class="btn r" href="#varaa" data-en="Book a table">Varaa pöytä</a><a class="btn o2" href="lounas.html" data-en="Read more">Lue lisää</a></div>
 </div>
-<figure class="h-photo"><img src="media/ravintola-sisalla.jpg" alt="Malakain buffet-tiski" loading="lazy"><img src="media/salaattibuffet.jpg" alt="Salaattibuffet" loading="lazy"></figure>
+<figure class="h-photo"><img src="media/kuvat/pizzabuffet-1.jpg" alt="Pizzoja buffet-tiskillä" loading="lazy"><img src="media/kuvat/salaattipoyta.jpg" alt="Salaattipöytä" loading="lazy"></figure>
+</div>
+</section>
+
+<section class="h-videos" aria-label="Buffet videoina">
+<div class="wrap">
+<div class="h-head"><div><p class="h-kick" data-en="Every day">Joka päivä</p><h2 data-en="Fresh on the buffet">Tuoreena tiskissä</h2></div><p class="h-lead">Lämpimät ruoat, salaattipöytä, burgerit ja tietenkin pizzat – katso itse.</p></div>
+<div class="h-vgrid">
+<video autoplay muted loop playsinline preload="none" poster="media/buffet-lammin.jpg" aria-label="Video: buffetin lämpimät ruoat"><source src="media/buffet-lammin.mp4" type="video/mp4"></video>
+<video autoplay muted loop playsinline preload="none" poster="media/buffet-salaatti.jpg" aria-label="Video: salaattipöytä"><source src="media/buffet-salaatti.mp4" type="video/mp4"></video>
+<video autoplay muted loop playsinline preload="none" poster="media/buffet-burgerit.jpg" aria-label="Video: burgerit ja lisukkeet"><source src="media/buffet-burgerit.mp4" type="video/mp4"></video>
+</div>
 </div>
 </section>
 
@@ -50,9 +68,32 @@
 <div class="wrap">
 <div class="h-head"><div><p class="h-kick" data-en="Customer favourites">Asiakkaiden suosikit</p><h2 data-en="Popular dishes">Suosituimmat</h2></div><a class="h-link" href="ruokalista.html" data-en="Full menu →">Koko ruokalista →</a></div>
 <div class="h-cards">
-<a class="h-card" href="ruokalista.html#pizza"><img src="media/pizza-bbq.jpg" alt="Barbeque-pizza" loading="lazy"><div><small>Pizza</small><h3>Barbeque</h3><p>Kana, pekoni, ananas, punasipuli, BBQ-kastike</p><b>13,90 €</b></div></a>
-<a class="h-card" href="ruokalista.html#kebab"><img src="media/kebab-ranskalaiset.jpg" alt="Kebab ranskalaisilla" loading="lazy"><div><small>Kebab</small><h3>Kebab ranskalaisilla</h3><p>Salaatin ja kastikkeen kera</p><b>13,50 €</b></div></a>
-<a class="h-card" href="ruokalista.html#burgerit"><img src="media/kebab-lautanen.jpg" alt="Kebab-lautanen" loading="lazy"><div><small>Burgerit · Wings · Sticky Fingers</small><h3>Ja paljon muuta</h3><p>Burgerit alk. 6,90 €, Hot Wings alk. 9,90 €</p><b>Katso hinnat →</b></div></a>
+<a class="h-card" href="ruokalista.html#pizza"><img src="media/kuvat/pizza-parma.jpg" alt="Pizza parmankinkulla ja rucolalla" loading="lazy"><div><small>Pizza</small><h3>22 pizzaa</h3><p>Valmiit pizzat tai oma valinta yli 25 täytteestä</p><b>alk. 11,50 €</b></div></a>
+<a class="h-card" href="ruokalista.html#kebab"><img src="media/kuvat/kebab-ranskalaiset.jpg" alt="Kebab ranskalaisilla" loading="lazy"><div><small>Kebab</small><h3>Kebab ranskalaisilla</h3><p>Salaatin ja kastikkeiden kera</p><b>13,50 €</b></div></a>
+<a class="h-card" href="ruokalista.html#kebab"><img src="media/kuvat/kebabrulla.jpg" alt="Rullakebab" loading="lazy"><div><small>Kebab</small><h3>Rullakebab</h3><p>Myös aura-, feta- ja pekonirullana</p><b>alk. 13,90 €</b></div></a>
+</div>
+</div>
+</section>
+
+<section class="h-kitchen">
+<div class="wrap h-split">
+<div><p class="h-kick" data-en="Behind the scenes">Keittiöstä</p><h2 data-en="Straight from the oven">Suoraan uunista</h2><p class="h-lead">Pizzat paistetaan paikan päällä ja nostetaan tiskiin tuoreina koko päivän.</p><a class="btn o2" href="ruokalista.html">Katso ruokalista</a></div>
+<video autoplay muted loop playsinline preload="none" poster="media/uuni.jpg" aria-label="Video: kokki nostaa pizzan uunista"><source src="media/uuni.mp4" type="video/mp4"></video>
+</div>
+</section>
+
+<section class="h-gallery" id="galleria">
+<div class="wrap">
+<div class="h-head"><div><p class="h-kick" data-en="Gallery">Galleria</p><h2 data-en="Photos">Kuvia Malakaista</h2></div><p class="h-lead">Klikkaa kuvaa suurentaaksesi.</p></div>
+<div class="h-gal" id="gal">
+<img src="media/kuvat/buffet-lautanen.jpg" alt="Buffet-lautanen: pizzaa, siipiä, salaattia" loading="lazy">
+<img src="media/kuvat/pizzabuffet-2.jpg" alt="Pizzoja buffetissa" loading="lazy">
+<img src="media/kuvat/kebab-lautanen.jpg" alt="Kebabsalaatti" loading="lazy">
+<img src="media/kuvat/buffet-wings-ranskalaiset.jpg" alt="Siivet, ranskalaiset ja sipulirenkaat" loading="lazy">
+<img src="media/kuvat/pizzabuffet-tiski.jpg" alt="Pizzabuffet-tiski" loading="lazy">
+<img src="media/kuvat/buffet-burgerit.jpg" alt="Burgerit ja salaattipöytä" loading="lazy">
+<img src="media/kuvat/buffet-lamminruoat.jpg" alt="Lämpimät ruoat buffetissa" loading="lazy">
+<img src="media/kuvat/buffet-wings.jpg" alt="Hot wings ja lisukkeet" loading="lazy">
 </div>
 </div>
 </section>
@@ -121,5 +162,5 @@
 <div class="fcopy">© 2025 Malakai Ravintola</div>
 </div></footer>
 <div class="bar"><a class="btn" href="tel:+358453537000">Soita</a><a class="btn r" href="https://order.site/malakai-ravintola" target="_blank" rel="noopener">Tilaa</a><a class="btn y" href="#varaa">Varaa pöytä</a></div>
-<script src="data.js?v=1793560743"></script><script src="config.js?v=1793560743"></script><script src="site.js?v=1793560743"></script>
+<script src="data.js?v=1793561451"></script><script src="config.js?v=1793561451"></script><script src="site.js?v=1793561451"></script>
 </body></html>
