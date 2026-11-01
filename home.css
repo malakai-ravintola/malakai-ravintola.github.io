@@ -491,3 +491,4 @@
 .h-oivain{display:flex!important;justify-content:space-between;align-items:center;gap:16px}
 .h-oivat{margin:0;font:500 1.4rem "Playfair Display",Georgia,serif;color:#fff}
 .h-oiva .btn{padding:10px 20px}
+.h-oivaL{display:flex;align-items:center;gap:14px}.h-oivaL img{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:8px;padding:4px}
