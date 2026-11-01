@@ -1,4 +1,7 @@
 (function(){
+// Uusin versio: jos sivu on vanha, ladataan uudelleen kerran
+try{const b=document.querySelector('meta[name="build"]');if(b)fetch("version.txt?"+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(v=>{v=v.trim();if(v&&v!==b.content&&sessionStorage.getItem("rl")!==v){sessionStorage.setItem("rl",v);location.reload()}}).catch(()=>{})}catch(e){}
+
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const C=window.MALAKAI||{},API=C.url?C.url+"/functions/v1/public":"";
 const f=n=>n.toFixed(2).replace(".",",")+"\u00a0€";
