@@ -238,3 +238,10 @@
 .h-gal img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:16px;cursor:zoom-in;transition:transform .25s}
 .h-gal img:hover{transform:scale(1.02)}
 @media(max-width:760px){.h-gal{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+
+/* Tarjoukset: pelkkä mainoskuva */
+.h-offh{text-align:center;margin-bottom:28px!important}
+.h-offerlist{display:flex;flex-wrap:wrap;justify-content:center;gap:24px}
+.h-offer{display:block;padding:0;background:none;border:0;width:min(560px,100%);border-radius:24px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);transition:transform .25s}
+.h-offer:hover{transform:translateY(-4px)}
+.h-offer img{display:block;width:100%;height:auto;aspect-ratio:4/5;border-radius:0;cursor:pointer}
