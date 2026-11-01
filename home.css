@@ -437,7 +437,7 @@
 .h-lph .h-lday{left:16px;top:16px}
 @media(max-width:560px){.h-ltop{flex-direction:column;gap:10px}.h-lmain{text-align:left;display:flex;align-items:baseline;gap:10px}.h-lmain b{font-size:2.3rem}.h-lcard h3{font-size:1.9rem}}
 .h-xbg{background:linear-gradient(90deg,rgba(0,0,0,.9) 0%,rgba(0,0,0,.65) 45%,rgba(0,0,0,.15) 100%),url(media/kuvat/ravintola-sali.jpg) center 60%/cover}
-.x-fgrid4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.x-fgrid4{grid-template-columns:repeat(5,minmax(0,1fr))}
 @media(max-width:900px){.x-fgrid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.x-fgrid4{grid-template-columns:1fr}}
 .home .isa{background:var(--red);color:#fff}.home .isa h2{font:500 clamp(1.8rem,4vw,2.6rem)/1.1 "Playfair Display",Georgia,serif;text-transform:none}.home .isa .btn.y{background:var(--yel);border-color:var(--yel);color:#000}
