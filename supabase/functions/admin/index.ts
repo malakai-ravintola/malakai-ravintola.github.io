@@ -1,7 +1,7 @@
 // Supabase Edge Function: admin  (liitä KOKO tiedosto Supabasen editoriin, funktion nimi: admin)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 const OWNER_PHONE = Deno.env.get("OWNER_PHONE") ?? "+358456057475";
-const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") ?? "malakairavintola@gmail.com";
+const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") ?? "hardi7fateh@hotmail.com";
 const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? OWNER_EMAIL;
 const SITE = "https://malakairavintola.fi";
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);

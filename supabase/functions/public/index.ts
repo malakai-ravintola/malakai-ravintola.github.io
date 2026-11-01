@@ -1,7 +1,7 @@
 // Supabase Edge Function: public  (liitä KOKO tiedosto Supabasen editoriin, funktion nimi: public)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 const OWNER_PHONE = Deno.env.get("OWNER_PHONE") ?? "+358456057475";
-const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") ?? "malakairavintola@gmail.com";
+const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") ?? "hardi7fateh@hotmail.com";
 const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? OWNER_EMAIL;
 const SITE = "https://malakairavintola.fi";
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
       const ownerTxt = `Uusi pöytävaraus odottaa hyväksyntää\n\nNimi: ${r.name}\nAika: ${when}\nHenkilöitä: ${r.guests}\nPuhelin: ${r.phone}\nSähköposti: ${r.email}` +
         (r.note ? `\nToiveet: ${r.note}` : "") + `\n\nHyväksy tai peru varaus ylläpidossa:\n${SITE}/admin.html`;
       const jobs: Promise<unknown>[] = [
-        mail("hardi7fateh@hotmail.com", `Uusi varaus: ${r.name}, ${when}, ${r.guests} hlö`, ownerTxt, r.email),
+        mail(OWNER_EMAIL, `Uusi varaus: ${r.name}, ${when}, ${r.guests} hlö`, ownerTxt, r.email),
         sms(OWNER_PHONE, `Uusi pöytävaraus: ${r.name}, ${r.guests} hlö, ${when}. Hyväksy: ${SITE}/admin.html`),
         mail(r.email, "Varauspyyntösi on vastaanotettu",
           `Hei ${r.name}!\n\nKiitos varauksestasi. Olemme vastaanottaneet pöytävarauspyyntösi:\n${when}, ${r.guests} hlö.\n\nSaat vielä erillisen vahvistuksen, kun olemme käsitelleet varauksen.\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000`),

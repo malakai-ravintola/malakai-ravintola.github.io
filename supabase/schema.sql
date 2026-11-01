@@ -24,8 +24,8 @@ drop policy if exists admin_res on reservations;
 drop policy if exists admin_sub on subscribers;
 drop policy if exists admin_tpl on templates;
 create policy admin_res on reservations for all to authenticated
-  using ((auth.jwt()->>'email')='malakairavintola@gmail.com') with check ((auth.jwt()->>'email')='malakairavintola@gmail.com');
+  using ((auth.jwt()->>'email')='hardi7fateh@hotmail.com') with check ((auth.jwt()->>'email')='hardi7fateh@hotmail.com');
 create policy admin_sub on subscribers for all to authenticated
-  using ((auth.jwt()->>'email')='malakairavintola@gmail.com') with check ((auth.jwt()->>'email')='malakairavintola@gmail.com');
+  using ((auth.jwt()->>'email')='hardi7fateh@hotmail.com') with check ((auth.jwt()->>'email')='hardi7fateh@hotmail.com');
 create policy admin_tpl on templates for all to authenticated
-  using ((auth.jwt()->>'email')='malakairavintola@gmail.com') with check ((auth.jwt()->>'email')='malakairavintola@gmail.com');
+  using ((auth.jwt()->>'email')='hardi7fateh@hotmail.com') with check ((auth.jwt()->>'email')='hardi7fateh@hotmail.com');

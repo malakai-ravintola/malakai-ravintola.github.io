@@ -232,7 +232,7 @@ setInterval(()=>{if(SB&&RES!==null&&!document.hidden)sbLoad(true).catch(()=>{})}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&SB&&RES!==null)sbLoad(true).catch(()=>{})});
 function sbGate(m){if(!C.url){m.append(mk("div",{class:"card"},mk("h3",{text:"Ei vielä käytössä"}),mk("p",{text:"Varausjärjestelmä vaatii Supabase-yhteyden (config.js)."})));return true}
   if(!SB){m.append(mk("p",{class:"muted",text:"Ladataan…"}));return true}
-  if(RES===null){const em=mk("input",{type:"email",value:"malakairavintola@gmail.com",autocomplete:"username"}),pw=mk("input",{type:"password",autocomplete:"current-password"});
+  if(RES===null){const em=mk("input",{type:"email",value:"hardi7fateh@hotmail.com",autocomplete:"username"}),pw=mk("input",{type:"password",autocomplete:"current-password"});
     const f=mk("form",{class:"card",style:"max-width:420px"},mk("h3",{text:"Kirjaudu varausjärjestelmään"}),lab("Sähköposti",em),lab("Salasana",pw),mk("button",{text:"Kirjaudu"}),
       mk("p",{class:"muted",text:"Tunnus ja salasana ovat ne, jotka loit Supabasessa (Authentication → Users)."}));
     f.onsubmit=async e=>{e.preventDefault();const {error}=await SB.auth.signInWithPassword({email:em.value.trim(),password:pw.value});if(error)return toast("Kirjautuminen epäonnistui: tarkista sähköposti ja salasana",true);await sbLoad();render()};m.append(f);return true}}
