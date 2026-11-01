@@ -170,3 +170,39 @@
 /* Hero: pelkkä nimi */
 .home h1.h-name{font-family:"Playfair Display",Georgia,serif;font-weight:500;text-transform:none;letter-spacing:.01em;line-height:1;font-size:clamp(3.6rem,13vw,9rem);margin:0 0 30px;max-width:none}
 .home h1.h-name span{display:block;font-family:Inter,system-ui,sans-serif;font-weight:500;font-size:clamp(.85rem,1.6vw,1.1rem);letter-spacing:.6em;text-transform:uppercase;margin-top:18px;padding-left:.3em;opacity:.85}
+
+/* Aukioloajat omana osionaan varauksen alla */
+.h-hours{background:#0B0B0B;border-top:1px solid #1F1F1F}
+.h-hoursin{display:grid;grid-template-columns:1fr 1.2fr;gap:clamp(28px,6vw,80px);align-items:start}
+@media(max-width:860px){.h-hoursin{grid-template-columns:1fr}}
+.h-hours .hrs{font-size:1.05rem}.h-hours .hrs td{padding:16px 0;border-bottom:1px solid #262626}.h-hours .hrs td:last-child{color:#fff;font-weight:700;text-align:right}
+.h-hours .h-addr{margin-top:20px}
+
+/* Kartta normaaleilla väreillä */
+.h-map iframe,.fmap{filter:none!important}
+
+/* Päivän pizza: selkeä asettelu */
+.h-daily .pp{display:grid;grid-template-columns:1fr;gap:18px}
+.h-daily .today{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"img lbl" "img name" "img desc" "img pr";column-gap:44px;row-gap:10px;align-items:center;justify-items:start;padding:32px 44px;border-radius:24px}
+.h-daily .today #tdImg{grid-area:img;width:230px;height:230px;object-fit:contain;margin:0;filter:drop-shadow(0 14px 22px rgba(0,0,0,.6))}
+.h-daily .today #tdLbl{grid-area:lbl;align-self:end;margin:0}
+.h-daily .today h3{grid-area:name;margin:0;font-size:clamp(2.2rem,5vw,3.6rem)}
+.h-daily .today p{grid-area:desc;margin:0;color:#ccc;max-width:40ch}
+.h-daily .today .pr{grid-area:pr;align-self:start;font:400 3.2rem Anton,sans-serif;line-height:1;margin-top:6px}
+.h-daily .week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
+.h-daily .day{padding:16px 8px 14px;border:1px solid #1F1F1F;border-radius:16px;text-align:center}
+.h-daily .day img{width:64px;height:64px;object-fit:contain;margin:0 auto 10px;display:block}
+.h-daily .day small{color:#999;font-size:.66rem;letter-spacing:.12em}
+.h-daily .day b{display:block;margin-top:4px;font-size:1rem;line-height:1.15}
+.h-daily .day.now small{color:#fff}
+@media(max-width:900px){
+ .h-daily .week{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:8px;scrollbar-width:none}
+ .h-daily .week::-webkit-scrollbar{display:none}
+ .h-daily .day{flex:0 0 116px;scroll-snap-align:start}
+}
+@media(max-width:640px){
+ .h-daily .today{grid-template-columns:1fr;grid-template-areas:"img" "lbl" "name" "desc" "pr";justify-items:center;text-align:center;padding:26px 22px;row-gap:8px}
+ .h-daily .today #tdImg{width:190px;height:190px;margin-bottom:6px}
+ .h-daily .today .pr{align-self:center;font-size:2.8rem}
+ .h-daily .h-head{margin-bottom:24px}
+}

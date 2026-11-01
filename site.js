@@ -1,7 +1,7 @@
 (function(){
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const C=window.MALAKAI||{},API=C.url?C.url+"/functions/v1/public":"";
-const f=n=>n.toFixed(2).replace(".",",")+" €";
+const f=n=>n.toFixed(2).replace(".",",")+"\u00a0€";
 const fi=()=>{const p=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit",weekday:"short",hour:"numeric",minute:"numeric",hour12:false}).formatToParts(new Date()),g=t=>p.find(x=>x.type===t).value;
   return{date:`${g("year")}-${g("month")}-${g("day")}`,dow:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(g("weekday")),t:(+g("hour")%24)+(+g("minute"))/60}};
 const S=window.SITE||{},DK=["su","ma","ti","ke","to","pe","la"],DN={ma:"Maanantai",ti:"Tiistai",ke:"Keskiviikko",to:"Torstai",pe:"Perjantai",la:"Lauantai",su:"Sunnuntai"},
