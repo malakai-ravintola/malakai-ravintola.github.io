@@ -245,3 +245,90 @@
 .h-offer{display:block;padding:0;background:none;border:0;width:min(560px,100%);border-radius:24px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);transition:transform .25s}
 .h-offer:hover{transform:translateY(-4px)}
 .h-offer img{display:block;width:100%;height:auto;aspect-ratio:4/5;border-radius:0;cursor:pointer}
+
+/* ===== Uudet osiot ===== */
+/* Lounas */
+.h-lunch{background:#fff;color:#000}
+.h-lunch .h-kick{color:#000}.h-lunch .h-lead{color:#444}
+.h-pay{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:-14px 0 28px;font-size:.95rem;color:#444}
+.h-pay b{border:1.5px solid #000;border-radius:999px;padding:6px 16px;color:#000;font-weight:700;letter-spacing:.02em}
+.h-lcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media(max-width:760px){.h-lcards{grid-template-columns:1fr}}
+.h-lcard{border:1px solid #E3E3E3;border-radius:24px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.h-lcard img{width:100%;aspect-ratio:16/9;object-fit:cover}
+.h-lcard>div{padding:26px 28px 24px}
+.h-lcard h3{font-size:2.2rem;margin:0}
+.h-lcard .h-kick{margin-bottom:6px}
+.h-ltime{color:#555;margin:6px 0 18px}
+.h-lprice{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0;border-top:1px solid #EEE}
+.h-lprice b{font:400 1.9rem Anton,sans-serif}
+.h-lfoot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:center;margin:24px 0 28px}
+.h-kids{color:#444}
+.h-incl{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0}
+.h-incl li{background:#F2F2F2;border-radius:999px;padding:6px 14px;font-size:.9rem;font-weight:600}
+.h-lunch .btn.r{background:#000;border-color:#000;color:#fff}.h-lunch .btn.r:hover{background:#333;border-color:#333}
+
+/* Suosikit 4 saraketta */
+.h-cards4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1000px){.h-cards4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.h-cards4{gap:12px}.h-cards4 .h-card div{padding:14px 14px 18px}.h-cards4 .h-card h3{font-size:1.2rem}.h-cards4 .h-card p{font-size:.82rem}}
+.h-card b{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.h-card b span{font-size:.8rem;font-weight:600;opacity:.6}
+
+/* Ruokalista-osio */
+.h-menu{background:#0B0B0B;border-top:1px solid #1F1F1F}
+.h-mtiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media(max-width:860px){.h-mtiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.h-mtile{position:relative;display:block;aspect-ratio:3/4;border-radius:20px;overflow:hidden;color:#fff;text-decoration:none}
+.h-mtile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.h-mtile:hover img{transform:scale(1.05)}
+.h-mtile:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.85))}
+.h-mtile div{position:absolute;left:18px;right:18px;bottom:16px;z-index:1}
+.h-mtile h3{font-size:1.8rem;margin:0}.h-mtile span{font-weight:700;font-size:.92rem;opacity:.85}
+.h-mlinks{display:flex;flex-wrap:wrap;gap:8px 20px;margin:22px 0 26px}
+.h-mlinks a{color:#fff;font-weight:600;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35)}
+.h-mlinks a:hover{border-color:#fff}
+
+/* Tutustu */
+.h-story{background:#000}
+.h-storyph{position:relative;margin:0}
+.h-storyph img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:24px}
+.h-storyph figcaption{position:absolute;left:20px;bottom:20px;background:#fff;color:#000;border-radius:18px;padding:14px 20px;display:flex;flex-direction:column}
+.h-storyph figcaption b{font:400 2.2rem/1 Anton,sans-serif}.h-storyph figcaption span{font-size:.85rem;font-weight:600}
+.h-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 28px}
+.h-stats div{border:1px solid #262626;border-radius:16px;padding:16px}
+.h-stats b{display:block;font:400 2rem/1 Anton,sans-serif}.h-stats span{color:#aaa;font-size:.85rem}
+
+/* Keittiö */
+.h-kitchen{background:#fff;color:#000}
+.h-kitchen .h-vgrid{margin-top:28px}
+@media(max-width:760px){.h-kitchen .h-vgrid{margin-inline:-22px;padding-inline:22px}}
+
+/* Pikkujoulut */
+.h-xmas{background:#000}
+.h-xcard{position:relative;border-radius:28px;overflow:hidden;border:1px solid #333;min-height:380px;display:flex;align-items:center}
+.h-xbg{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.7) 50%,rgba(0,0,0,.25) 100%),url(media/kuvat/buffet-lautanen.jpg) right center/cover}
+.h-xin{position:relative;padding:clamp(28px,5vw,64px);max-width:640px}
+.h-xin .h-kick{letter-spacing:.3em}
+.h-xin h2{font-family:"Playfair Display",Georgia,serif!important;text-transform:none!important;font-weight:500!important}
+
+/* Arvostelut */
+.h-revtop{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:20px;margin:-10px 0 28px}
+.h-scorecard{display:flex;align-items:center;gap:16px;border:1px solid #000;border-radius:20px;padding:16px 24px}
+.h-scorecard b{font:400 3.4rem/1 Anton,sans-serif}
+.h-scorecard .stars{display:block;letter-spacing:2px}.h-scorecard small{color:#555}
+.h-reviews .btn.r{background:#000;border-color:#000;color:#fff}
+.h-quotes blockquote .stars{letter-spacing:2px;font-size:.9rem}
+.h-quotes cite{display:flex;align-items:center;gap:10px}
+.h-quotes cite i{width:34px;height:34px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;font-style:normal;font-weight:700}
+.h-quotes cite small{margin-left:auto;font-weight:500;color:#777}
+
+/* Ota yhteyttä */
+.h-contact{background:#0B0B0B;border-top:1px solid #1F1F1F}
+.h-cgrid{display:grid;grid-template-columns:1fr 1fr 1fr 1.4fr;gap:14px}
+@media(max-width:1000px){.h-cgrid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.h-cgrid{grid-template-columns:1fr}}
+.h-cbox{border:1px solid #262626;border-radius:20px;padding:22px}
+.h-cbox small{display:block;font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-size:.7rem;color:#999;margin-bottom:10px}
+.h-cbox p{margin:0;font-size:1.05rem;line-height:1.6}.h-cbox a{color:#fff}
+.h-cbox .hrs td{padding:6px 0;border-bottom:1px solid #1F1F1F;font-size:.95rem}.h-cbox .hrs td:last-child{text-align:right;font-weight:700}

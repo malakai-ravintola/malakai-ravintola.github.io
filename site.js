@@ -27,6 +27,9 @@ if(B){const en=a=>a.replace(/\./g,":");
   $$("table.pt").forEach(t=>{t.innerHTML=`<tr class="h"><td colspan="2" data-en="Weekdays ${esc(en(B.arki.aika))}">Arkisin klo ${esc(B.arki.aika)}</td></tr><tr><td>Pizzabuffet</td><td>${f(B.arki.pizza)}</td></tr><tr><td>Salaattibuffet</td><td>${f(B.arki.salaatti)}</td></tr>`+
     `<tr class="h"><td colspan="2" data-en="Weekends ${esc(en(B.vkl.aika))}">Viikonloppuna klo ${esc(B.vkl.aika)}</td></tr><tr><td>Pizzabuffet</td><td>${f(B.vkl.pizza)}</td></tr><tr><td>Salaattibuffet</td><td>${f(B.vkl.salaatti)}</td></tr>`+
     (B.lapset&&B.lapset.length?`<tr class="h"><td colspan="2" data-en="Children">Lapset</td></tr>`+B.lapset.map(l=>`<tr><td>${esc(l[0])}</td><td>${f(l[1])}</td></tr>`).join(""):"")});
+  $$("[data-b]").forEach(e=>{const[k,p]=e.dataset.b.split(".");if(B[k]&&B[k][p]!=null)e.textContent=f(B[k][p])});
+  $$("[data-bt]").forEach(e=>{const k=e.dataset.bt;if(B[k])e.textContent=B[k].aika});
+  {const kp=$("#kidsPrices");if(kp){if(B.lapset&&B.lapset.length)kp.textContent="Lapset: "+B.lapset.map(l=>l[0]+" "+f(l[1])).join(" · ")+(B.huom?" · "+B.huom:"");else kp.hidden=true}}
   $$('[data-k="arki"]').forEach(e=>e.textContent=f(B.arki.pizza));$$('[data-k="vkl"]').forEach(e=>e.textContent=f(B.vkl.pizza));
   const bn=$("#bufNote");if(bn){bn.textContent=B.huom||"";bn.hidden=!B.huom}}
 if(S.dailyPrice)$$(".dp").forEach(e=>e.textContent=f(S.dailyPrice));
