@@ -86,7 +86,7 @@ addEventListener("keydown",e=>{if(e.key==="Escape")$$(".lb").forEach(l=>l.remove
 
 // --- Varaus
 const post=async body=>{if(!API)throw new Error("Ei yhteyttä");const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+C.anon},body:JSON.stringify(body)});
-  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Virhe");return j};
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error((j.error||j.message||j.msg||"Virhe")+" · koodi "+r.status);return j};
 const busy=(f,on,txt)=>{const b=f.querySelector("button[type=submit]");if(!b.dataset.t)b.dataset.t=b.innerHTML;b.disabled=on;b.innerHTML=on?txt:b.dataset.t};
 const rf=$("#resForm");
 if(rf){const g=rf.g;for(let i=1;i<=8;i++)g.add(new Option(i+(i==1?" vieras":" vierasta"),i));g.value=2;
@@ -102,7 +102,7 @@ if(rf){const g=rf.g;for(let i=1;i<=8;i++)g.add(new Option(i+(i==1?" vieras":" vi
       const dd=v.d.value.split("-").reverse().join("."),d=$("#resDone");
       $("#resTxt").textContent=`Kiitos ${v.n.value.split(" ")[0]}! Varauspyyntösi ${dd} klo ${v.t.value} (${v.g.value} hlö) on vastaanotettu. Saat vahvistuksen sähköpostiisi ${v.e.value}, kun olemme käsitelleet varauksen.`;
       rf.hidden=true;d.hidden=false;d.scrollIntoView({block:"center",behavior:"smooth"})}
-    catch(x){err.textContent="Varauksen lähetys ei onnistunut"+(x.message&&x.message!=="Virhe"&&x.message!=="Failed to fetch"?" ("+x.message+")":"")+". Yritä uudelleen tai soita 045 353 7000.";err.hidden=false}
+    catch(x){err.textContent="Varauksen lähetys ei onnistunut. Yritä uudelleen tai soita 045 353 7000. ("+(x.message==="Failed to fetch"||x.message==="Load failed"?"ei yhteyttä palvelimeen":x.message)+")";err.hidden=false}
     finally{busy(rf,false)}}}
 
 // --- Uutiskirje
