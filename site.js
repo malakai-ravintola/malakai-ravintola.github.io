@@ -63,7 +63,8 @@ try{if(localStorage.getItem("lang")==="en")setLang(true)}catch(x){}
 
 // --- Ponnahdusikkuna (asetukset data.js:ssä)
 const pop=$("#pop");
-if(pop&&until(S.popup)){const close=()=>{pop.hidden=true;document.body.style.overflow=""};
+let popSeen=false;try{popSeen=sessionStorage.getItem("popSeen")==="1";sessionStorage.setItem("popSeen","1")}catch(e){}
+if(pop&&until(S.popup)&&!popSeen){const close=()=>{pop.hidden=true;document.body.style.overflow=""};
   setTimeout(()=>{pop.hidden=false;document.body.style.overflow="hidden";$("#popX").focus()},80);
   $("#popX").onclick=close;$("#popB").onclick=close;pop.addEventListener("click",e=>{if(e.target===pop)close()});
   addEventListener("keydown",e=>{if(e.key==="Escape"&&!pop.hidden)close()})}

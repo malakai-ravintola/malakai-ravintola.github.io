@@ -460,3 +460,29 @@
 .menu-page .row em{font:500 1.25rem "Playfair Display",Georgia,serif;color:var(--yel)}
 .menu-page .note{background:#161616;border-left:3px solid var(--red);border-radius:8px;color:#bbb}
 @media(max-width:1100px){.menu-page .cats{top:64px}}
+
+/* ===== Yhtenäinen viimeistely ===== */
+/* Otsikot: Playfair kaikkialla */
+.home h2,.home h3,.home .h-card h3,.home .h-mtile h3,.home .h-lcard h3,.home .h-offer h3{font-family:"Playfair Display",Georgia,serif!important;font-weight:500!important;text-transform:none!important;letter-spacing:0!important}
+.home h2{font-size:clamp(2.2rem,5vw,3.4rem);line-height:1.1}
+.home .h-card h3{font-size:1.7rem}
+.home .h-stats b,.home .h-scorecard b,.home .h-lprice b,.home .h-offer .op b,.home .h-daily .today .pr,.home .h-daily .day b,.home .today h3{font-family:"Playfair Display",Georgia,serif!important;font-weight:500!important}
+.home .h-daily .day b{text-transform:none}
+.home h1.h-name{text-transform:none}
+.menu-page .msec h2{font-family:"Playfair Display",Georgia,serif}
+/* Värit: keltainen korostus, punainen painikkeet, tummansininen vain päivän pizzassa */
+.h-offers{background:#000}
+.h-pay b{background:transparent;border:1.5px solid var(--yel);color:var(--yel)}
+.h-news{background:#0B0B0B;color:#fff;border-top:1px solid #1F1F1F}
+.h-news .h-kick{color:var(--yel)}.h-news p{color:#bbb}
+.h-news .btn.y{background:var(--yel);border-color:var(--yel);color:#000}
+.h-nl input[type=email]{border:1px solid #333;background:#111;color:#fff}
+.h-mtrack cite i{background:var(--yel);color:#000}
+.h-priv{font-size:.82rem;color:#999;margin:8px 0 0}.h-priv a{color:#ccc}
+.h-dishes .h-mlinks{margin-top:26px}
+/* Tietosuojasivu */
+.h-legal{background:#000;padding-top:150px!important}
+.h-legalin{max-width:780px}
+.h-legal h1{font:500 clamp(2.4rem,6vw,3.6rem)/1.1 "Playfair Display",Georgia,serif;margin:0}
+.h-legal h2{font-size:1.5rem!important;margin:36px 0 10px}
+.h-legal p,.h-legal li{color:#ccc;line-height:1.75}.h-legal a{color:var(--yel)}
