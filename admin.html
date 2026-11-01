@@ -203,8 +203,8 @@ function vRes(m){m.append(mk("h2",{text:"Varaukset"}));if(sbGate(m))return;
   const list=(arr,title)=>{const c=mk("div",{class:"card"},mk("h3",{text:title+" ("+arr.length+")"}));if(!arr.length)c.append(mk("p",{class:"muted",text:"Ei varauksia."}));
     arr.forEach(r=>c.append(mk("div",{class:"row"},mk("div",null,mk("b",{text:`${fd(r.date)} klo ${String(r.time).slice(0,5)} · ${r.name} · ${r.guests} hlö`}),mk("span",{class:"pill "+r.status,text:r.status}),
       mk("small",{text:[r.phone,r.email,r.note].filter(Boolean).join(" · ")})),
-      mk("div",null,act("Vahvista (SMS)",async()=>{if(!confirm("Lähetetäänkö vahvistus asiakkaalle?"))return;await api("confirm",{id:r.id,ok:true});toast("Vahvistus lähetetty");sbLoad()}),
-        act("Peru (SMS)",async()=>{if(!confirm("Lähetetäänkö peruutus asiakkaalle?"))return;await api("confirm",{id:r.id,ok:false});toast("Peruutus lähetetty");sbLoad()},"o"),
+      mk("div",null,act("Vahvista (SMS)",async()=>{if(!confirm("Lähetetäänkö vahvistus asiakkaalle?"))return;const x=await api("confirm",{id:r.id,ok:true});toast(x.sent===false?"Merkitty. Viestipalvelu ei ole käytössä, ilmoita asiakkaalle itse: "+r.phone:"Vahvistus lähetetty");sbLoad()}),
+        act("Peru (SMS)",async()=>{if(!confirm("Lähetetäänkö peruutus asiakkaalle?"))return;const x=await api("confirm",{id:r.id,ok:false});toast(x.sent===false?"Merkitty. Viestipalvelu ei ole käytössä, ilmoita asiakkaalle itse: "+r.phone:"Peruutus lähetetty");sbLoad()},"o"),
         act("Poista",async()=>{if(!confirm("Poistetaanko varaus?"))return;await SB.from("reservations").delete().eq("id",r.id);sbLoad()},"x del")))));return c};
   m.append(list(up,"Tulevat"),list(past.reverse(),"Menneet"),act("Kirjaudu ulos",async()=>{await SB.auth.signOut();RES=SUB=null;render()},"o"))}
 function vSubs(m){m.append(mk("h2",{text:"Tilaajat"}));if(sbGate(m))return;

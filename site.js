@@ -99,7 +99,7 @@ if(rf){const g=rf.g;for(let i=1;i<=8;i++)g.add(new Option(i+(i==1?" vieras":" vi
     $("#resDone").hidden=false;$("#resDone").scrollIntoView({block:"center"})};
   rf.onsubmit=async e=>{e.preventDefault();const v=e.target;
     if(API){try{const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+C.anon},body:JSON.stringify({action:"reserve",n:v.n.value,e:v.e.value,p:v.p.value,g:v.g.value,d:v.d.value,t:v.t.value,m:v.m.value,news:v.news.checked,website:v.website.value})});
-        if(!r.ok)throw 0;rf.hidden=true;const d=$("#resDone");d.textContent="Kiitos! Varauspyyntösi on lähetetty. Vahvistamme sen sähköpostilla tai tekstiviestillä.";d.hidden=false;return}catch(x){}}
+        if(!r.ok)throw 0;const jr=await r.json().catch(()=>({}));if(jr.notified===false){manual(v);return}rf.hidden=true;const d=$("#resDone");d.textContent="Kiitos! Varauspyyntösi on lähetetty. Vahvistamme sen sähköpostilla tai tekstiviestillä.";d.hidden=false;return}catch(x){}}
     manual(v)}}
 
 // --- Uutiskirje

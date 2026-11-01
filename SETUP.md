@@ -19,16 +19,13 @@ Ennen käyttöönottoa sivu toimii silti: viesti avautuu asiakkaan omassa viesti
 2. Senders > lisää ja vahvista lähettäjäksi `malakairavintola@gmail.com`.
 3. SMTP & API > API Keys: luo avain.
 
-## 4. Palvelinfunktiot
-Asenna Supabase CLI (supabase.com/docs/guides/cli) ja aja repon juuressa:
+## 4. Palvelinfunktiot (Supabasen selaimessa)
+Edge Functions > Deploy a new function > Via Editor. Tee kaksi funktiota:
+- nimi `public`: liitä koko `supabase/functions/public/index.ts`, paina Deploy.
+- nimi `admin`: liitä koko `supabase/functions/admin/index.ts`, paina Deploy.
 
-    supabase login
-    supabase link --project-ref PROJEKTIN_TUNNUS
-    supabase secrets set ELKS_USER=... ELKS_PASS=... BREVO_KEY=...
-    supabase functions deploy public --no-verify-jwt
-    supabase functions deploy admin
-
-Puhelinnumero (+358456057475) ja sähköposti on jo asetettu oletuksiksi.
+Edge Functions > Secrets: lisää `BREVO_KEY` (sähköposti) ja halutessasi `ELKS_USER` + `ELKS_PASS` (tekstiviestit).
+Jos avaimia ei ole, varaukset tallentuvat silti adminiin ja asiakasta pyydetään lisäksi lähettämään viesti itse.
 
 ## 5. Julkaisu
 Siirrä kansion tiedostot repoon `malakai-ravintola.github.io` (index.html, admin.html, config.js, media/-kansio ja supabase/). Sivu päivittyy osoitteeseen malakairavintola.fi, ylläpito on osoitteessa malakairavintola.fi/admin.html.

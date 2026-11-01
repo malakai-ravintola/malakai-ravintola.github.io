@@ -1,3 +1,5 @@
-// Täytä nämä Supabasesta (Project Settings > API) kun olet seurannut SETUP.md-ohjeen.
-// Kun url on tyhjä, sivu toimii ilman automatiikkaa: viesti avautuu asiakkaan omassa viestisovelluksessa.
-window.MALAKAI = { url: "", anon: "" };
+// Supabase (Project Settings > API). anon-avain on julkinen ja turvallinen selaimessa.
+window.MALAKAI = {
+  url: "https://vyqrlzdwdwswsjyhszji.supabase.co",
+  anon: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cXJsemR3ZHdzd3NqeWhzemppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NDIwMDQsImV4cCI6MjEwOTExODAwNH0.FHyPLv9-93xQFga9iSpW_vtVO2t-Uet5KaEu4a07HEI"
+};
