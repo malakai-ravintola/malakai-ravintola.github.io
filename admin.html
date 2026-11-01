@@ -26,6 +26,16 @@ button.x:hover{color:var(--w);border-color:#666}button.del:hover{color:var(--bad
 button:disabled{opacity:.45;cursor:not-allowed}
 .card{background:var(--k2);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0}
 .muted{color:var(--g);font-size:.88rem}
+.ovcols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ovcols>.card{margin:0}@media(max-width:760px){.ovcols{grid-template-columns:1fr}}
+.ovg{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}.ovimg{width:96px;height:96px;object-fit:contain}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line)}.kv span{color:var(--g)}.kv b{text-align:right}
+.okc{color:var(--ok)}.badc{color:var(--bad)}.btnrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.qls{display:flex;flex-wrap:wrap;gap:8px}.ql{display:inline-block;border:1px solid #333;border-radius:999px;padding:7px 14px;text-decoration:none;color:var(--w);font-size:.88rem}.ql:hover{border-color:var(--y)}
+h3.sec{margin:22px 0 0;color:var(--w)}.todo{margin:0;padding-left:18px}.todo li{margin:4px 0}
+.bars{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;height:150px;align-items:end;margin:6px 0 14px}
+.bar{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}.bar i{display:block;width:100%;max-width:46px;background:#555;border-radius:4px 4px 0 0}.bar.now i{background:var(--y)}
+.bar small{font-size:.72rem;color:var(--g)}.bar span{font-size:.72rem;color:var(--g);white-space:nowrap}
+
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media(max-width:640px){.g2,.g3{grid-template-columns:1fr}}
 .item{display:grid;grid-template-columns:1.3fr 2fr 90px 90px auto;gap:8px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line)}
@@ -77,8 +87,8 @@ code{background:#000;padding:1px 5px;border-radius:4px;border:1px solid #333}
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1793573569"></script>
-<script src="config.js?v=1793573569"></script>
+<script src="data.js?v=1793574352"></script>
+<script src="config.js?v=1793574352"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -273,22 +283,95 @@ function reply(r,kind){const list=tplList().filter(t=>t.kind===kind),ov=mk("div"
     mk("label",{class:"ck"},sm,"Lähetä tekstiviestinä ("+r.phone+")"+(SVC?.sms?"":" – ei käytössä")),
     mk("div",{class:"mact"},mk("button",{class:"o",text:"Sulje",onclick:close}),go));
   ov.append(box);ov.onclick=e=>{if(e.target===ov)close()};document.body.append(ov);document.body.style.overflow="hidden";sl.focus()}
-function vOver(m){m.append(mk("h2",{text:"Yleiskatsaus"}));if(sbGate(m))return;const w=svcWarn();if(w)m.append(w);
-  const t=hToday(),wk=addDays(t,7),live=RES.filter(r=>r.status!=="peruttu");
-  const pend=RES.filter(r=>r.status==="uusi"&&r.date>=t),tod=live.filter(r=>r.date===t),week=live.filter(r=>r.date>t&&r.date<=wk);
-  const cust=customers();
-  const tile=(n,l,go)=>mk("button",{class:"tile",onclick:go},mk("b",{text:String(n)}),mk("span",{text:l}));
-  m.append(mk("div",{class:"tiles"},tile(pend.length,"odottaa hyväksyntää",()=>{rf="odottaa";tab="Varaukset";render()}),
-    tile(tod.length+" / "+tod.reduce((a,r)=>a+r.guests,0),"varausta / henkilöä tänään",()=>{rf="tulevat";tab="Varaukset";render()}),
-    tile(week.length,"varausta seuraavat 7 pv",()=>{rf="tulevat";tab="Varaukset";render()}),
-    tile(cust.length,"asiakasta",()=>{cNews=false;tab="Asiakkaat";render()}),
-    tile(SUB.length,"uutiskirjeen tilaajaa",()=>{cNews=true;tab="Asiakkaat";render()})));
-  const c1=mk("div",{class:"card"},mk("h3",{text:"Odottaa hyväksyntää ("+pend.length+")"}));if(!pend.length)c1.append(mk("p",{class:"muted",text:"Ei käsittelemättömiä varauksia. 👍"}));pend.forEach(r=>c1.append(resRow(r,true)));
-  const c2=mk("div",{class:"card"},mk("h3",{text:"Tänään "+fd(t)}));if(!tod.length)c2.append(mk("p",{class:"muted",text:"Ei varauksia tänään."}));tod.forEach(r=>c2.append(resRow(r,true)));
-  const nx=RES.filter(r=>r.created_at).slice().sort((a,b)=>b.created_at.localeCompare(a.created_at)).slice(0,5);
-  const c3=mk("div",{class:"card"},mk("h3",{text:"Viimeksi tulleet"}));if(!nx.length)c3.append(mk("p",{class:"muted",text:"Ei vielä varauksia."}));
-  nx.forEach(r=>c3.append(mk("div",{class:"row"},mk("div",null,mk("b",{text:r.name}),mk("small",{text:`${wd(r.date)} ${fd(r.date)} klo ${tm(r.time)} · ${r.guests} hlö · tullut ${new Date(r.created_at).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}`})),pill(r.status))));
-  m.append(c1,c2,c3,mk("p",{class:"muted",text:"Sivu päivittyy automaattisesti minuutin välein."}))}
+function vOver(m){m.append(mk("h2",{text:"Yleiskatsaus"}));
+  const t=hToday(),dk=wd(t),wkend=dk==="la"||dk==="su",eur=v=>(+v).toFixed(2).replace(".",",")+" €",left=d=>Math.round((new Date(d+"T12:00:00")-new Date(t+"T12:00:00"))/864e5);
+  const kv=(k,v)=>mk("div",{class:"kv"},mk("span",{text:k}),typeof v==="string"?mk("b",{text:v}):v);
+  const DN={ma:"maanantai",ti:"tiistai",ke:"keskiviikko",to:"torstai",pe:"perjantai",la:"lauantai",su:"sunnuntai"};
+  // --- Tänään sivustolla
+  const h=(S.hours||{})[dk],B=(S.buffet||{})[wkend?"vkl":"arki"]||{},dp=(S.daily||{})[dk]||{};
+  const today=mk("div",{class:"card"},mk("h3",{text:"Tänään · "+DN[dk]+" "+fd(t)}),
+    mk("div",{class:"ovg"},
+      mk("div",null,kv("Aukiolo",h&&h[0]?h[0].replace(":",".")+"–"+h[1].replace(":","."):"Suljettu"),
+        kv("Pizzabuffet",B.aika?B.aika+" · "+eur(B.pizza):"–"),kv("Salaattibuffet",B.salaatti?eur(B.salaatti):"–"),
+        kv("Päivän pizza",(dp.name||"–")+(S.dailyPrice?" · "+eur(S.dailyPrice):""))),
+      dp.img?mk("img",{src:dp.img,alt:dp.name||"",class:"ovimg"}):mk("span")),
+    mk("div",{class:"btnrow"},mk("button",{class:"o",text:"Muokkaa päivän pizzaa",onclick:()=>{tab="Päivän pizza";render()}}),mk("button",{class:"o",text:"Muokkaa aukioloa",onclick:()=>{tab="Aukiolo & buffet";render()}})));
+  // --- Sivustolla näkyy nyt
+  const items=[["Yläpalkin tiedote",S.ann,S.ann&&S.ann.text],["Tapahtuma",S.event,S.event&&S.event.title],["Ponnahduskuva",S.popup,S.popup&&S.popup.alt]];
+  (S.offers||[]).forEach(o=>items.push(["Tarjous",o,(o.title||"")+(o.price?" · "+o.price:""),o.from]));
+  const live=mk("div",{class:"card"},mk("h3",{text:"Sivustolla näkyy nyt"})),warns=[];
+  let nLive=0;items.forEach(([k,o,txt,from])=>{if(!o)return;const exp=o.until&&o.until<t,fut=from&&from>t,on=o.on&&!exp&&!fut;
+    let st=!o.on?"pois päältä":exp?"vanhentunut "+fd(o.until):fut?"alkaa "+fd(from):o.until?"näkyy "+fd(o.until)+" asti ("+(left(o.until)===0?"viimeinen päivä":left(o.until)+" pv")+")":"näkyy toistaiseksi";
+    if(on)nLive++;if(o.on&&exp)warns.push(k+" on vanhentunut ("+fd(o.until)+"). Päivitä tai poista se Ilmoitukset-välilehdellä.");
+    if(on&&o.until&&left(o.until)<=2)warns.push(k+" ”"+(txt||"").slice(0,40)+"” päättyy "+(left(o.until)===0?"tänään":fd(o.until))+".");
+    live.append(mk("div",{class:"row"},mk("div",null,mk("b",{text:k}),mk("small",{text:txt||""})),mk("span",{class:"pill "+(on?"vahvistettu":exp?"peruttu":""),text:st})))});
+  if(!items.some(x=>x[1]))live.append(mk("p",{class:"muted",text:"Ei ilmoituksia tai tarjouksia."}));
+  live.append(mk("div",{class:"btnrow"},mk("button",{class:"o",text:"Muokkaa ilmoituksia ja tarjouksia",onclick:()=>{tab="Ilmoitukset";render()}})));
+  // --- Ruokalista
+  const M=S.menu||{},cats=Object.keys(M),nItems=cats.reduce((a,c)=>a+((M[c]&&M[c].items)||[]).length,0);
+  let pmin=Infinity,pmax=0;cats.forEach(c=>((M[c]&&M[c].items)||[]).forEach(it=>{const p=+it[2];if(p>0){pmin=Math.min(pmin,p);pmax=Math.max(pmax,p)}}));
+  const menu=mk("div",{class:"card"},mk("h3",{text:"Ruokalista"}),kv("Kategorioita",String(cats.length)),kv("Annoksia",String(nItems)),kv("Hinnat",nItems?eur(pmin)+" – "+eur(pmax):"–"),
+    mk("small",{class:"muted",text:cats.map(c=>c+" ("+(((M[c]&&M[c].items)||[]).length)+")").join(" · ")}));
+  // --- Järjestelmä
+  const sys=mk("div",{class:"card"},mk("h3",{text:"Järjestelmän tila"}));const ok=(k,v,good)=>sys.append(kv(k,mk("b",{class:good?"okc":"badc",text:v})));
+  ok("Sivuston muokkaus (GitHub-avain)",TOKEN?"käytössä":"ei asetettu",!!TOKEN);
+  ok("Varausjärjestelmä",RES!==null?"kirjautunut":"ei kirjautunut",RES!==null);
+  if(SVC){ok("Sähköposti-ilmoitukset",SVC.down?"funktiot eivät vastaa":SVC.mail?"käytössä":"ei käytössä",!SVC.down&&SVC.mail);ok("Tekstiviestit",SVC.sms?"käytössä":"ei käytössä",!!SVC.sms)}
+  const ver=mk("b",{text:"…"});sys.append(kv("Sivusto päivitetty viimeksi",ver));
+  fetch("version.txt?"+Date.now(),{cache:"no-store"}).then(r=>r.text()).then(x=>{const n=parseInt(x);ver.textContent=n?new Date(n*1000).toLocaleString("fi-FI",{day:"numeric",month:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"}):"–"}).catch(()=>ver.textContent="–");
+  if(ORIG!==JSON.stringify(S))warns.unshift("Sinulla on tallentamattomia muutoksia sivuston sisältöön. Muista tallentaa ja julkaista.");
+  if(!TOKEN)warns.push("GitHub-avain puuttuu, joten ruokalistan, hintojen ja ilmoitusten muutoksia ei voi tallentaa. Lisää se Asetuksissa.");
+  // --- Pikalinkit
+  const L=(t2,u)=>mk("a",{class:"ql",href:u,target:"_blank",rel:"noopener",text:t2});
+  const links=mk("div",{class:"card"},mk("h3",{text:"Pikalinkit"}),mk("div",{class:"qls"},
+    L("Avaa sivusto","index.html"),L("Ruokalista","ruokalista.html"),L("Lahjakortit","lahjakortit.html"),L("Tulosta lahjakortteja","lahjakortti-tulostus.html"),
+    L("Google-arvostelut","https://www.google.com/search?q=Malakai+Ravintola+Lemp%C3%A4%C3%A4l%C3%A4"),L("Oiva-raportti","https://www.oivahymy.fi/api/raportti/227129"),
+    L("Tilaussivu","https://order.site/malakai-ravintola"),L("Käyttöehdot","kayttoehdot.html"),L("Tietosuoja","tietosuoja.html"),
+    L("Supabase","https://supabase.com/dashboard/project/vyqrlzdwdwswsjyhszji"),L("Brevo (sähköpostit)","https://app.brevo.com/"),L("GitHub","https://github.com/"+REPO)));
+  // --- Varaukset (vaatii kirjautumisen)
+  const resWrap=mk("div");
+  if(!sbGate(resWrap)){const w=svcWarn();if(w)resWrap.append(w);
+    const wk=addDays(t,7),liveR=RES.filter(r=>r.status!=="peruttu");
+    const pend=RES.filter(r=>r.status==="uusi"&&r.date>=t),tod=liveR.filter(r=>r.date===t),week=liveR.filter(r=>r.date>t&&r.date<=wk);
+    const stale=RES.filter(r=>r.status==="uusi"&&r.date<t);if(stale.length)warns.push(stale.length+" varausta jäi vastaamatta (päivä mennyt). Merkitse ne Varaukset-välilehdellä.");
+    const big=liveR.filter(r=>r.date>=t&&r.date<=wk&&r.guests>=8);big.forEach(r=>warns.push("Iso ryhmä: "+r.name+", "+r.guests+" hlö "+wd(r.date)+" "+fd(r.date)+" klo "+tm(r.time)+"."));
+    const mon=t.slice(0,7),pm=(()=>{const d=new Date(t+"T12:00:00");d.setDate(1);d.setMonth(d.getMonth()-1);return d.toISOString().slice(0,7)})();
+    const inM=(r,p)=>r.date.slice(0,7)===p,thisM=RES.filter(r=>inM(r,mon)),prevM=RES.filter(r=>inM(r,pm));
+    const ppl=a=>a.filter(r=>r.status!=="peruttu").reduce((x,r)=>x+r.guests,0),cnt=a=>a.filter(r=>r.status!=="peruttu").length;
+    const canc=RES.length?Math.round(RES.filter(r=>r.status==="peruttu").length/RES.length*100):0;
+    const avg=liveR.length?(liveR.reduce((x,r)=>x+r.guests,0)/liveR.length).toFixed(1).replace(".",","):"–";
+    const cust=customers(),reg=cust.filter(c=>c.res.filter(r=>r.status!=="peruttu").length>=2).length;
+    const d30=addDays(t,-30),newSub=SUB.filter(s=>(s.created_at||"").slice(0,10)>=d30).length,newCust=cust.filter(c=>c.res.length&&c.res[c.res.length-1].created_at&&c.res[c.res.length-1].created_at.slice(0,10)>=d30).length;
+    const diff=cnt(thisM)-cnt(prevM);
+    const tile=(n,l,go)=>mk("button",{class:"tile",onclick:go},mk("b",{text:String(n)}),mk("span",{text:l}));
+    resWrap.append(mk("h3",{class:"sec",text:"Varaukset"}),mk("div",{class:"tiles"},
+      tile(pend.length,"odottaa hyväksyntää",()=>{rf="odottaa";tab="Varaukset";render()}),
+      tile(tod.length+" / "+tod.reduce((a,r)=>a+r.guests,0),"varausta / henkilöä tänään",()=>{rf="tulevat";tab="Varaukset";render()}),
+      tile(week.length+" / "+week.reduce((a,r)=>a+r.guests,0),"varausta / hlö seuraavat 7 pv",()=>{rf="tulevat";tab="Varaukset";render()}),
+      tile(cnt(thisM)+" / "+ppl(thisM),"varausta / hlö tässä kuussa"+(prevM.length?" ("+(diff>=0?"+":"")+diff+" ed. kk)":""),()=>{rf="tulevat";tab="Varaukset";render()}),
+      tile(avg,"henkilöä keskimäärin / varaus",()=>{}),tile(canc+" %","varauksista peruttu",()=>{rf="peruttu";tab="Varaukset";render()})),
+      mk("h3",{class:"sec",text:"Asiakkaat"}),mk("div",{class:"tiles"},
+      tile(cust.length,"asiakasta yhteensä",()=>{cNews=false;tab="Asiakkaat";render()}),
+      tile(reg,"kanta-asiakasta (2+ varausta)",()=>{cNews=false;tab="Asiakkaat";render()}),
+      tile(newCust,"uutta asiakasta 30 pv",()=>{cNews=false;tab="Asiakkaat";render()}),
+      tile(SUB.length,"uutiskirjeen tilaajaa"+(newSub?" (+"+newSub+" 30 pv)":""),()=>{cNews=true;tab="Asiakkaat";render()})));
+    // 7 päivän kuvaaja
+    const days=[...Array(7)].map((_,i)=>addDays(t,i)),vals=days.map(d=>liveR.filter(r=>r.date===d).reduce((a,r)=>a+r.guests,0)),mx=Math.max(1,...vals);
+    const bars=mk("div",{class:"bars"});days.forEach((d,i)=>bars.append(mk("div",{class:"bar"+(i===0?" now":"")},mk("small",{text:vals[i]?vals[i]+" hlö":""}),mk("i",{style:"height:"+Math.max(3,vals[i]/mx*100)+"%"}),mk("span",{text:wd(d)+" "+fd(d).slice(0,5)}))));
+    // suosituimmat päivät ja ajat
+    const byD={},byH={};liveR.forEach(r=>{const w2=wd(r.date);byD[w2]=(byD[w2]||0)+1;const hh=tm(r.time).slice(0,2);if(hh)byH[hh]=(byH[hh]||0)+1});
+    const top=(o,f)=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>f(k)+" ("+v+")").join(", ")||"–";
+    resWrap.append(mk("div",{class:"card"},mk("h3",{text:"Henkilöitä seuraavat 7 päivää"}),bars,
+      kv("Suosituimmat päivät",top(byD,k=>DN[k]||k)),kv("Suosituimmat kellonajat",top(byH,k=>"klo "+k))));
+    const c1=mk("div",{class:"card"},mk("h3",{text:"Odottaa hyväksyntää ("+pend.length+")"}));if(!pend.length)c1.append(mk("p",{class:"muted",text:"Ei käsittelemättömiä varauksia."}));pend.forEach(r=>c1.append(resRow(r,true)));
+    const c2=mk("div",{class:"card"},mk("h3",{text:"Tänään "+fd(t)}));if(!tod.length)c2.append(mk("p",{class:"muted",text:"Ei varauksia tänään."}));tod.forEach(r=>c2.append(resRow(r,true)));
+    const nx=RES.filter(r=>r.created_at).slice().sort((a,b)=>b.created_at.localeCompare(a.created_at)).slice(0,5);
+    const c3=mk("div",{class:"card"},mk("h3",{text:"Viimeksi tulleet"}));if(!nx.length)c3.append(mk("p",{class:"muted",text:"Ei vielä varauksia."}));
+    nx.forEach(r=>c3.append(mk("div",{class:"row"},mk("div",null,mk("b",{text:r.name}),mk("small",{text:`${wd(r.date)} ${fd(r.date)} klo ${tm(r.time)} · ${r.guests} hlö · tullut ${new Date(r.created_at).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}`})),pill(r.status))));
+    resWrap.append(c1,c2,c3)}
+  const todo=mk("div",{class:"card"+(warns.length?" warn":"")},mk("h3",{text:"Muistutukset ("+warns.length+")"}));
+  if(!warns.length)todo.append(mk("p",{class:"muted",text:"Kaikki kunnossa, ei muistutuksia."}));else{const ul=mk("ul",{class:"todo"});warns.forEach(x=>ul.append(mk("li",{text:x})));todo.append(ul)}
+  m.append(todo,mk("div",{class:"ovcols"},today,live),resWrap,mk("div",{class:"ovcols"},menu,sys),links,mk("p",{class:"muted",text:"Varaustiedot päivittyvät automaattisesti minuutin välein."}))}
 function vRes(m){m.append(mk("h2",{text:"Varaukset"}));if(sbGate(m))return;const w=svcWarn();if(w)m.append(w);
   const t=hToday(),F={odottaa:["Odottaa",r=>r.status==="uusi"&&r.date>=t],tulevat:["Tulevat",r=>r.status==="vahvistettu"&&r.date>=t],menneet:["Menneet",r=>r.date<t&&r.status!=="peruttu"],peruttu:["Perutut",r=>r.status==="peruttu"],kaikki:["Kaikki",()=>true]};
   m.append(mk("div",{class:"cats"},Object.entries(F).map(([k,[l,f]])=>mk("button",{class:k===rf?"on":"",text:l+" ("+RES.filter(f).length+")",onclick:()=>{rf=k;render()}})),
