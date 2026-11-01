@@ -29,6 +29,7 @@ if(B){const en=a=>a.replace(/\./g,":");
     (B.lapset&&B.lapset.length?`<tr class="h"><td colspan="2" data-en="Children">Lapset</td></tr>`+B.lapset.map(l=>`<tr><td>${esc(l[0])}</td><td>${f(l[1])}</td></tr>`).join(""):"")});
   $$("[data-b]").forEach(e=>{const[k,p]=e.dataset.b.split(".");if(B[k]&&B[k][p]!=null)e.textContent=f(B[k][p])});
   $$("[data-bt]").forEach(e=>{const k=e.dataset.bt;if(B[k])e.textContent=B[k].aika});
+  $$(".kidsrows").forEach(e=>{e.innerHTML="";(B.lapset||[]).forEach(l=>{const d=document.createElement("div");d.innerHTML="<span></span><b></b>";d.firstChild.textContent="Lapset "+l[0].replace("-vuotiaat"," v");d.lastChild.textContent=f(l[1]);e.appendChild(d)});const d=document.createElement("div");d.innerHTML="<span>Alle 3 v</span><b>maksuton</b>";e.appendChild(d)});
   {const kp=$("#kidsPrices");if(kp){if(B.lapset&&B.lapset.length)kp.textContent="Lapset: "+B.lapset.map(l=>l[0]+" "+f(l[1])).join(" · ")+(B.huom?" · "+B.huom:"");else kp.hidden=true}}
   $$('[data-k="arki"]').forEach(e=>e.textContent=f(B.arki.pizza));$$('[data-k="vkl"]').forEach(e=>e.textContent=f(B.vkl.pizza));
   const bn=$("#bufNote");if(bn){bn.textContent=B.huom||"";bn.hidden=!B.huom}}

@@ -394,3 +394,45 @@
 /* Oiva: tummanpunainen pohja */
 .h-oiva{background:#6E0D14}
 .h-oiva .h-lead{color:#F1D3D5}
+
+/* ===== Lounaskortit (tumma, kuvan päällä päivämerkki) ===== */
+.h-lunch{background:#0B0B0B;color:#fff}
+.h-lunch .h-lead,.h-pay{color:#bbb}
+.h-lunch .btn.o2{color:#fff}.h-lunch .btn.o2:hover{background:#fff;color:#000;border-color:#fff}
+.h-incl li{background:#1A1A1A;color:#fff}
+.h-lcard{background:#141414;border:1px solid #262626;border-radius:20px}
+.h-lph{position:relative}.h-lph img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.h-lday{position:absolute;left:18px;top:18px;background:rgba(0,0,0,.78);color:var(--yel);font:700 .8rem Inter,sans-serif;letter-spacing:.16em;text-transform:uppercase;padding:10px 16px;border-radius:6px}
+.h-lbody{padding:26px 28px 24px!important}
+.h-ltop{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.h-lcard h3{font:500 2.1rem/1.1 "Playfair Display",Georgia,serif;text-transform:none;margin:0}
+.h-ltime{display:flex;align-items:center;gap:8px;color:#ddd;margin:8px 0 0;font-size:1.05rem}
+.h-ltime svg{width:20px;height:20px;color:var(--yel)}
+.h-lmain{text-align:right}.h-lmain b{display:block;font:500 2.6rem/1 "Playfair Display",Georgia,serif;color:var(--yel)}.h-lmain small{color:#aaa}
+.h-ldrink{display:inline-flex;align-items:center;gap:10px;background:#2A2312;color:var(--yel);font-weight:700;padding:10px 16px;border-radius:6px;margin:20px 0 6px}
+.h-ldrink svg{width:18px;height:18px}
+.h-lrows{border-top:1px solid #2A2A2A;margin-top:16px;padding-top:12px}
+.h-lrows div div,.h-lrows>div:first-child{display:flex;justify-content:space-between;padding:7px 0;font-size:1.02rem}
+.h-lrows span{color:#bbb}.h-lrows b{font-weight:600}
+.h-lprice{display:none}
+
+/* ===== Arvostelut (keskitetty) ===== */
+.h-reviews{background:#0B0B0B;color:#fff}
+.h-revhead{text-align:center;display:flex;flex-direction:column;align-items:center;margin-bottom:36px}
+.h-revhead .h-kick{color:var(--yel)!important;letter-spacing:.32em}
+.h-revhead h2{font:500 clamp(2.4rem,6vw,3.6rem)/1.1 "Playfair Display",Georgia,serif!important;text-transform:none!important;margin:6px 0 0}
+.h-revhead h2 em{color:var(--yel);font-style:italic}
+.h-rule{display:block;width:72px;height:2px;background:var(--yel);margin:26px 0}
+.h-reviews .h-scorecard{border:1px solid #333;background:#141414;color:#fff;border-radius:8px}
+.h-reviews .h-scorecard b{font:500 3rem/1 "Playfair Display",Georgia,serif}.h-reviews .h-scorecard small{color:#aaa}
+.h-revbtns{display:flex;flex-direction:column;gap:12px;width:min(420px,100%);margin-top:24px}
+.h-revbtns .btn{width:100%;border-radius:6px;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem}
+.h-revbtns .btn.o2{color:var(--yel);border-color:var(--yel)}.h-revbtns .btn.o2:hover{background:var(--yel);color:#000}
+.h-mtrack blockquote{background:#141414;border:1px solid #2A2A2A;color:#fff;border-radius:10px}
+.h-mtrack blockquote p{color:#eee;font:italic 1.1rem/1.6 "Playfair Display",Georgia,serif}
+.qtop{display:flex;justify-content:space-between;align-items:center}.qtop small{letter-spacing:.2em;color:#999;font-size:.75rem}
+.h-mtrack cite{color:#fff}.h-mtrack cite i{background:var(--yel);color:#000}
+.h-marquee{mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+.h-lcard>.h-lph{padding:0!important}
+.h-lph .h-lday{left:16px;top:16px}
+@media(max-width:560px){.h-ltop{flex-direction:column;gap:10px}.h-lmain{text-align:left;display:flex;align-items:baseline;gap:10px}.h-lmain b{font-size:2.3rem}.h-lcard h3{font-size:1.9rem}}
