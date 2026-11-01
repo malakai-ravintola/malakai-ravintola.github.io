@@ -525,3 +525,4 @@
 .hx-dots button.on{width:30px;background:var(--yel)}
 @media(prefers-reduced-motion:reduce){.hx-s{transition:none;animation:none!important}}
 .hx .hx-h em{-webkit-text-stroke:0!important;color:var(--yel)!important;font-family:"Playfair Display",Georgia,serif!important;font-style:italic!important;font-weight:500}
+.hx-h{font-size:clamp(3rem,10vw,6.6rem)!important}
