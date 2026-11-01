@@ -436,3 +436,4 @@
 .h-lcard>.h-lph{padding:0!important}
 .h-lph .h-lday{left:16px;top:16px}
 @media(max-width:560px){.h-ltop{flex-direction:column;gap:10px}.h-lmain{text-align:left;display:flex;align-items:baseline;gap:10px}.h-lmain b{font-size:2.3rem}.h-lcard h3{font-size:1.9rem}}
+.h-xbg{background:linear-gradient(90deg,rgba(0,0,0,.9) 0%,rgba(0,0,0,.65) 45%,rgba(0,0,0,.15) 100%),url(media/kuvat/ravintola-sali.jpg) center 60%/cover}
