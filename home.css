@@ -526,3 +526,5 @@
 @media(prefers-reduced-motion:reduce){.hx-s{transition:none;animation:none!important}}
 .hx .hx-h em{-webkit-text-stroke:0!important;color:var(--yel)!important;font-family:"Playfair Display",Georgia,serif!important;font-style:italic!important;font-weight:500}
 .hx-h{font-size:clamp(3rem,10vw,6.6rem)!important}
+/* 4,5 tähteä: viimeinen tähti puoliksi */
+.stars.s45{background:linear-gradient(90deg,var(--yel) 90%,rgba(255,255,255,.3) 90%);-webkit-background-clip:text;background-clip:text;color:transparent!important;-webkit-text-fill-color:transparent}
