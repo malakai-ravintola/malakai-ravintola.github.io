@@ -1,5 +1,5 @@
 
-:root{--k:#0A0A0A;--k2:#151515;--w:#fff;--y:#B39664;--r:#FFFFFF;--g:#B4B4B4;--line:#2A2A2A;color-scheme:dark;box-sizing:border-box}
+:root{--k:#0A0A0A;--k2:#151515;--w:#fff;--y:#FFC72C;--r:#E10A1D;--g:#B4B4B4;--line:#2A2A2A;color-scheme:dark;box-sizing:border-box}
 *,*::before,*::after{box-sizing:inherit}[hidden]{display:none!important}
 html{scroll-behavior:smooth;scroll-padding-top:80px}
 body{margin:0;background:var(--k);color:var(--w);font:400 17px/1.6 Inter,system-ui,sans-serif;overflow-x:hidden;padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))}
@@ -200,20 +200,7 @@ footer .wrap{display:block}
 .hin{padding-top:135px;padding-bottom:110px}
 .hero h1{font-size:clamp(3.4rem,12vw,8.8rem)}
 
-/* ===== Musta-valkoinen, mainoksen tyyli ===== */
-.ann{background:#fff;color:#000}.ann:hover{background:var(--y)}
-.btn.r{background:#fff;border-color:#fff;color:#000}.btn.r:hover{background:var(--y);border-color:var(--y);color:#000}
-.btn.y{color:#000}.btn.y:hover{background:#fff;border-color:#fff}
-.light .btn.r{background:#000;border-color:#000;color:#fff}.light .btn.r:hover{background:var(--y);border-color:var(--y);color:#000}
-.light h2 em,.light .kick{color:#7A5F2E}.pt td:last-child,.pt tr.h td:last-child{color:#000}
-.isa{background:#fff;color:#000}.isa h2 b{color:#000;text-decoration:underline;text-decoration-color:var(--y);text-underline-offset:6px}.isa .btn.y{background:#000;border-color:#000;color:#fff}
-.hungry{background:#fff;color:#000;border-block:0}.hungry .kick{background:#000;color:#fff}
-.hungry .btn.y{background:#000;border-color:#000;color:#fff}.hungry .btn{border-color:#000;color:#000}.hungry .btn.y{color:#fff}
-.hungry .btn:hover{background:var(--y);border-color:var(--y);color:#000}
-.today{background:linear-gradient(145deg,#1a1a1a,#000);border:2px solid var(--y)}
-.dc.t{background:#fff;color:#000;border:0}.dc.t h3{color:inherit}
-.marq{color:#000}.marq i{color:#000}
-.ph0{background:radial-gradient(ellipse at 80% 0,rgba(255,255,255,.12),transparent 60%),#000}
+/* ===== Teema: tumma, punainen ja keltainen ===== */
 .pop{background:rgba(0,0,0,.88)}
 .pc2{position:relative;width:min(440px,100%);max-height:94svh;overflow:auto;background:#000;border:1px solid #444;border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.8);animation:pop .5s cubic-bezier(.2,1.3,.4,1) both}
 .pc2 img{width:100%;height:auto;display:block}
@@ -237,4 +224,4 @@ footer .wrap.ft2{display:grid;grid-template-columns:1fr auto;gap:28px 40px;align
 @media(max-width:760px){footer .wrap.ft2{grid-template-columns:1fr}.fl>div{display:grid;grid-template-columns:1fr 1fr;column-gap:20px}.fl h3{grid-column:1/-1}.fmap{height:220px}}
 @media(max-width:899px){footer{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}}
 
-.ferr{background:#3a1414;border:1px solid #7a2a2a;color:#fff;padding:12px 14px;border-radius:10px;margin:12px 0 0}
+.ferr{background:#3a0a0e;border:1px solid var(--r);color:#fff;padding:12px 14px;border-radius:10px;margin:12px 0 0}
