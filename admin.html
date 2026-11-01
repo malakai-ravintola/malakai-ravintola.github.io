@@ -1,54 +1,233 @@
-<!DOCTYPE html><html lang="fi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Malakai ylläpito</title>
+<!DOCTYPE html><html lang="fi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Malakai ylläpito</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#07070A;color:#EDE8DE;font:16px/1.5 system-ui,sans-serif}
-.w{max-width:900px;margin:0 auto;padding:20px}h1,h3{font-family:Georgia,serif;color:#E0C27C;margin:.4em 0}[hidden]{display:none!important}
-input,select,textarea{width:100%;background:#000;color:#EDE8DE;border:1px solid #2A3350;padding:11px;font:inherit;border-radius:2px}textarea{min-height:140px}
-label{display:grid;gap:5px;font-size:.88rem;color:#A39F96;margin-bottom:10px}
-button{background:#C09A4A;color:#17120A;border:0;padding:9px 16px;font:600 .9rem system-ui;cursor:pointer;border-radius:2px;margin:2px}button.o{background:transparent;color:#E0C27C;border:1px solid #C09A4A}button.r{background:#7A1424;color:#fff}
-.t{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}.t button{background:transparent;color:#EDE8DE;border:1px solid #2A3350}.t button.on{background:#C09A4A;color:#17120A}
-.row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid #2A3350}.row small{display:block;color:#A39F96}
-#msg{color:#E0C27C;min-height:1.4em}
-</style></head><body><div class="w"><h1>Malakai Ravintola · Ylläpito</h1><div id="msg"></div>
-<form id="login"><label>Sähköposti<input id="em" type="email" value="malakairavintola@gmail.com"></label><label>Salasana<input id="pw" type="password"></label><button>Kirjaudu</button></form>
-<div id="app" hidden><button class="o" id="out" style="float:right">Kirjaudu ulos</button><div class="t" id="tabs"></div><div id="body"></div></div></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+:root{--k:#0A0A0A;--k2:#151515;--k3:#1d1d1d;--w:#fff;--y:#B39664;--g:#B4B4B4;--line:#2A2A2A;--bad:#ff6b6b;--ok:#7bd88f;color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--k);color:var(--w);font:15px/1.5 Inter,system-ui,sans-serif;padding-bottom:90px}
+h1,h2,h3{font-family:Anton,Impact,sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.01em;margin:0 0 .5em;line-height:1.05}
+h1{font-size:1.5rem}h2{font-size:1.6rem;margin-top:.3em}h3{font-size:1.15rem;color:var(--y)}
+a{color:var(--y)}
+.w{max-width:980px;margin:0 auto;padding:16px}
+header{position:sticky;top:0;z-index:5;background:rgba(10,10,10,.96);border-bottom:1px solid var(--line)}
+header .w{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:12px;padding-bottom:0}
+header h1{margin:0;flex:1}
+.tabs{display:flex;gap:4px;overflow-x:auto;width:100%;scrollbar-width:none;margin-top:8px}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;color:var(--g);padding:10px 12px;font:600 .9rem Inter,sans-serif;cursor:pointer;white-space:nowrap;border-radius:0;margin:0}
+.tabs button.on{color:var(--w);border-color:var(--y)}
+input,select,textarea{width:100%;background:#000;color:var(--w);border:1px solid #333;padding:9px 10px;font:inherit;border-radius:6px;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--y);outline-offset:0;border-color:var(--y)}
+textarea{min-height:64px;resize:vertical}
+label{display:grid;gap:4px;font-size:.82rem;color:var(--g);margin-bottom:10px}
+label.ck{display:flex;align-items:center;gap:8px;font-size:.95rem;color:var(--w)}label.ck input{width:auto}
+button{background:var(--y);color:#111;border:0;padding:9px 16px;font:700 .88rem Inter,sans-serif;cursor:pointer;border-radius:999px;margin:2px}
+button.o{background:transparent;color:var(--w);border:1px solid #444}button.o:hover{border-color:var(--y)}
+button.x{background:transparent;color:var(--g);border:1px solid #333;padding:6px 10px;border-radius:6px;font-size:.85rem}
+button.x:hover{color:var(--w);border-color:#666}button.del:hover{color:var(--bad);border-color:var(--bad)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.card{background:var(--k2);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0}
+.muted{color:var(--g);font-size:.88rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}}
+.item{display:grid;grid-template-columns:1.3fr 2fr 90px 90px auto;gap:8px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line)}
+.item .acts{display:flex;gap:4px}
+.item small{display:none}
+@media(max-width:760px){.item{grid-template-columns:1fr 1fr}.item .nm,.item .ds{grid-column:1/-1}.item small{display:block;color:var(--g);font-size:.75rem;margin-bottom:2px}.item .acts{grid-column:1/-1;justify-content:flex-end}}
+.ihead{display:grid;grid-template-columns:1.3fr 2fr 90px 90px auto;gap:8px;color:var(--g);font-size:.78rem;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.ihead span:last-child{width:110px}
+@media(max-width:760px){.ihead{display:none}}
+.more{grid-column:1/-1}
+.cats{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
+.cats button{background:var(--k3);color:var(--w);border:1px solid var(--line)}.cats button.on{background:var(--y);color:#111;border-color:var(--y)}
+.day{display:grid;grid-template-columns:110px 1fr 1fr 64px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.day img{width:64px;height:64px;object-fit:cover;border-radius:50%;background:#000}
+@media(max-width:640px){.day{grid-template-columns:1fr 64px}.day b{grid-column:1/-1}}
+.hr{display:grid;grid-template-columns:120px 1fr 1fr 110px;gap:10px;align-items:center;padding:6px 0}
+@media(max-width:560px){.hr{grid-template-columns:1fr 1fr}.hr b{grid-column:1/-1}}
+.prev{max-width:220px;border-radius:8px;border:1px solid var(--line);margin-top:6px}
+.save{position:fixed;left:0;right:0;bottom:0;z-index:6;background:#111;border-top:1px solid var(--line)}
+.save .w{display:flex;align-items:center;gap:12px;padding-top:12px;padding-bottom:12px}
+.save span{flex:1;color:var(--g)}.save.dirty span{color:var(--w)}
+#toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--w);color:#111;padding:10px 18px;border-radius:999px;font-weight:700;z-index:9;box-shadow:0 6px 30px #000;max-width:90vw;text-align:center}
+#toast.bad{background:var(--bad)}
+.row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line)}.row small{display:block;color:var(--g)}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.75rem;background:#333;margin-left:6px}.pill.uusi{background:var(--y);color:#111}.pill.vahvistettu{background:#245c33}.pill.peruttu{background:#5c2424}
+ol.steps{padding-left:20px}ol.steps li{margin-bottom:6px}
+.more input{padding:6px 10px;font-size:.82rem;background:#0b0b0b;border-color:#262626}
+@media(max-width:560px){h1{font-size:1.2rem}.save span{font-size:.8rem}.save button{padding:9px 12px}#undo{display:none}}
+code{background:#000;padding:1px 5px;border-radius:4px;border:1px solid #333}
+</style></head><body>
+<header><div class="w"><h1>Malakai · Ylläpito</h1><a href="index.html" target="_blank" rel="noopener">Avaa sivusto ↗</a>
+<nav class="tabs" id="tabs"></nav></div></header>
+<main class="w" id="main"></main>
+<div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
+<div id="toast" hidden></div>
+<script src="data.js"></script>
 <script src="config.js"></script>
 <script>
-const TPL={
-"Tervetuloa tilaajaksi":["Tervetuloa Malakai Ravintolan uutiskirjeen tilaajaksi","Hei {nimi}!\n\nKiitos kun tilasit Malakai Ravintolan uutiskirjeen. Saat jatkossa tiedon tarjouksista ja uutuuksista ensimmäisenä.\n\nTervetuloa Tampereentie 414, Lempäälä.\n\nMalakai Ravintola\n045 353 7000"],
-"Viikon tarjous":["Viikon tarjous Malakaissa","Hei {nimi}!\n\nTämän viikon tarjous: [kirjoita tarjous ja hinta]\nVoimassa: [pvm–pvm]\n\nTilaa Woltista tai tule paikan päälle: Tampereentie 414, Lempäälä.\n\nMalakai Ravintola"],
-"Pizzabuffet-muistutus":["Pizzabuffet odottaa","Hei {nimi}!\n\nPizzabuffet arkisin klo 10.30–15.00 hintaan 13,70 € ja viikonloppuisin klo 13.00–18.00 hintaan 14,90 €.\n\nNähdään Malakaissa!\nMalakai Ravintola"],
-"Poikkeusaukiolot":["Poikkeavat aukioloajat","Hei {nimi}!\n\nHuomioithan poikkeavat aukioloajat: [pvm] ravintola on avoinna [kellonajat].\n\nHyvää juhlaa!\nMalakai Ravintola"],
-"Varausvahvistus (SMS)":["Varauksesi on vahvistettu","Hei {nimi}! Pöytävarauksesi Malakai Ravintolaan on vahvistettu: [pvm] klo [aika], [hlö] hlö. Tervetuloa! Tampereentie 414, Lempäälä. Peruutukset: 045 6057475"],
-"Varaus ei onnistu (SMS)":["Varaus ei onnistu","Hei {nimi}! Valitettavasti emme voi vahvistaa pöytävarausta toivomaasi aikaan. Voisitko ehdottaa toista ajankohtaa? Malakai Ravintola"],
-"Kiitos käynnistä":["Kiitos käynnistä!","Hei {nimi}!\n\nKiitos kun vierailit Malakai Ravintolassa. Jos viihdyit, jätäthän meille arvostelun Googleen:\nhttps://www.google.com/search?q=Malakai+Ravintola+Lemp%C3%A4%C3%A4l%C3%A4\n\nTervetuloa uudelleen!\nMalakai Ravintola"]};
-const C=window.MALAKAI||{},sb=supabase.createClient(C.url,C.anon),$=s=>document.querySelector(s);
-const say=t=>$("#msg").textContent=t;
-const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-const bt=(x,fn,c)=>{const b=mk("button",c,x);b.type="button";b.onclick=async()=>{try{say("");await fn()}catch(e){say(e.message||String(e))}};return b};
-async function api(action,d){const {data:{session}}=await sb.auth.getSession();
+(function(){
+const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
+const $=s=>document.querySelector(s);
+const mk=(t,a,...k)=>{const e=document.createElement(t);if(a)for(const[x,v]of Object.entries(a)){if(x==="class")e.className=v;else if(x==="text")e.textContent=v;else if(x.startsWith("on"))e[x]=v;else if(v!==false&&v!=null)e.setAttribute(x,v===true?"":v)}k.flat().forEach(c=>c!=null&&e.append(c));return e};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const fe=n=>n?String(n).replace(".",","):"";
+const pn=s=>{s=String(s||"").replace(",",".").replace(/[^\d.]/g,"");return s?Math.round(parseFloat(s)*100)/100:0};
+let toastT;function toast(t,bad){const e=$("#toast");e.textContent=t;e.className=bad?"bad":"";e.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>e.hidden=true,bad?6000:3000)}
+const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
+
+// ---------- Tila
+let S=clone(window.SITE||{}),ORIG=JSON.stringify(S),SHA=null,TOKEN=ls.get("gh_token")||"";
+const DAYS=[["ma","Maanantai"],["ti","Tiistai"],["ke","Keskiviikko"],["to","Torstai"],["pe","Perjantai"],["la","Lauantai"],["su","Sunnuntai"]];
+const dirty=()=>JSON.stringify(S)!==ORIG;
+function mark(){const d=dirty();$("#saveBar").classList.toggle("dirty",d);$("#saveTxt").textContent=d?"Tallentamattomia muutoksia":(SHA?"Kaikki muutokset tallennettu":"Ei tallentamattomia muutoksia");$("#saveBtn").disabled=!d;$("#undo").disabled=!d}
+addEventListener("beforeunload",e=>{if(dirty()){e.preventDefault();e.returnValue=""}});
+
+// ---------- GitHub
+const b64e=s=>{const b=new TextEncoder().encode(s);let r="";for(let i=0;i<b.length;i+=8192)r+=String.fromCharCode(...b.subarray(i,i+8192));return btoa(r)};
+const b64d=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g,"")),c=>c.charCodeAt(0)));
+async function gh(path,opt={}){const r=await fetch("https://api.github.com/repos/"+REPO+"/contents/"+path+(opt.method?"":"?ref="+BR+"&t="+Date.now()),{...opt,headers:{Accept:"application/vnd.github+json",Authorization:"Bearer "+TOKEN,"Content-Type":"application/json"}});
+  const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(r.status===401?"GitHub-avain ei kelpaa tai on vanhentunut":r.status===403||r.status===404?"Avaimella ei ole oikeutta tähän repoon (tarvitaan Contents: Read and write)":r.status===409?"Joku muu tallensi välissä. Lataa sivu uudelleen.":j.message||"GitHub-virhe "+r.status);e.status=r.status;throw e}return j}
+const parse=txt=>{const m=txt.match(/\/\*BEGIN\*\/([\s\S]*)\/\*END\*\//);if(!m)throw new Error("data.js on väärässä muodossa");return JSON.parse(m[1])};
+const build=o=>"// Sivuston muokattava sisältö. Muokkaa admin.html-sivulla.\nwindow.SITE=/*BEGIN*/"+JSON.stringify(o,null,1)+"/*END*/;\nwindow.MENU=window.SITE.menu;\n";
+async function pull(){const j=await gh(FILE);SHA=j.sha;S=parse(b64d(j.content));ORIG=JSON.stringify(S);mark();render()}
+async function push(){if(!TOKEN){tab="Asetukset";render();return toast("Lisää ensin GitHub-avain",true)}
+  const btn=$("#saveBtn");btn.disabled=true;btn.textContent="Tallennetaan…";
+  try{if(!SHA){const j=await gh(FILE);SHA=j.sha}
+    const r=await gh(FILE,{method:"PUT",body:JSON.stringify({message:"Ylläpito: sisältö päivitetty",content:b64e(build(S)),sha:SHA,branch:BR})});
+    SHA=r.content.sha;ORIG=JSON.stringify(S);mark();toast("Tallennettu! Muutokset näkyvät sivulla muutaman minuutin kuluttua.")}
+  catch(e){toast(e.message,true)}finally{btn.textContent="Tallenna ja julkaise";mark()}}
+async function upload(file){if(!TOKEN)throw new Error("Lisää ensin GitHub-avain Asetukset-välilehdellä");
+  if(file.size>4e6)throw new Error("Kuva on liian suuri (yli 4 Mt). Pienennä se ensin.");
+  const data=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=no;r.readAsDataURL(file)});
+  const name=file.name.toLowerCase().replace(/\.[^.]+$/,"").normalize("NFD").replace(/[^\w-]+/g,"-").replace(/-+/g,"-").slice(0,40)||"kuva",ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+  const path="media/ladatut/"+Date.now().toString(36)+"-"+name+"."+ext;
+  await gh(path,{method:"PUT",body:JSON.stringify({message:"Ylläpito: kuva ladattu",content:data,branch:BR})});return path}
+function imgPicker(cur,set){const prev=mk("img",{class:"prev",src:cur,alt:""}),inp=mk("input",{type:"file",accept:"image/*"});
+  inp.onchange=async()=>{const f=inp.files[0];if(!f)return;toast("Ladataan kuvaa…");try{const p=await upload(f);prev.src=URL.createObjectURL(f);set(p);toast("Kuva ladattu. Muista tallentaa.")}catch(e){toast(e.message,true)}inp.value=""};
+  return mk("div",null,mk("label",null,"Vaihda kuva",inp),prev)}
+
+// ---------- Näkymät
+let tab=ls.get("adm_tab")||"Ruokalista",cat=null;
+const TABS=["Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet","Varaukset","Tilaajat","Viestit","Asetukset"];
+const CONTENT=new Set(TABS.slice(0,4));
+function render(){const t=$("#tabs");t.textContent="";TABS.forEach(k=>t.append(mk("button",{class:k===tab?"on":"",text:k,onclick:()=>{tab=k;ls.set("adm_tab",k);render()}})));
+  $("#saveBar").hidden=!CONTENT.has(tab);const m=$("#main");m.textContent="";
+  if(CONTENT.has(tab)&&!TOKEN)m.append(mk("div",{class:"card"},mk("b",{text:"Muokkaus vaatii GitHub-avaimen. "}),"Voit katsella sisältöä, mutta tallentaminen ei onnistu ennen kuin lisäät avaimen ",mk("a",{href:"#",text:"Asetuksissa",onclick:e=>{e.preventDefault();tab="Asetukset";render()}}),"."));
+  ({"Ruokalista":vMenu,"Päivän pizza":vDaily,"Ilmoitukset":vAnn,"Aukiolo & buffet":vHours,"Varaukset":vRes,"Tilaajat":vSubs,"Viestit":vMsg,"Asetukset":vSet})[tab](m)}
+const inp=(val,on,attrs={})=>{const e=mk("input",{value:val??"",...attrs});e.oninput=()=>{on(e.value);mark()};return e};
+const area=(val,on,attrs={})=>{const e=mk("textarea",attrs);e.value=val??"";e.oninput=()=>{on(e.value);mark()};return e};
+const chk=(val,on,txt)=>{const e=mk("input",{type:"checkbox"});e.checked=!!val;e.onchange=()=>{on(e.checked);mark()};return mk("label",{class:"ck"},e,txt)};
+const lab=(t,el)=>mk("label",null,t,el);
+
+function vMenu(m){const M=S.menu,keys=Object.keys(M);if(!cat||!M[cat])cat=keys[0];
+  m.append(mk("h2",{text:"Ruokalista"}),mk("p",{class:"muted",text:"Valitse osio, muokkaa annoksia ja paina lopuksi Tallenna ja julkaise. Hinta 2 on isompi koko (pizzat). Jos kirjoitat Hintateksti-kenttään jotain, se näytetään hintojen sijaan."}));
+  m.append(mk("div",{class:"cats"},keys.map(k=>mk("button",{class:k===cat?"on":"",text:(k==="Wings"?"Hot Wings":k)+" ("+M[k].items.length+")",onclick:()=>{cat=k;render()}}))));
+  const s=M[cat],c=mk("div",{class:"card"});
+  c.append(mk("div",{class:"ihead"},mk("span",{text:"Annos"}),mk("span",{text:"Kuvaus"}),mk("span",{text:"Hinta €"}),mk("span",{text:"Hinta 2 €"}),mk("span",{text:""})));
+  s.items.forEach((it,i)=>{const mv=d=>{const j=i+d;if(j<0||j>=s.items.length)return;[s.items[i],s.items[j]]=[s.items[j],s.items[i]];mark();render()};
+    const row=mk("div",{class:"item"},
+      mk("div",{class:"nm"},mk("small",{text:"Annos"}),inp(it[0],v=>it[0]=v,{"aria-label":"Annoksen nimi"})),
+      mk("div",{class:"ds"},mk("small",{text:"Kuvaus"}),inp(it[1],v=>it[1]=v,{"aria-label":"Kuvaus",placeholder:"(ei kuvausta)"})),
+      mk("div",null,mk("small",{text:"Hinta €"}),inp(fe(it[2]),v=>it[2]=pn(v),{inputmode:"decimal","aria-label":"Hinta"})),
+      mk("div",null,mk("small",{text:"Hinta 2 €"}),inp(fe(it[3]),v=>it[3]=pn(v),{inputmode:"decimal","aria-label":"Hinta 2",placeholder:"–"})),
+      mk("div",{class:"acts"},mk("button",{class:"x",title:"Ylös","aria-label":"Siirrä ylös",text:"↑",onclick:()=>mv(-1),disabled:i===0}),mk("button",{class:"x",title:"Alas","aria-label":"Siirrä alas",text:"↓",onclick:()=>mv(1),disabled:i===s.items.length-1}),
+        mk("button",{class:"x del",title:"Poista","aria-label":"Poista annos",text:"✕",onclick:()=>{if(confirm("Poistetaanko "+(it[0]||"annos")+"?")){s.items.splice(i,1);mark();render()}}})),
+      mk("div",{class:"more"},inp(it[4],v=>{if(v)it[4]=v;else it.length=Math.min(it.length,4)},{placeholder:"Hintateksti (valinnainen), esim. alk. 11,50 €","aria-label":"Hintateksti"})));
+    c.append(row)});
+  c.append(mk("p",null,mk("button",{class:"o",text:"+ Lisää annos",onclick:()=>{s.items.push(["","",0,0]);mark();render();const l=[...document.querySelectorAll(".item .nm input")].pop();l&&l.focus()}})));
+  c.append(lab("Osion lisätieto (näkyy listan alla)",area(s.note,v=>{if(v)s.note=v;else delete s.note})));m.append(c)}
+
+function vDaily(m){S.daily=S.daily||{};const names=(S.menu.Pizza?.items||[]).map(i=>i[0]).filter(Boolean),dl=mk("datalist",{id:"pz"},names.map(n=>mk("option",{value:n})));
+  m.append(mk("h2",{text:"Päivän pizza"}),dl,mk("div",{class:"card"},lab("Päivän pizzan hinta €",inp(fe(S.dailyPrice),v=>S.dailyPrice=pn(v),{inputmode:"decimal",style:"max-width:140px"})),
+    mk("p",{class:"muted",text:"Kirjoita pizzan nimi täsmälleen kuten ruokalistalla, niin sen täytteet näkyvät etusivulla automaattisesti."})));
+  const c=mk("div",{class:"card"});DAYS.forEach(([k,n])=>{const d=S.daily[k]=S.daily[k]||{name:"",img:"media/pizza-"+k+".png"},im=mk("img",{src:d.img,alt:""}),fi=mk("input",{type:"file",accept:"image/*"});
+    fi.onchange=async()=>{const f=fi.files[0];if(!f)return;toast("Ladataan kuvaa…");try{d.img=await upload(f);im.src=URL.createObjectURL(f);mark();toast("Kuva ladattu. Muista tallentaa.")}catch(e){toast(e.message,true)}fi.value=""};
+    const nm=inp(d.name,v=>d.name=v,{list:"pz","aria-label":n+" pizza"}),warn=mk("small",{class:"muted"});
+    const chkN=()=>{warn.textContent=d.name&&!names.some(x=>x.toLowerCase()===d.name.toLowerCase())?"Ei löydy ruokalistalta, täytteitä ei näytetä":""};nm.addEventListener("input",chkN);chkN();
+    c.append(mk("div",{class:"day"},mk("b",{text:n}),mk("div",null,nm,warn),lab("Vaihda kuva",fi),im))});m.append(c)}
+
+function vAnn(m){S.ann=S.ann||{on:false};S.event=S.event||{on:false};S.popup=S.popup||{on:false,image:""};
+  m.append(mk("h2",{text:"Ilmoitukset"}),mk("p",{class:"muted",text:"Jokainen ilmoitus piilotetaan automaattisesti Näytä asti -päivän jälkeen. Jätä päivä tyhjäksi, jos ilmoitus on voimassa toistaiseksi."}));
+  const A=S.ann;m.append(mk("div",{class:"card"},mk("h3",{text:"Yläpalkin tiedote (kaikki sivut)"}),chk(A.on,v=>A.on=v,"Näytä tiedote"),
+    lab("Teksti",inp(A.text,v=>A.text=v)),lab("Teksti englanniksi (valinnainen)",inp(A.text_en,v=>A.text_en=v)),
+    mk("div",{class:"g2"},lab("Linkki (minne klikkaus vie)",inp(A.link,v=>A.link=v,{placeholder:"esim. lounas.html tai index.html#varaa"})),lab("Näytä asti",inp(A.until,v=>A.until=v,{type:"date"})))));
+  const E=S.event;m.append(mk("div",{class:"card"},mk("h3",{text:"Tapahtumanosto (Pizzabuffet-sivu)"}),chk(E.on,v=>E.on=v,"Näytä nosto"),
+    lab("Otsikko",inp(E.title,v=>E.title=v)),lab("Teksti",area(E.text,v=>E.text=v)),lab("Näytä asti",inp(E.until,v=>E.until=v,{type:"date",style:"max-width:220px"}))));
+  const P=S.popup;m.append(mk("div",{class:"card"},mk("h3",{text:"Ponnahdusikkuna (etusivu)"}),chk(P.on,v=>P.on=v,"Näytä ponnahdusikkuna"),
+    mk("p",{class:"muted",text:"Ikkuna näyttää kuvan sekä Soita- ja Varaa-painikkeet. Pystykuva (esim. 1080 × 1350) toimii parhaiten."}),
+    imgPicker(P.image,p=>{P.image=p;mark()}),lab("Kuvan kuvaus (näkövammaisille ja hakukoneille)",area(P.alt,v=>P.alt=v)),lab("Näytä asti",inp(P.until,v=>P.until=v,{type:"date",style:"max-width:220px"}))))}
+
+function vHours(m){S.hours=S.hours||{};const B=S.buffet;
+  const c=mk("div",{class:"card"},mk("h3",{text:"Aukioloajat"}),mk("p",{class:"muted",text:"Päivitys näkyy kaikilla sivuilla, avoinna/suljettu-merkinnässä ja pöytävarauksen kellonajoissa."}));
+  DAYS.forEach(([k,n])=>{const h=S.hours[k]=S.hours[k]||["",""],closed=!h[0];
+    const a=mk("input",{type:"time",value:h[0],disabled:closed,"aria-label":n+" avautuu"}),b=mk("input",{type:"time",value:h[1],disabled:closed,"aria-label":n+" sulkeutuu"});
+    a.oninput=()=>{h[0]=a.value;mark()};b.oninput=()=>{h[1]=b.value;mark()};
+    const cb=mk("input",{type:"checkbox"});cb.checked=closed;cb.onchange=()=>{if(cb.checked){h[0]="";h[1]=""}else{h[0]="10:30";h[1]="20:00"}mark();render()};
+    c.append(mk("div",{class:"hr"},mk("b",{text:n}),a,b,mk("label",{class:"ck",style:"margin:0"},cb,"Suljettu")))});
+  m.append(mk("h2",{text:"Aukiolo & buffet"}),c);
+  const bc=mk("div",{class:"card"},mk("h3",{text:"Buffet-hinnat"}));
+  [["arki","Arkisin"],["vkl","Viikonloppuna"]].forEach(([k,n])=>bc.append(mk("div",{class:"g3"},lab(n+" klo",inp(B[k].aika,v=>B[k].aika=v,{placeholder:"10.30–15.00"})),lab("Pizzabuffet €",inp(fe(B[k].pizza),v=>B[k].pizza=pn(v),{inputmode:"decimal"})),lab("Salaattibuffet €",inp(fe(B[k].salaatti),v=>B[k].salaatti=pn(v),{inputmode:"decimal"})))));
+  bc.append(mk("h3",{text:"Lasten hinnat",style:"margin-top:10px"}));
+  B.lapset.forEach((l,i)=>bc.append(mk("div",{class:"g3",style:"align-items:end"},lab("Ikäryhmä",inp(l[0],v=>l[0]=v)),lab("Hinta €",inp(fe(l[1]),v=>l[1]=pn(v),{inputmode:"decimal"})),mk("div",{style:"margin-bottom:10px"},mk("button",{class:"x del",text:"Poista",onclick:()=>{B.lapset.splice(i,1);mark();render()}})))));
+  bc.append(mk("button",{class:"o",text:"+ Lisää ikäryhmä",onclick:()=>{B.lapset.push(["",0]);mark();render()}}),mk("div",{style:"height:10px"}),lab("Lisätieto (Pizzabuffet-sivu)",inp(B.huom,v=>B.huom=v)));m.append(bc)}
+
+function vSet(m){const t=mk("input",{type:"password",value:TOKEN,placeholder:"github_pat_…",autocomplete:"off"});
+  m.append(mk("h2",{text:"Asetukset"}),mk("div",{class:"card"},mk("h3",{text:"GitHub-avain (sisällön tallentaminen)"}),
+    mk("p",{class:"muted",text:"Admin tallentaa muutokset suoraan sivuston GitHub-repoon. Avain tallentuu vain tämän selaimen muistiin. Tee avain kerran jokaiselle laitteelle, jolla ylläpidät sivua (tai käytä samaa)."}),
+    mk("ol",{class:"steps"},mk("li",null,"Kirjaudu GitHubiin ja avaa ",mk("a",{href:"https://github.com/settings/personal-access-tokens/new",target:"_blank",rel:"noopener",text:"uuden avaimen sivu ↗"}),"."),
+      mk("li",null,"Nimi: esim. ",mk("code",{text:"Malakai admin"}),". Expiration: 1 vuosi."),
+      mk("li",null,"Resource owner: ",mk("code",{text:"malakai-ravintola"}),". Repository access: Only select repositories → ",mk("code",{text:"malakai-ravintola.github.io"}),"."),
+      mk("li",null,"Permissions → Repository permissions → Contents: ",mk("b",{text:"Read and write"}),"."),
+      mk("li",null,"Generate token, kopioi avain ja liitä se alle.")),
+    lab("GitHub-avain",t),mk("button",{text:"Tallenna avain",onclick:async()=>{TOKEN=t.value.trim();ls.set("gh_token",TOKEN||null);if(!TOKEN)return toast("Avain poistettu");try{await pull();toast("Yhteys toimii! Voit nyt muokata ja tallentaa.")}catch(e){toast(e.message,true)}}}),
+    mk("button",{class:"o",text:"Poista avain tästä selaimesta",onclick:()=>{TOKEN="";ls.set("gh_token",null);SHA=null;render();toast("Avain poistettu")}})),
+    mk("div",{class:"card"},mk("h3",{text:"Varaukset ja uutiskirje"}),mk("p",{class:"muted",text:SB?"Supabase on kytketty.":"Ei vielä kytketty. Seuraa SETUP.md-ohjetta ja lisää Supabasen tiedot config.js-tiedostoon. Siihen asti asiakkaat lähettävät varaukset omalla viestisovelluksellaan."})))}
+
+// ---------- Varaukset (Supabase)
+const C=window.MALAKAI||{};let SB=null,RES=null,SUB=null,sbLib=null;
+if(C.url&&C.anon){const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
+  s.onload=()=>{SB=supabase.createClient(C.url,C.anon);SB.auth.getSession().then(({data})=>{if(data.session)sbLoad();else if(!CONTENT.has(tab))render()})};document.head.append(s)}
+async function api(action,d){const {data:{session}}=await SB.auth.getSession();
   const r=await fetch(C.url+"/functions/v1/admin",{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+session.access_token},body:JSON.stringify({action,...d})});
-  const j=await r.json();if(!r.ok)throw new Error(j.error||"Virhe");return j}
-let tab="Varaukset",RES=[],SUB=[];
-async function load(){RES=(await sb.from("reservations").select("*").order("date").order("time")).data||[];SUB=(await sb.from("subscribers").select("*").order("created_at",{ascending:false})).data||[];draw()}
-const fd=d=>d.split("-").reverse().join(".");
-function draw(){const b=$("#body");b.textContent="";
-  [...$("#tabs").children].forEach(x=>x.className=x.textContent===tab?"on":"");
-  if(tab==="Varaukset"){b.append(mk("h3",0,`Varaukset (${RES.length})`));
-    RES.forEach(r=>{const row=mk("div","row"),i=mk("div");i.append(mk("b",0,`${r.name} · ${r.guests} hlö · ${r.status}`),mk("small",0,`${fd(r.date)} klo ${String(r.time).slice(0,5)} · ${r.phone}${r.email?" · "+r.email:""}${r.note?" · "+r.note:""}`));
-      const a=mk("div");a.append(bt("Vahvista (SMS asiakkaalle)",async()=>{if(!confirm("Lähetetäänkö vahvistus asiakkaalle?"))return;await api("confirm",{id:r.id,ok:true});say("Vahvistus lähetetty");load()}),
-        bt("Peru (SMS)",async()=>{if(!confirm("Lähetetäänkö peruutus asiakkaalle?"))return;await api("confirm",{id:r.id,ok:false});say("Peruutus lähetetty");load()},"o"),
-        bt("Poista",async()=>{await sb.from("reservations").delete().eq("id",r.id);load()},"r"));row.append(i,a);b.append(row)})}
-  else if(tab==="Tilaajat"){b.append(mk("h3",0,`Tilaajat (${SUB.length})`),bt("Lataa CSV",()=>{const u=URL.createObjectURL(new Blob(["sahkoposti,nimi\n"+SUB.map(s=>`"${s.email}","${s.name||""}"`).join("\n")],{type:"text/csv"}));const a=mk("a");a.href=u;a.download="tilaajat.csv";a.click()},"o"));
-    SUB.forEach(s=>{const row=mk("div","row"),i=mk("div");i.append(mk("b",0,s.email),mk("small",0,s.name||""));row.append(i,bt("Poista",async()=>{await sb.from("subscribers").delete().eq("id",s.id);load()},"r"));b.append(row)})}
-  else{const sl=mk("select"),sub=mk("input"),body=mk("textarea"),to=mk("input");Object.keys(TPL).forEach(k=>sl.add(new Option(k,k)));
-    const ld=()=>{sub.value=TPL[sl.value][0];body.value=TPL[sl.value][1]};sl.onchange=ld;ld();to.placeholder="Puhelinnumero (tekstiviestiä varten)";
-    const w=(l,x)=>{const e=mk("label",0,l);e.append(x);return e};
-    b.append(mk("h3",0,"Viestit"),w("Viestipohja",sl),w("Otsikko (sähköposti)",sub),w("Viesti ({nimi} korvautuu tilaajan nimellä)",body),
-      bt(`Lähetä uutiskirje (${SUB.length} tilaajaa)`,async()=>{if(!confirm(`Lähetetäänkö viesti ${SUB.length} tilaajalle?`))return;const r=await api("newsletter",{subject:sub.value,body:body.value});say(`Lähetetty ${r.sent} tilaajalle`)}),
-      mk("div",0,"\u00a0"),w("Puhelin",to),bt("Lähetä tekstiviesti",async()=>{if(!to.value)return;await api("sms",{to:to.value,text:body.value.replace(/\{nimi\}/g,"")});say("Tekstiviesti lähetetty")},"o"))}}
-async function start(){$("#login").hidden=true;$("#app").hidden=false;const t=$("#tabs");t.textContent="";["Varaukset","Tilaajat","Viestit"].forEach(k=>t.append(bt(k,()=>{tab=k;draw()})));await load()}
-$("#login").onsubmit=async e=>{e.preventDefault();const {error}=await sb.auth.signInWithPassword({email:$("#em").value,password:$("#pw").value});if(error)return say("Kirjautuminen epäonnistui");start()};
-$("#out").onclick=async()=>{await sb.auth.signOut();location.reload()};
-sb.auth.getSession().then(({data})=>{if(data.session)start()});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Virhe");return j}
+async function sbLoad(){RES=(await SB.from("reservations").select("*").order("date").order("time")).data||[];SUB=(await SB.from("subscribers").select("*").order("created_at",{ascending:false})).data||[];if(!CONTENT.has(tab))render()}
+function sbGate(m){if(!C.url){m.append(mk("div",{class:"card"},mk("h3",{text:"Ei vielä käytössä"}),mk("p",null,"Varausten, tilaajien ja viestien hallinta vaatii Supabase-tilin (ilmainen). Seuraa sivuston SETUP.md-ohjetta ja lisää Supabasen Project URL ja anon-avain ",mk("code",{text:"config.js"}),"-tiedostoon."),
+    mk("p",{class:"muted",text:"Siihen asti pöytävaraukset ja uutiskirjetilaukset tulevat sinulle asiakkaan lähettämänä tekstiviestinä, WhatsApp-viestinä tai sähköpostina."})));return true}
+  if(!SB){m.append(mk("p",{class:"muted",text:"Ladataan…"}));return true}
+  if(RES===null){const em=mk("input",{type:"email",value:"malakairavintola@gmail.com",autocomplete:"username"}),pw=mk("input",{type:"password",autocomplete:"current-password"});
+    const f=mk("form",{class:"card"},mk("h3",{text:"Kirjaudu varauksiin"}),lab("Sähköposti",em),lab("Salasana",pw),mk("button",{text:"Kirjaudu"}));
+    f.onsubmit=async e=>{e.preventDefault();const {error}=await SB.auth.signInWithPassword({email:em.value,password:pw.value});if(error)return toast("Kirjautuminen epäonnistui",true);sbLoad()};m.append(f);return true}}
+const fd=d=>String(d).split("-").reverse().join(".");
+const act=(t,fn,c)=>mk("button",{class:c||"",text:t,onclick:async()=>{try{await fn()}catch(e){toast(e.message||String(e),true)}}});
+function vRes(m){m.append(mk("h2",{text:"Varaukset"}));if(sbGate(m))return;
+  const today=new Date().toISOString().slice(0,10),up=RES.filter(r=>r.date>=today),past=RES.filter(r=>r.date<today);
+  const list=(arr,title)=>{const c=mk("div",{class:"card"},mk("h3",{text:title+" ("+arr.length+")"}));if(!arr.length)c.append(mk("p",{class:"muted",text:"Ei varauksia."}));
+    arr.forEach(r=>c.append(mk("div",{class:"row"},mk("div",null,mk("b",{text:`${fd(r.date)} klo ${String(r.time).slice(0,5)} · ${r.name} · ${r.guests} hlö`}),mk("span",{class:"pill "+r.status,text:r.status}),
+      mk("small",{text:[r.phone,r.email,r.note].filter(Boolean).join(" · ")})),
+      mk("div",null,act("Vahvista (SMS)",async()=>{if(!confirm("Lähetetäänkö vahvistus asiakkaalle?"))return;await api("confirm",{id:r.id,ok:true});toast("Vahvistus lähetetty");sbLoad()}),
+        act("Peru (SMS)",async()=>{if(!confirm("Lähetetäänkö peruutus asiakkaalle?"))return;await api("confirm",{id:r.id,ok:false});toast("Peruutus lähetetty");sbLoad()},"o"),
+        act("Poista",async()=>{if(!confirm("Poistetaanko varaus?"))return;await SB.from("reservations").delete().eq("id",r.id);sbLoad()},"x del")))));return c};
+  m.append(list(up,"Tulevat"),list(past.reverse(),"Menneet"),act("Kirjaudu ulos",async()=>{await SB.auth.signOut();RES=SUB=null;render()},"o"))}
+function vSubs(m){m.append(mk("h2",{text:"Tilaajat"}));if(sbGate(m))return;
+  const c=mk("div",{class:"card"},mk("h3",{text:"Uutiskirjeen tilaajat ("+SUB.length+")"}),act("Lataa CSV",()=>{const q=s=>'"'+String(s||"").replace(/"/g,'""')+'"';
+    const u=URL.createObjectURL(new Blob(["﻿sahkoposti,nimi,tilattu\n"+SUB.map(s=>[q(s.email),q(s.name),q(String(s.created_at).slice(0,10))].join(",")).join("\n")],{type:"text/csv"}));mk("a",{href:u,download:"tilaajat.csv"}).click()},"o"));
+  SUB.forEach(s=>c.append(mk("div",{class:"row"},mk("div",null,mk("b",{text:s.email}),mk("small",{text:(s.name||"")+" · "+fd(String(s.created_at).slice(0,10))})),act("Poista",async()=>{if(!confirm("Poistetaanko "+s.email+"?"))return;await SB.from("subscribers").delete().eq("id",s.id);sbLoad()},"x del"))));m.append(c)}
+const TPL={"Viikon tarjous":["Viikon tarjous Malakaissa","Hei {nimi}!\n\nTämän viikon tarjous: [kirjoita tarjous ja hinta]\nVoimassa: [pvm–pvm]\n\nTilaa Woltista tai tule paikan päälle: Tampereentie 414, Lempäälä.\n\nMalakai Ravintola"],
+"Pizzabuffet-muistutus":["Pizzabuffet odottaa","Hei {nimi}!\n\nPizzabuffet arkisin klo 10.30–15.00 hintaan 13,70 € ja viikonloppuisin klo 13.00–18.00 hintaan 14,90 €.\n\nNähdään Malakaissa!\nMalakai Ravintola"],
+"Poikkeusaukiolot":["Poikkeavat aukioloajat","Hei {nimi}!\n\nHuomioithan poikkeavat aukioloajat: [pvm] ravintola on avoinna [kellonajat].\n\nMalakai Ravintola"],
+"Kiitos käynnistä":["Kiitos käynnistä!","Hei {nimi}!\n\nKiitos kun vierailit Malakai Ravintolassa. Jos viihdyit, jätäthän meille arvostelun Googleen:\nhttps://www.google.com/search?q=Malakai+Ravintola+Lemp%C3%A4%C3%A4l%C3%A4\n\nTervetuloa uudelleen!\nMalakai Ravintola"],
+"Oma viesti":["",""]};
+function vMsg(m){m.append(mk("h2",{text:"Viestit"}));if(sbGate(m))return;
+  const sl=mk("select"),sub=mk("input"),body=mk("textarea",{style:"min-height:180px"}),to=mk("input",{type:"tel",placeholder:"esim. 040 123 4567"});Object.keys(TPL).forEach(k=>sl.add(new Option(k,k)));
+  const ld=()=>{sub.value=TPL[sl.value][0];body.value=TPL[sl.value][1]};sl.onchange=ld;ld();
+  m.append(mk("div",{class:"card"},lab("Viestipohja",sl),lab("Otsikko (sähköposti)",sub),lab("Viesti ({nimi} korvautuu tilaajan nimellä)",body),
+    act(`Lähetä uutiskirje (${SUB.length} tilaajaa)`,async()=>{if(!sub.value||!body.value)return toast("Täytä otsikko ja viesti",true);if(!confirm(`Lähetetäänkö viesti ${SUB.length} tilaajalle?`))return;const r=await api("newsletter",{subject:sub.value,body:body.value});toast(`Lähetetty ${r.sent} tilaajalle`)})),
+    mk("div",{class:"card"},mk("h3",{text:"Yksittäinen tekstiviesti"}),lab("Puhelinnumero",to),act("Lähetä tekstiviesti",async()=>{if(!to.value)return toast("Anna puhelinnumero",true);await api("sms",{to:to.value,text:body.value.replace(/\{nimi\}/g,"").trim()});toast("Tekstiviesti lähetetty")},"o")))}
+
+// ---------- Käynnistys
+$("#saveBtn").onclick=push;
+$("#undo").onclick=()=>{if(!confirm("Perutaanko kaikki tallentamattomat muutokset?"))return;S=JSON.parse(ORIG);mark();render()};
+if(!S.menu){S={menu:{}};}
+render();mark();
+if(TOKEN)pull().catch(e=>toast(e.message,true));
+})();
 </script></body></html>
