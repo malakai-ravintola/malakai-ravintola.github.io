@@ -166,3 +166,7 @@
 .home .soc a:hover{background:#fff;border-color:#fff;color:#000}
 .home .bar{background:rgba(0,0,0,.96);border-top:1px solid #fff}
 .home .ferr{background:#1A1A1A;border-color:#fff}
+
+/* Hero: pelkkä nimi */
+.home h1.h-name{font-family:"Playfair Display",Georgia,serif;font-weight:500;text-transform:none;letter-spacing:.01em;line-height:1;font-size:clamp(3.6rem,13vw,9rem);margin:0 0 30px;max-width:none}
+.home h1.h-name span{display:block;font-family:Inter,system-ui,sans-serif;font-weight:500;font-size:clamp(.85rem,1.6vw,1.1rem);letter-spacing:.6em;text-transform:uppercase;margin-top:18px;padding-left:.3em;opacity:.85}
