@@ -136,6 +136,12 @@ if(nf)nf.onsubmit=async e=>{e.preventDefault();const v=e.target,d=$("#nlDone");b
   try{await post({action:"subscribe",e:v.e.value,n:v.n.value,website:v.website.value});nf.hidden=true;d.textContent="Kiitos! Olet nyt uutiskirjeen tilaaja.";d.hidden=false}
   catch(x){d.textContent="Tilaus ei onnistunut. Yritä hetken päästä uudelleen.";d.hidden=false}finally{busy(nf,false)}};
 
+// --- Pääkuvan diaesitys
+{const sl=$$(".hx-s"),dw=$(".hx-dots");if(sl.length>1&&dw){let k=0,t;const go=n=>{sl[k].classList.remove("on");dw.children[k].classList.remove("on");k=(n+sl.length)%sl.length;sl[k].classList.add("on");dw.children[k].classList.add("on")};
+  sl.forEach((_,n)=>{const b=document.createElement("button");b.type="button";b.setAttribute("aria-label","Kuva "+(n+1));if(!n)b.className="on";b.onclick=()=>{go(n);re()};dw.appendChild(b)});
+  const re=()=>{clearInterval(t);if(!matchMedia("(prefers-reduced-motion: reduce)").matches)t=setInterval(()=>go(k+1),6000)};
+  $(".hx-prev").onclick=()=>{go(k-1);re()};$(".hx-next").onclick=()=>{go(k+1);re()};re()}}
+
 // --- Videot
 if(matchMedia("(prefers-reduced-motion: reduce)").matches)$$("video").forEach(v=>{v.removeAttribute("autoplay");v.pause()});
 })();
