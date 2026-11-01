@@ -283,3 +283,7 @@ footer .brand2 b{font-size:2.2rem}footer .brand2 small{font-size:.7rem}
 .ann.in .annin{opacity:1;transform:none}
 .ann svg{width:20px;height:20px;flex:none}
 @media(max-width:520px){.ann,.home .ann{font-size:.78rem;padding:10px 10px}.ann svg{width:17px;height:17px}.ann .annin{gap:7px;white-space:nowrap}}
+/* Yläpalkki sivun teemalla: musta pohja, keltainen korostus */
+.ann,.home .ann{background:#0B0B0B!important;color:#fff!important;border-bottom:2px solid #E3A51C}
+.ann:hover,.home .ann:hover{background:#161616!important}
+.ann svg{color:#E3A51C}
