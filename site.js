@@ -40,15 +40,16 @@ if(S.dailyPrice)$$(".dp").forEach(e=>e.textContent=f(S.dailyPrice));
 {const a=$("#ann");if(a){
   const I={fork:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v6a3 3 0 0 0 3 3v9M10 3v6M7 3v6M14 3l7 7M21 3l-7 7M17.5 6.5 9 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
     heart:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+    tag:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></svg>',
     star:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3l1.6 4.4L16 9l-4.4 1.6L10 15l-1.6-4.4L4 9l4.4-1.6zM18 13l.8 2.2L21 16l-2.2.8L18 19l-.8-2.2L15 16l2.2-.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>'};
   const L=[],h=H[now.dow],wk=now.dow===0||now.dow===6,b=S.buffet&&S.buffet[wk?"vkl":"arki"];
   if(b)L.push({i:"fork",t:"Pizzabuffet "+(wk?"la–su":"ma–pe")+" klo "+b.aika+" · "+f(b.pizza),l:"lounas.html"});
+  (S.offers||[]).filter(o=>o.on&&(!o.until||now.date<=o.until)&&(!o.from||now.date>=o.from)).forEach(o=>{const d=o.until?o.until.split("-"):null;L.push({i:"tag",t:o.title+(o.price?" "+o.price:"")+(d?" · "+(+d[2])+"."+(+d[1])+". asti":""),l:"index.html#tarjoukset"})});
   if(S.ann&&until(S.ann))L.push({i:"heart",t:S.ann.text.replace(/\s*·?\s*Varaa pöytä\s*→?\s*$/,""),l:S.ann.link||"lounas.html"});
   if(now.date<="2026-12-23")L.push({i:"star",t:"Pikkujoulut Malakaissa · pienille ja isoille porukoille",l:"pikkujoulut.html"});
   if(!L.length){a.hidden=true}else{let k=0;const show=()=>{const x=L[k%L.length];a.classList.remove("in");setTimeout(()=>{a.innerHTML='<span class="annin">'+I[x.i]+'<span></span></span>';a.querySelector(".annin span").textContent=x.t;a.href=x.l;a.classList.add("in")},L.length>1?250:0);k++};
     show();if(L.length>1&&!matchMedia("(prefers-reduced-motion: reduce)").matches)setInterval(show,4500)}}}
 {const ev=$("#isanpaiva");if(ev&&S.event){if(until(S.event)){$("#evT").textContent=S.event.title;$("#evX").textContent=S.event.text}else ev.hidden=true}}
-{const AO=(S.offers||[]).filter(o=>o.on&&(!o.until||now.date<=o.until)&&(!o.from||now.date>=o.from));document.querySelectorAll(".nav-offers").forEach(a=>{if(!AO.length)a.remove()});}
 {const ol=$("#offerList"),os=$("#tarjoukset");if(ol&&os){const L=(S.offers||[]).filter(o=>o.on&&(!o.until||now.date<=o.until)&&(!o.from||now.date>=o.from));
   L.forEach(o=>{const c=document.createElement("a");c.className="h-offer";c.href=o.link||"tel:+358453537000";
     const im=document.createElement("img");im.src=o.image||"";im.alt=(o.title||"Tarjous")+(o.text?": "+o.text:"")+(o.price?" "+o.price:"");im.loading="lazy";c.appendChild(im);ol.appendChild(c)});
