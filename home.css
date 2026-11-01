@@ -486,3 +486,8 @@
 .h-legal h1{font:500 clamp(2.4rem,6vw,3.6rem)/1.1 "Playfair Display",Georgia,serif;margin:0}
 .h-legal h2{font-size:1.5rem!important;margin:36px 0 10px}
 .h-legal p,.h-legal li{color:#ccc;line-height:1.75}.h-legal a{color:var(--yel)}
+/* Oiva: ohut musta raita */
+.h-oiva{background:#000!important;padding:22px 0!important;border-top:1px solid #1F1F1F;border-bottom:1px solid #1F1F1F}
+.h-oivain{display:flex!important;justify-content:space-between;align-items:center;gap:16px}
+.h-oivat{margin:0;font:500 1.4rem "Playfair Display",Georgia,serif;color:#fff}
+.h-oiva .btn{padding:10px 20px}
