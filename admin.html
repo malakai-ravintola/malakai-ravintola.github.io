@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="fi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Malakai ylläpito</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#07070A;color:#EDE8DE;font:16px/1.5 system-ui,sans-serif}
+.w{max-width:900px;margin:0 auto;padding:20px}h1,h3{font-family:Georgia,serif;color:#E0C27C;margin:.4em 0}[hidden]{display:none!important}
+input,select,textarea{width:100%;background:#000;color:#EDE8DE;border:1px solid #2A3350;padding:11px;font:inherit;border-radius:2px}textarea{min-height:140px}
+label{display:grid;gap:5px;font-size:.88rem;color:#A39F96;margin-bottom:10px}
+button{background:#C09A4A;color:#17120A;border:0;padding:9px 16px;font:600 .9rem system-ui;cursor:pointer;border-radius:2px;margin:2px}button.o{background:transparent;color:#E0C27C;border:1px solid #C09A4A}button.r{background:#7A1424;color:#fff}
+.t{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}.t button{background:transparent;color:#EDE8DE;border:1px solid #2A3350}.t button.on{background:#C09A4A;color:#17120A}
+.row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid #2A3350}.row small{display:block;color:#A39F96}
+#msg{color:#E0C27C;min-height:1.4em}
+</style></head><body><div class="w"><h1>Malakai Ravintola · Ylläpito</h1><div id="msg"></div>
+<form id="login"><label>Sähköposti<input id="em" type="email" value="malakairavintola@gmail.com"></label><label>Salasana<input id="pw" type="password"></label><button>Kirjaudu</button></form>
+<div id="app" hidden><button class="o" id="out" style="float:right">Kirjaudu ulos</button><div class="t" id="tabs"></div><div id="body"></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+const TPL={
+"Tervetuloa tilaajaksi":["Tervetuloa Malakai Ravintolan uutiskirjeen tilaajaksi","Hei {nimi}!\n\nKiitos kun tilasit Malakai Ravintolan uutiskirjeen. Saat jatkossa tiedon tarjouksista ja uutuuksista ensimmäisenä.\n\nTervetuloa Tampereentie 414, Lempäälä.\n\nMalakai Ravintola\n045 353 7000"],
+"Viikon tarjous":["Viikon tarjous Malakaissa","Hei {nimi}!\n\nTämän viikon tarjous: [kirjoita tarjous ja hinta]\nVoimassa: [pvm–pvm]\n\nTilaa Woltista tai tule paikan päälle: Tampereentie 414, Lempäälä.\n\nMalakai Ravintola"],
+"Pizzabuffet-muistutus":["Pizzabuffet odottaa","Hei {nimi}!\n\nPizzabuffet arkisin klo 10.30–15.00 hintaan 13,70 € ja viikonloppuisin klo 13.00–18.00 hintaan 14,90 €.\n\nNähdään Malakaissa!\nMalakai Ravintola"],
+"Poikkeusaukiolot":["Poikkeavat aukioloajat","Hei {nimi}!\n\nHuomioithan poikkeavat aukioloajat: [pvm] ravintola on avoinna [kellonajat].\n\nHyvää juhlaa!\nMalakai Ravintola"],
+"Varausvahvistus (SMS)":["Varauksesi on vahvistettu","Hei {nimi}! Pöytävarauksesi Malakai Ravintolaan on vahvistettu: [pvm] klo [aika], [hlö] hlö. Tervetuloa! Tampereentie 414, Lempäälä. Peruutukset: 045 6057475"],
+"Varaus ei onnistu (SMS)":["Varaus ei onnistu","Hei {nimi}! Valitettavasti emme voi vahvistaa pöytävarausta toivomaasi aikaan. Voisitko ehdottaa toista ajankohtaa? Malakai Ravintola"],
+"Kiitos käynnistä":["Kiitos käynnistä!","Hei {nimi}!\n\nKiitos kun vierailit Malakai Ravintolassa. Jos viihdyit, jätäthän meille arvostelun Googleen:\nhttps://www.google.com/search?q=Malakai+Ravintola+Lemp%C3%A4%C3%A4l%C3%A4\n\nTervetuloa uudelleen!\nMalakai Ravintola"]};
+const C=window.MALAKAI||{},sb=supabase.createClient(C.url,C.anon),$=s=>document.querySelector(s);
+const say=t=>$("#msg").textContent=t;
+const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const bt=(x,fn,c)=>{const b=mk("button",c,x);b.type="button";b.onclick=async()=>{try{say("");await fn()}catch(e){say(e.message||String(e))}};return b};
+async function api(action,d){const {data:{session}}=await sb.auth.getSession();
+  const r=await fetch(C.url+"/functions/v1/admin",{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+session.access_token},body:JSON.stringify({action,...d})});
+  const j=await r.json();if(!r.ok)throw new Error(j.error||"Virhe");return j}
+let tab="Varaukset",RES=[],SUB=[];
+async function load(){RES=(await sb.from("reservations").select("*").order("date").order("time")).data||[];SUB=(await sb.from("subscribers").select("*").order("created_at",{ascending:false})).data||[];draw()}
+const fd=d=>d.split("-").reverse().join(".");
+function draw(){const b=$("#body");b.textContent="";
+  [...$("#tabs").children].forEach(x=>x.className=x.textContent===tab?"on":"");
+  if(tab==="Varaukset"){b.append(mk("h3",0,`Varaukset (${RES.length})`));
+    RES.forEach(r=>{const row=mk("div","row"),i=mk("div");i.append(mk("b",0,`${r.name} · ${r.guests} hlö · ${r.status}`),mk("small",0,`${fd(r.date)} klo ${String(r.time).slice(0,5)} · ${r.phone}${r.email?" · "+r.email:""}${r.note?" · "+r.note:""}`));
+      const a=mk("div");a.append(bt("Vahvista (SMS asiakkaalle)",async()=>{if(!confirm("Lähetetäänkö vahvistus asiakkaalle?"))return;await api("confirm",{id:r.id,ok:true});say("Vahvistus lähetetty");load()}),
+        bt("Peru (SMS)",async()=>{if(!confirm("Lähetetäänkö peruutus asiakkaalle?"))return;await api("confirm",{id:r.id,ok:false});say("Peruutus lähetetty");load()},"o"),
+        bt("Poista",async()=>{await sb.from("reservations").delete().eq("id",r.id);load()},"r"));row.append(i,a);b.append(row)})}
+  else if(tab==="Tilaajat"){b.append(mk("h3",0,`Tilaajat (${SUB.length})`),bt("Lataa CSV",()=>{const u=URL.createObjectURL(new Blob(["sahkoposti,nimi\n"+SUB.map(s=>`"${s.email}","${s.name||""}"`).join("\n")],{type:"text/csv"}));const a=mk("a");a.href=u;a.download="tilaajat.csv";a.click()},"o"));
+    SUB.forEach(s=>{const row=mk("div","row"),i=mk("div");i.append(mk("b",0,s.email),mk("small",0,s.name||""));row.append(i,bt("Poista",async()=>{await sb.from("subscribers").delete().eq("id",s.id);load()},"r"));b.append(row)})}
+  else{const sl=mk("select"),sub=mk("input"),body=mk("textarea"),to=mk("input");Object.keys(TPL).forEach(k=>sl.add(new Option(k,k)));
+    const ld=()=>{sub.value=TPL[sl.value][0];body.value=TPL[sl.value][1]};sl.onchange=ld;ld();to.placeholder="Puhelinnumero (tekstiviestiä varten)";
+    const w=(l,x)=>{const e=mk("label",0,l);e.append(x);return e};
+    b.append(mk("h3",0,"Viestit"),w("Viestipohja",sl),w("Otsikko (sähköposti)",sub),w("Viesti ({nimi} korvautuu tilaajan nimellä)",body),
+      bt(`Lähetä uutiskirje (${SUB.length} tilaajaa)`,async()=>{if(!confirm(`Lähetetäänkö viesti ${SUB.length} tilaajalle?`))return;const r=await api("newsletter",{subject:sub.value,body:body.value});say(`Lähetetty ${r.sent} tilaajalle`)}),
+      mk("div",0,"\u00a0"),w("Puhelin",to),bt("Lähetä tekstiviesti",async()=>{if(!to.value)return;await api("sms",{to:to.value,text:body.value.replace(/\{nimi\}/g,"")});say("Tekstiviesti lähetetty")},"o"))}}
+async function start(){$("#login").hidden=true;$("#app").hidden=false;const t=$("#tabs");t.textContent="";["Varaukset","Tilaajat","Viestit"].forEach(k=>t.append(bt(k,()=>{tab=k;draw()})));await load()}
+$("#login").onsubmit=async e=>{e.preventDefault();const {error}=await sb.auth.signInWithPassword({email:$("#em").value,password:$("#pw").value});if(error)return say("Kirjautuminen epäonnistui");start()};
+$("#out").onclick=async()=>{await sb.auth.signOut();location.reload()};
+sb.auth.getSession().then(({data})=>{if(data.session)start()});
+</script></body></html>
