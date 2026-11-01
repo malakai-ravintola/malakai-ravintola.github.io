@@ -48,6 +48,7 @@ if(S.dailyPrice)$$(".dp").forEach(e=>e.textContent=f(S.dailyPrice));
   if(!L.length){a.hidden=true}else{let k=0;const show=()=>{const x=L[k%L.length];a.classList.remove("in");setTimeout(()=>{a.innerHTML='<span class="annin">'+I[x.i]+'<span></span></span>';a.querySelector(".annin span").textContent=x.t;a.href=x.l;a.classList.add("in")},L.length>1?250:0);k++};
     show();if(L.length>1&&!matchMedia("(prefers-reduced-motion: reduce)").matches)setInterval(show,4500)}}}
 {const ev=$("#isanpaiva");if(ev&&S.event){if(until(S.event)){$("#evT").textContent=S.event.title;$("#evX").textContent=S.event.text}else ev.hidden=true}}
+{const AO=(S.offers||[]).filter(o=>o.on&&(!o.until||now.date<=o.until)&&(!o.from||now.date>=o.from));document.querySelectorAll(".nav-offers").forEach(a=>{if(!AO.length)a.remove()});}
 {const ol=$("#offerList"),os=$("#tarjoukset");if(ol&&os){const L=(S.offers||[]).filter(o=>o.on&&(!o.until||now.date<=o.until)&&(!o.from||now.date>=o.from));
   L.forEach(o=>{const c=document.createElement("a");c.className="h-offer";c.href=o.link||"tel:+358453537000";
     const im=document.createElement("img");im.src=o.image||"";im.alt=(o.title||"Tarjous")+(o.text?": "+o.text:"")+(o.price?" "+o.price:"");im.loading="lazy";c.appendChild(im);ol.appendChild(c)});
