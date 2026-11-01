@@ -390,3 +390,7 @@
 .h-oivaface{width:96px;height:96px;border-radius:50%;background:var(--yel);display:grid;place-items:center;font-size:3.2rem}
 .h-oiva h2{font-size:clamp(2rem,5vw,3rem)}.h-oiva .h-lead{color:#C9D2EA;margin:8px 0 0}
 @media(max-width:760px){.h-oivain{grid-template-columns:1fr;text-align:left}.h-oivaface{width:72px;height:72px;font-size:2.4rem}}
+
+/* Oiva: tummanpunainen pohja */
+.h-oiva{background:#6E0D14}
+.h-oiva .h-lead{color:#F1D3D5}
