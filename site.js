@@ -85,7 +85,11 @@ const gl=$("#gal");if(gl)gl.addEventListener("click",e=>{if(e.target.tagName!=="
 addEventListener("keydown",e=>{if(e.key==="Escape")$$(".lb").forEach(l=>l.remove())});
 
 // --- Varaus
-const post=async body=>{if(!API)throw new Error("Ei yhteyttä");const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+C.anon},body:JSON.stringify(body)});
+let FN=null;
+const post=async body=>{if(!API)throw new Error("Ei yhteyttä");let r,last;
+  for(const n of FN?[FN]:["public","Public"]){try{r=await fetch(C.url+"/functions/v1/"+n,{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+C.anon},body:JSON.stringify(body)})}catch(x){last=x;r=null;continue}
+    if(r.status!==404){FN=n;break}}
+  if(!r)throw last||new Error("Failed to fetch");
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error((j.error||j.message||j.msg||"Virhe")+" · koodi "+r.status);return j};
 const busy=(f,on,txt)=>{const b=f.querySelector("button[type=submit]");if(!b.dataset.t)b.dataset.t=b.innerHTML;b.disabled=on;b.innerHTML=on?txt:b.dataset.t};
 const rf=$("#resForm");

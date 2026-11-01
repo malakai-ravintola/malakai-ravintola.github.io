@@ -218,7 +218,8 @@ if(C.url&&C.anon){const s=document.createElement("script");s.src="https://cdn.js
   s.onload=()=>{SB=supabase.createClient(C.url,C.anon);SB.auth.getSession().then(({data})=>{if(data.session)sbLoad();else if(!CONTENT.has(tab))render()})};
   s.onerror=()=>{toast("Varausjärjestelmän lataus epäonnistui. Tarkista nettiyhteys.",true)};document.head.append(s)}
 async function api(action,d){const {data:{session}}=await SB.auth.getSession();if(!session)throw new Error("Kirjaudu uudelleen");
-  const r=await fetch(C.url+"/functions/v1/admin",{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+session.access_token},body:JSON.stringify({action,...d})}).catch(()=>{throw new Error("Palvelinfunktio ei vastaa. Onko admin-funktio julkaistu Supabasessa?")});
+  let r=null;for(const n of window.__AFN?[window.__AFN]:["admin","Admin"]){try{r=await fetch(C.url+"/functions/v1/"+n,{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+session.access_token},body:JSON.stringify({action,...d})})}catch(x){r=null;continue}if(r.status!==404){window.__AFN=n;break}}
+  if(!r)throw new Error("Palvelinfunktio ei vastaa. Onko admin-funktio julkaistu Supabasessa?");
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(r.status===404?"Admin-funktiota ei löydy Supabasesta":j.error||"Virhe "+r.status);return j}
 async function sbLoad(quiet){const [a,b,c]=await Promise.all([SB.from("reservations").select("*").order("date").order("time"),SB.from("subscribers").select("*").order("created_at",{ascending:false}),SB.from("templates").select("*")]);
   if(a.error){if(!quiet)toast(a.error.message.includes("does not exist")?"Taulut puuttuvat: aja SQL Supabasessa":a.error.message,true);RES=RES||[]}else RES=a.data;
