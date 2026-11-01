@@ -275,3 +275,11 @@ input,select{background:#000;border-color:#333}
 .brand2 small{font:500 .6rem/1 Inter,sans-serif;letter-spacing:.55em;padding-left:.55em;color:#bdbdbd}
 footer .brand2 b{font-size:2.2rem}footer .brand2 small{font-size:.7rem}
 @media(max-width:520px){.brand2 b{font-size:1.5rem}.brand2 small{font-size:.52rem}}
+
+/* Vaihtuva yläpalkki */
+.ann,.home .ann{background:#D9A85E!important;color:#111!important;font:700 .9rem Inter,sans-serif;padding:11px 14px;min-height:42px;display:flex!important;align-items:center;justify-content:center}
+.ann:hover,.home .ann:hover{background:#E3B470!important}
+.ann .annin{display:inline-flex;align-items:center;gap:10px;opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s}
+.ann.in .annin{opacity:1;transform:none}
+.ann svg{width:20px;height:20px;flex:none}
+@media(max-width:520px){.ann,.home .ann{font-size:.78rem;padding:10px 10px}.ann svg{width:17px;height:17px}.ann .annin{gap:7px;white-space:nowrap}}
