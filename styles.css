@@ -268,3 +268,10 @@ footer{background:#000;border-top:1px solid #262626}
 .fmap{filter:grayscale(1) contrast(1.1)}
 .bar{background:rgba(0,0,0,.96);border-top:1px solid #fff}
 input,select{background:#000;border-color:#333}
+
+/* Logo-teksti: Malakai + RAVINTOLA */
+.brand.brand2{display:inline-flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;color:#fff;line-height:1;letter-spacing:0}
+.brand2 b{font:500 1.75rem/1 "Playfair Display",Georgia,serif;letter-spacing:.01em}
+.brand2 small{font:500 .6rem/1 Inter,sans-serif;letter-spacing:.55em;padding-left:.55em;color:#bdbdbd}
+footer .brand2 b{font-size:2.2rem}footer .brand2 small{font-size:.7rem}
+@media(max-width:520px){.brand2 b{font-size:1.5rem}.brand2 small{font-size:.52rem}}
