@@ -42,7 +42,7 @@ if(S.dailyPrice)$$(".dp").forEach(e=>e.textContent=f(S.dailyPrice));
     heart:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
     star:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3l1.6 4.4L16 9l-4.4 1.6L10 15l-1.6-4.4L4 9l4.4-1.6zM18 13l.8 2.2L21 16l-2.2.8L18 19l-.8-2.2L15 16l2.2-.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>'};
   const L=[],h=H[now.dow],wk=now.dow===0||now.dow===6,b=S.buffet&&S.buffet[wk?"vkl":"arki"];
-  if(h&&b)L.push({i:"fork",t:"Pizzabuffet tänään klo "+b.aika.replace(/\.00/g,"")+" · "+f(b.pizza),l:"lounas.html"});
+  if(b)L.push({i:"fork",t:"Pizzabuffet "+(wk?"la–su":"ma–pe")+" klo "+b.aika+" · "+f(b.pizza),l:"lounas.html"});
   if(S.ann&&until(S.ann))L.push({i:"heart",t:S.ann.text.replace(/\s*·?\s*Varaa pöytä\s*→?\s*$/,""),l:S.ann.link||"lounas.html"});
   if(now.date<="2026-12-23")L.push({i:"star",t:"Pikkujoulut Malakaissa · pienille ja isoille porukoille",l:"pikkujoulut.html"});
   if(!L.length){a.hidden=true}else{let k=0;const show=()=>{const x=L[k%L.length];a.classList.remove("in");setTimeout(()=>{a.innerHTML='<span class="annin">'+I[x.i]+'<span></span></span>';a.querySelector(".annin span").textContent=x.t;a.href=x.l;a.classList.add("in")},L.length>1?250:0);k++};
