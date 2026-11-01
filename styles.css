@@ -240,3 +240,31 @@ body{background:var(--k)}
 input,select{background:#0E0B09;border-color:var(--line)}
 footer{background:var(--k);border-top:4px solid var(--r)}
 .bar{background:rgba(14,11,9,.96);border-top-color:var(--y)}
+
+/* ===== Mustavalkoinen ilme (kaikki sivut) ===== */
+:root{--k:#000;--k2:#111;--y:#fff;--r:#fff;--g:#BDBDBD;--line:#262626;--beige:#fff}
+body{background:#000}
+.btn.r{background:#fff;border-color:#fff;color:#000}.btn.r:hover{background:#D9D9D9;border-color:#D9D9D9}
+.btn.y{background:transparent;border-color:#fff;color:#fff}.btn.y:hover{background:#fff;border-color:#fff;color:#000}
+.ann{background:#fff;color:#000}.ann:hover{background:#D9D9D9}
+.lang button.on{background:#fff;color:#000}
+.top.solid{background:rgba(0,0,0,.92)}
+.ph0{background:#000}.ph0 h1 em{color:transparent;-webkit-text-stroke:2px #fff}
+.kick{color:#fff;opacity:.7}
+.light{background:#fff;color:#000}.light .lead{color:#444}.light .kick,.light h2 em{color:#000;opacity:1}
+.light .pt td:last-child,.light .pt tr.h td:last-child{color:#000}.light .pt td{border-bottom-color:#E6E6E6}
+.light .btn.r{background:#000;border-color:#000;color:#fff}.light .btn.r:hover{background:#333;border-color:#333}
+.isa{background:#fff;color:#000}.isa h2 b{color:#000}.isa .btn.y{background:#000;border-color:#000;color:#fff}
+.today{background:#000;border:1px solid #fff}.today .pr{color:#fff}
+.day{background:#141414}.day.now{border-color:#fff;background:#1F1F1F}
+.marq{background:#fff;color:#000}.marq i{color:#000}
+.cats{background:rgba(0,0,0,.96)}.cats a:hover{border-color:#fff;color:#fff}
+.dot.on{background:#fff}
+.done{border-color:#fff;background:#111}
+.ferr{background:#1A1A1A;border-color:#fff}
+footer{background:#000;border-top:1px solid #262626}
+.fl h3{color:#fff;opacity:.7}.fl a:hover{color:#fff;text-decoration:underline}
+.soc a:hover{background:#fff;border-color:#fff;color:#000}
+.fmap{filter:grayscale(1) contrast(1.1)}
+.bar{background:rgba(0,0,0,.96);border-top:1px solid #fff}
+input,select{background:#000;border-color:#333}

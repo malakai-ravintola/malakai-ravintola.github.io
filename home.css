@@ -121,3 +121,48 @@
 .home .fl h3{color:var(--dyel)}
 .home .bar{background:rgba(14,11,9,.96);border-top:2px solid var(--dyel)}
 .home .ferr{background:#3A1010;border-color:var(--dred2)}
+
+/* ===== Mustavalkoinen ilme ===== */
+.home{--black:#000;--brown:#111;--brown2:#262626;--beige:#fff;--beige2:#E6E6E6;--muted:#BDBDBD;--dyel:#fff;--dred:#fff;--dred2:#D9D9D9;background:#000}
+.home .btn.r{background:#fff;border-color:#fff;color:#000}.home .btn.r:hover{background:#D9D9D9;border-color:#D9D9D9}
+.home .btn.y{background:transparent;border-color:#fff;color:#fff}.home .btn.y:hover{background:#fff;border-color:#fff;color:#000}
+.home .ann{background:#fff;color:#000}.home .ann:hover{background:#D9D9D9}
+.home .top.solid{background:rgba(0,0,0,.92);border-bottom:1px solid #262626}
+.home .brand em{color:#fff;opacity:.55}
+.home .lang button.on{background:#fff;color:#000}
+.h-hero h1 em{color:transparent;-webkit-text-stroke:2px #fff}
+.h-hero::after{background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,.6) 45%,#000 100%)}
+.h-eyebrow{color:#ddd}.h-eyebrow .dotwrap{background:rgba(0,0,0,.6);border-color:rgba(255,255,255,.3)}
+.h-sub,.h-rating{color:#ddd}.h-rating .stars{color:#fff}
+.home .dot.on{background:#fff}
+.h-kick{color:#fff;opacity:.7}
+.h-buffet{background:#fff;color:#000}
+.h-buffet .h-kick{color:#000}.h-buffet .h-lead{color:#444}
+.h-buffet .pt td{border-bottom-color:#E6E6E6}.h-buffet .pt td:last-child,.h-buffet .pt tr.h td:last-child{color:#000}
+.h-buffet .btn.r{background:#000;border-color:#000;color:#fff}.h-buffet .btn.r:hover{background:#333;border-color:#333}
+.h-daily{background:#0B0B0B;border-block:1px solid #1F1F1F}
+.h-daily .today{background:#000;border:1px solid #fff}
+.h-daily .today .h-kick{color:#fff}.h-daily .today .pr{color:#fff}
+.h-daily .day{background:#141414}.h-daily .day.now{border-color:#fff;background:#1F1F1F}
+.h-daily .h-lead b{color:#fff}
+.h-card{background:#111;border:1px solid #1F1F1F}.h-card small,.h-card b{color:#fff}.h-card small{opacity:.7}
+.h-link{color:#fff}
+.h-reviews{background:#fff;color:#000}.h-reviews .h-kick{color:#000}
+.h-score .stars{color:#000}
+.h-quotes blockquote{background:#fff;border:1px solid #000}.h-quotes p{color:#111}.h-quotes cite{color:#000}
+.h-book .hrs td{border-bottom-color:#262626}.h-book .hrs td:last-child{color:#fff}
+.h-addr{color:#ddd}.h-addr a{color:#fff}
+.h-formcard{background:#0F0F0F;border:1px solid #262626}.h-formcard label{color:#ddd}
+.h-formcard input,.h-formcard select{background:#000;border-color:#333}
+.h-formcard input:focus,.h-formcard select:focus{outline-color:#fff;border-color:#fff}
+.h-formcard .done{border-color:#fff;background:#000}.h-formcard .done h3{color:#fff}
+.h-map iframe{filter:grayscale(1) contrast(1.1)}
+.h-news{background:#fff;color:#000}.h-news p{color:#444}
+.h-nl input[type=email]{border:1px solid #000}
+.h-news .btn.y{background:#000;border-color:#000;color:#fff}.h-news .btn.y:hover{background:#333;border-color:#333}
+.h-news .done{border-color:#000;background:#fff;color:#000}
+.home footer{background:#000;border-top:1px solid #262626}
+.home .fl h3{color:#fff;opacity:.7}.home .fl a:hover{color:#fff;text-decoration:underline}
+.home .soc a:hover{background:#fff;border-color:#fff;color:#000}
+.home .bar{background:rgba(0,0,0,.96);border-top:1px solid #fff}
+.home .ferr{background:#1A1A1A;border-color:#fff}
