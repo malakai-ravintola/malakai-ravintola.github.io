@@ -236,3 +236,5 @@ footer .wrap.ft2{display:grid;grid-template-columns:1fr auto;gap:28px 40px;align
 .fcopy{grid-column:1/-1;border-top:1px solid var(--line);padding-top:16px;font-size:.82rem;color:#888}
 @media(max-width:760px){footer .wrap.ft2{grid-template-columns:1fr}.fl>div{display:grid;grid-template-columns:1fr 1fr;column-gap:20px}.fl h3{grid-column:1/-1}.fmap{height:220px}}
 @media(max-width:899px){footer{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}}
+
+.ferr{background:#3a1414;border:1px solid #7a2a2a;color:#fff;padding:12px 14px;border-radius:10px;margin:12px 0 0}

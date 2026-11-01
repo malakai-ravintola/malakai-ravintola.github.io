@@ -1,7 +1,6 @@
 (function(){
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const C=window.MALAKAI||{},API=C.url?C.url+"/functions/v1/public":"";
-const PH="358456057475",PHP="+358456057475",MAIL="malakairavintola@gmail.com";
 const f=n=>n.toFixed(2).replace(".",",")+" €";
 const fi=()=>{const p=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit",weekday:"short",hour:"numeric",minute:"numeric",hour12:false}).formatToParts(new Date()),g=t=>p.find(x=>x.type===t).value;
   return{date:`${g("year")}-${g("month")}-${g("day")}`,dow:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(g("weekday")),t:(+g("hour")%24)+(+g("minute"))/60}};
@@ -86,28 +85,31 @@ const gl=$("#gal");if(gl)gl.addEventListener("click",e=>{if(e.target.tagName!=="
 addEventListener("keydown",e=>{if(e.key==="Escape")$$(".lb").forEach(l=>l.remove())});
 
 // --- Varaus
-const sms=(n,t)=>"sms:"+n+"?&body="+encodeURIComponent(t),wa=t=>"https://wa.me/"+PH+"?text="+encodeURIComponent(t);
+const post=async body=>{if(!API)throw new Error("Ei yhteyttä");const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+C.anon},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Virhe");return j};
+const busy=(f,on,txt)=>{const b=f.querySelector("button[type=submit]");if(!b.dataset.t)b.dataset.t=b.innerHTML;b.disabled=on;b.innerHTML=on?txt:b.dataset.t};
 const rf=$("#resForm");
 if(rf){const g=rf.g;for(let i=1;i<=8;i++)g.add(new Option(i+(i==1?" vieras":" vierasta"),i));g.value=2;
   rf.d.min=now.date;
   const slots=()=>{const t=rf.t;t.textContent="";t.add(new Option("Valitse aika",""));if(!rf.d.value)return;
-    const dow=new Date(rf.d.value+"T12:00:00").getDay();if(!H[dow]){t.options[0].text="Suljettu tänä päivänä";return}const[a,b]=H[dow];for(let x=a;x<=b-1;x+=.5){const h=Math.floor(x),m=x%1?"30":"00";t.add(new Option(`${String(h).padStart(2,"0")}:${m}`,`${String(h).padStart(2,"0")}:${m}`))}};
+    const dow=new Date(rf.d.value+"T12:00:00").getDay();if(!H[dow]){t.options[0].text="Suljettu tänä päivänä";return}const[a,b]=H[dow],min=rf.d.value===now.date?now.t+.5:0;
+    for(let x=a;x<=b-1;x+=.5){if(x<min)continue;const h=Math.floor(x),m=x%1?"30":"00",v=`${String(h).padStart(2,"0")}:${m}`;t.add(new Option(v,v))}
+    if(t.options.length===1)t.options[0].text="Ei vapaita aikoja tänään"};
   rf.d.onchange=slots;slots();
-  const manual=(v)=>{const dd=v.d.value.split("-").reverse().join("."),
-    t=`Pöytävaraus: ${v.n.value}, ${v.g.value} hlö, ${dd} klo ${v.t.value}. Puh: ${v.p.value}. Sähköposti: ${v.e.value}.`+(v.m.value?` Toive: ${v.m.value}`:"");
-    $("#resTxt").textContent=t;$("#resSms").href=sms(PHP,t);$("#resWa").href=wa(t);$("#resMail").href="mailto:"+MAIL+"?subject="+encodeURIComponent("Pöytävaraus")+"&body="+encodeURIComponent(t);
-    $("#resDone").hidden=false;$("#resDone").scrollIntoView({block:"center"})};
-  rf.onsubmit=async e=>{e.preventDefault();const v=e.target;
-    if(API){try{const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+C.anon},body:JSON.stringify({action:"reserve",n:v.n.value,e:v.e.value,p:v.p.value,g:v.g.value,d:v.d.value,t:v.t.value,m:v.m.value,news:v.news.checked,website:v.website.value})});
-        if(!r.ok)throw 0;const jr=await r.json().catch(()=>({}));if(jr.notified===false){manual(v);return}rf.hidden=true;const d=$("#resDone");d.textContent="Kiitos! Varauspyyntösi on lähetetty. Vahvistamme sen sähköpostilla tai tekstiviestillä.";d.hidden=false;return}catch(x){}}
-    manual(v)}}
+  const err=$("#resErr");
+  rf.onsubmit=async e=>{e.preventDefault();const v=e.target;err.hidden=true;busy(rf,true,"Lähetetään…");
+    try{await post({action:"reserve",n:v.n.value,e:v.e.value,p:v.p.value,g:v.g.value,d:v.d.value,t:v.t.value,m:v.m.value,news:v.news.checked,website:v.website.value});
+      const dd=v.d.value.split("-").reverse().join("."),d=$("#resDone");
+      $("#resTxt").textContent=`Kiitos ${v.n.value.split(" ")[0]}! Varauspyyntösi ${dd} klo ${v.t.value} (${v.g.value} hlö) on vastaanotettu. Saat vahvistuksen sähköpostiisi ${v.e.value}, kun olemme käsitelleet varauksen.`;
+      rf.hidden=true;d.hidden=false;d.scrollIntoView({block:"center",behavior:"smooth"})}
+    catch(x){err.textContent="Varauksen lähetys ei onnistunut"+(x.message&&x.message!=="Virhe"&&x.message!=="Failed to fetch"?" ("+x.message+")":"")+". Yritä uudelleen tai soita 045 353 7000.";err.hidden=false}
+    finally{busy(rf,false)}}}
 
 // --- Uutiskirje
 const nf=$("#nlForm");
-if(nf)nf.onsubmit=async e=>{e.preventDefault();const v=e.target,t=`Tilaan uutiskirjeen: ${v.e.value}`+(v.n.value?` (${v.n.value})`:"");
-  if(API){try{const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+C.anon},body:JSON.stringify({action:"subscribe",e:v.e.value,n:v.n.value,website:v.website.value})});
-      if(!r.ok)throw 0;nf.hidden=true;const d=$("#nlDone");d.textContent="Kiitos! Tilaus on vastaanotettu, vahvistus tulee sähköpostiisi.";d.hidden=false;return}catch(x){}}
-  $("#nlSms").href=sms(PHP,t);$("#nlWa").href=wa(t);$("#nlMail").href="mailto:"+MAIL+"?subject="+encodeURIComponent("Uutiskirjeen tilaus")+"&body="+encodeURIComponent(t);$("#nlDone").hidden=false};
+if(nf)nf.onsubmit=async e=>{e.preventDefault();const v=e.target,d=$("#nlDone");busy(nf,true,"Lähetetään…");
+  try{await post({action:"subscribe",e:v.e.value,n:v.n.value,website:v.website.value});nf.hidden=true;d.textContent="Kiitos! Olet nyt uutiskirjeen tilaaja.";d.hidden=false}
+  catch(x){d.textContent="Tilaus ei onnistunut. Yritä hetken päästä uudelleen.";d.hidden=false}finally{busy(nf,false)}};
 
 // --- Videot
 if(matchMedia("(prefers-reduced-motion: reduce)").matches)$$("video").forEach(v=>{v.removeAttribute("autoplay");v.pause()});

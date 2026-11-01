@@ -54,6 +54,22 @@ button:disabled{opacity:.45;cursor:not-allowed}
 ol.steps{padding-left:20px}ol.steps li{margin-bottom:6px}
 .more input{padding:6px 10px;font-size:.82rem;background:#0b0b0b;border-color:#262626}
 @media(max-width:560px){h1{font-size:1.2rem}.save span{font-size:.8rem}.save button{padding:9px 12px}#undo{display:none}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--k2);border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--w);text-align:left;margin:0}
+.tile:hover{border-color:var(--y)}.tile b{font:400 2rem Anton,sans-serif;color:var(--y)}.tile span{font-weight:500;font-size:.85rem;color:var(--g)}
+.warn{border-color:#7a5a1a;background:#1d170c}
+.badge{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:999px;background:var(--y);color:#111;font-size:.72rem;line-height:18px;text-align:center}
+.row.res{align-items:center}.rmain{display:flex;gap:14px;align-items:flex-start;flex:1;min-width:240px}
+.rwhen{min-width:62px;white-space:nowrap}.rwhen b{font:400 1.4rem Anton,sans-serif;display:block;line-height:1}.rwhen small{color:var(--g)}
+.row small a{color:var(--g)}.row .note{color:var(--w);font-style:italic}.rbtn{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.row.res.peruttu{opacity:.55}.dhead{font:700 .8rem Inter,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--y);padding:14px 0 2px}
+.pill.nl{background:#1f3a5c}.row>.pill{align-self:center}
+.modal{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.75);display:grid;place-items:center;padding:14px;overflow:auto}
+.mbox{background:var(--k2);border:1px solid var(--line);border-radius:14px;padding:18px;width:100%;max-width:620px;max-height:calc(100vh - 28px);overflow:auto}
+.mact{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+details.cust{border-bottom:1px solid var(--line)}details.cust summary{display:flex;justify-content:space-between;gap:10px;padding:12px 0;cursor:pointer;list-style:none;flex-wrap:wrap}
+details.cust summary::-webkit-details-marker{display:none}details.cust summary small{display:block;color:var(--g)}.cr{color:var(--g)}
+.cin{padding:0 0 14px}.btnl{display:inline-block;padding:7px 14px;border:1px solid #444;border-radius:999px;color:var(--w);text-decoration:none;font-weight:700;font-size:.85rem;margin:2px}
 code{background:#000;padding:1px 5px;border-radius:4px;border:1px solid #333}
 </style></head><body>
 <header><div class="w"><h1>Malakai · Ylläpito</h1><a href="index.html" target="_blank" rel="noopener">Avaa sivusto ↗</a>
@@ -106,13 +122,13 @@ function imgPicker(cur,set){const prev=mk("img",{class:"prev",src:cur,alt:""}),i
   return mk("div",null,mk("label",null,"Vaihda kuva",inp),prev)}
 
 // ---------- Näkymät
-let tab=ls.get("adm_tab")||"Ruokalista",cat=null;
-const TABS=["Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet","Varaukset","Tilaajat","Viestit","Asetukset"];
-const CONTENT=new Set(TABS.slice(0,4));
-function render(){const t=$("#tabs");t.textContent="";TABS.forEach(k=>t.append(mk("button",{class:k===tab?"on":"",text:k,onclick:()=>{tab=k;ls.set("adm_tab",k);render()}})));
+let tab="Yleiskatsaus",cat=null;
+const TABS=["Yleiskatsaus","Varaukset","Asiakkaat","Uutiskirje","Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet","Asetukset"];
+const CONTENT=new Set(TABS.slice(4,8));
+function render(){const t=$("#tabs");t.textContent="";TABS.forEach(k=>{const n=k==="Varaukset"&&RES?RES.filter(r=>r.status==="uusi"&&r.date>=hToday()).length:0;t.append(mk("button",{class:k===tab?"on":"",onclick:()=>{tab=k;render()}},k,n?mk("span",{class:"badge",text:String(n)}):null))});if(!TABS.includes(tab))tab="Yleiskatsaus";
   $("#saveBar").hidden=!CONTENT.has(tab);const m=$("#main");m.textContent="";
   if(CONTENT.has(tab)&&!TOKEN)m.append(mk("div",{class:"card"},mk("b",{text:"Muokkaus vaatii GitHub-avaimen. "}),"Voit katsella sisältöä, mutta tallentaminen ei onnistu ennen kuin lisäät avaimen ",mk("a",{href:"#",text:"Asetuksissa",onclick:e=>{e.preventDefault();tab="Asetukset";render()}}),"."));
-  ({"Ruokalista":vMenu,"Päivän pizza":vDaily,"Ilmoitukset":vAnn,"Aukiolo & buffet":vHours,"Varaukset":vRes,"Tilaajat":vSubs,"Viestit":vMsg,"Asetukset":vSet})[tab](m)}
+  ({"Yleiskatsaus":vOver,"Varaukset":vRes,"Asiakkaat":vCust,"Uutiskirje":vMsg,"Ruokalista":vMenu,"Päivän pizza":vDaily,"Ilmoitukset":vAnn,"Aukiolo & buffet":vHours,"Asetukset":vSet})[tab](m)}
 const inp=(val,on,attrs={})=>{const e=mk("input",{value:val??"",...attrs});e.oninput=()=>{on(e.value);mark()};return e};
 const area=(val,on,attrs={})=>{const e=mk("textarea",attrs);e.value=val??"";e.oninput=()=>{on(e.value);mark()};return e};
 const chk=(val,on,txt)=>{const e=mk("input",{type:"checkbox"});e.checked=!!val;e.onchange=()=>{on(e.checked);mark()};return mk("label",{class:"ck"},e,txt)};
@@ -180,48 +196,149 @@ function vSet(m){const t=mk("input",{type:"password",value:TOKEN,placeholder:"gi
       mk("li",null,"Generate token, kopioi avain ja liitä se alle.")),
     lab("GitHub-avain",t),mk("button",{text:"Tallenna avain",onclick:async()=>{TOKEN=t.value.trim();ls.set("gh_token",TOKEN||null);if(!TOKEN)return toast("Avain poistettu");try{await pull();toast("Yhteys toimii! Voit nyt muokata ja tallentaa.")}catch(e){toast(e.message,true)}}}),
     mk("button",{class:"o",text:"Poista avain tästä selaimesta",onclick:()=>{TOKEN="";ls.set("gh_token",null);SHA=null;render();toast("Avain poistettu")}})),
-    mk("div",{class:"card"},mk("h3",{text:"Varaukset ja uutiskirje"}),mk("p",{class:"muted",text:SB?"Supabase on kytketty.":"Ei vielä kytketty. Seuraa SETUP.md-ohjetta ja lisää Supabasen tiedot config.js-tiedostoon. Siihen asti asiakkaat lähettävät varaukset omalla viestisovelluksellaan."})))}
+    resCard())}
 
-// ---------- Varaukset (Supabase)
-const C=window.MALAKAI||{};let SB=null,RES=null,SUB=null,sbLib=null;
+// ---------- Varausjärjestelmä (Supabase)
+const C=window.MALAKAI||{};let SB=null,RES=null,SUB=null,TPLS=null,SVC=null,rf="odottaa",cq="",cNews=false,addOpen=false;
+const hToday=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki"}).format(new Date());
+const addDays=(d,n)=>{const x=new Date(d+"T12:00:00");x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
+const fd=d=>String(d).split("-").reverse().join(".");
+const tm=t=>String(t||"").slice(0,5);
+const WD=["su","ma","ti","ke","to","pe","la"],wd=d=>WD[new Date(d+"T12:00:00").getDay()];
+const act=(t,fn,c)=>mk("button",{class:c||"",text:t,onclick:async()=>{try{await fn()}catch(e){toast(e.message||String(e),true)}}});
+const DEF_TPL=[
+ ["vahvistus","Vahvistus","confirm","Pöytävarauksesi on vahvistettu","Hei {nimi}!\n\nPöytävarauksesi Malakai Ravintolaan on vahvistettu:\n{pvm} klo {klo}, {hlo} hlö.\n\nTervetuloa! Jos suunnitelmat muuttuvat, ilmoitathan meille numeroon 045 353 7000.\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä"],
+ ["taynna","Peruutus: täynnä","cancel","Pöytävarauksestasi","Hei {nimi}!\n\nKiitos varauspyynnöstäsi. Valitettavasti meillä on {pvm} klo {klo} jo täyttä, emmekä voi vahvistaa varausta.\n\nSoita meille 045 353 7000, niin etsitään sinulle toinen sopiva aika.\n\nMalakai Ravintola"],
+ ["ehdota","Peruutus: ehdota toista aikaa","cancel","Pöytävarauksestasi","Hei {nimi}!\n\nKiitos varauspyynnöstäsi. Toivomasi aika {pvm} klo {klo} on valitettavasti täynnä, mutta meillä olisi tilaa samana päivänä klo [kirjoita aika].\n\nSopiiko se? Tee uusi varaus sivuillamme tai soita 045 353 7000.\n\nMalakai Ravintola"],
+ ["suljettu","Peruutus: suljettu / tilaisuus","cancel","Pöytävarauksestasi","Hei {nimi}!\n\nKiitos varauspyynnöstäsi. Ravintolamme on valitettavasti {pvm} varattu yksityistilaisuudelle, emmekä voi ottaa varausta vastaan.\n\nTervetuloa toisena päivänä!\n\nMalakai Ravintola, 045 353 7000"],
+ ["ravintola-peruu","Ravintola peruu vahvistetun varauksen","cancel","Varauksesi on jouduttu perumaan","Hei {nimi}!\n\nJoudumme valitettavasti perumaan pöytävarauksesi {pvm} klo {klo} ({hlo} hlö). Pahoittelemme tilannetta.\n\nSoita meille 045 353 7000, niin sovitaan uusi aika.\n\nMalakai Ravintola"]];
+const tplList=()=>DEF_TPL.map(([key,title,kind,subject,body])=>{const o=(TPLS||{})[key];return{key,title,kind,subject:o?.subject??subject,body:o?.body??body}});
+const fill=(t,r)=>t.replace(/\{nimi\}/g,(r.name||"").split(" ")[0]).replace(/\{pvm\}/g,wd(r.date)+" "+fd(r.date)).replace(/\{klo\}/g,tm(r.time)).replace(/\{hlo\}/g,r.guests);
 if(C.url&&C.anon){const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
-  s.onload=()=>{SB=supabase.createClient(C.url,C.anon);SB.auth.getSession().then(({data})=>{if(data.session)sbLoad();else if(!CONTENT.has(tab))render()})};document.head.append(s)}
-async function api(action,d){const {data:{session}}=await SB.auth.getSession();
-  const r=await fetch(C.url+"/functions/v1/admin",{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+session.access_token},body:JSON.stringify({action,...d})});
-  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Virhe");return j}
-async function sbLoad(){RES=(await SB.from("reservations").select("*").order("date").order("time")).data||[];SUB=(await SB.from("subscribers").select("*").order("created_at",{ascending:false})).data||[];if(!CONTENT.has(tab))render()}
-function sbGate(m){if(!C.url){m.append(mk("div",{class:"card"},mk("h3",{text:"Ei vielä käytössä"}),mk("p",null,"Varausten, tilaajien ja viestien hallinta vaatii Supabase-tilin (ilmainen). Seuraa sivuston SETUP.md-ohjetta ja lisää Supabasen Project URL ja anon-avain ",mk("code",{text:"config.js"}),"-tiedostoon."),
-    mk("p",{class:"muted",text:"Siihen asti pöytävaraukset ja uutiskirjetilaukset tulevat sinulle asiakkaan lähettämänä tekstiviestinä, WhatsApp-viestinä tai sähköpostina."})));return true}
+  s.onload=()=>{SB=supabase.createClient(C.url,C.anon);SB.auth.getSession().then(({data})=>{if(data.session)sbLoad();else if(!CONTENT.has(tab))render()})};
+  s.onerror=()=>{toast("Varausjärjestelmän lataus epäonnistui. Tarkista nettiyhteys.",true)};document.head.append(s)}
+async function api(action,d){const {data:{session}}=await SB.auth.getSession();if(!session)throw new Error("Kirjaudu uudelleen");
+  const r=await fetch(C.url+"/functions/v1/admin",{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+session.access_token},body:JSON.stringify({action,...d})}).catch(()=>{throw new Error("Palvelinfunktio ei vastaa. Onko admin-funktio julkaistu Supabasessa?")});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(r.status===404?"Admin-funktiota ei löydy Supabasesta":j.error||"Virhe "+r.status);return j}
+async function sbLoad(quiet){const [a,b,c]=await Promise.all([SB.from("reservations").select("*").order("date").order("time"),SB.from("subscribers").select("*").order("created_at",{ascending:false}),SB.from("templates").select("*")]);
+  if(a.error){if(!quiet)toast(a.error.message.includes("does not exist")?"Taulut puuttuvat: aja SQL Supabasessa":a.error.message,true);RES=RES||[]}else RES=a.data;
+  SUB=b.data||SUB||[];TPLS={};(c.data||[]).forEach(t=>TPLS[t.key]=t);
+  if(SVC===null)api("status").then(x=>{SVC=x;if(!CONTENT.has(tab)&&!document.querySelector(".modal"))render()}).catch(()=>{SVC={mail:false,sms:false,down:true};if(!CONTENT.has(tab))render()});
+  const p=RES.filter(r=>r.status==="uusi"&&r.date>=hToday()).length;document.title=(p?"("+p+") ":"")+"Malakai ylläpito";
+  const tb=[...document.querySelectorAll(".tabs button")].find(b=>b.textContent.startsWith("Varaukset"));
+  if(!CONTENT.has(tab)&&!document.querySelector(".modal")&&!(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)))render()}
+setInterval(()=>{if(SB&&RES!==null&&!document.hidden)sbLoad(true).catch(()=>{})},60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&SB&&RES!==null)sbLoad(true).catch(()=>{})});
+function sbGate(m){if(!C.url){m.append(mk("div",{class:"card"},mk("h3",{text:"Ei vielä käytössä"}),mk("p",{text:"Varausjärjestelmä vaatii Supabase-yhteyden (config.js)."})));return true}
   if(!SB){m.append(mk("p",{class:"muted",text:"Ladataan…"}));return true}
   if(RES===null){const em=mk("input",{type:"email",value:"malakairavintola@gmail.com",autocomplete:"username"}),pw=mk("input",{type:"password",autocomplete:"current-password"});
-    const f=mk("form",{class:"card"},mk("h3",{text:"Kirjaudu varauksiin"}),lab("Sähköposti",em),lab("Salasana",pw),mk("button",{text:"Kirjaudu"}));
-    f.onsubmit=async e=>{e.preventDefault();const {error}=await SB.auth.signInWithPassword({email:em.value,password:pw.value});if(error)return toast("Kirjautuminen epäonnistui",true);sbLoad()};m.append(f);return true}}
-const fd=d=>String(d).split("-").reverse().join(".");
-const act=(t,fn,c)=>mk("button",{class:c||"",text:t,onclick:async()=>{try{await fn()}catch(e){toast(e.message||String(e),true)}}});
-function vRes(m){m.append(mk("h2",{text:"Varaukset"}));if(sbGate(m))return;
-  const today=new Date().toISOString().slice(0,10),up=RES.filter(r=>r.date>=today),past=RES.filter(r=>r.date<today);
-  const list=(arr,title)=>{const c=mk("div",{class:"card"},mk("h3",{text:title+" ("+arr.length+")"}));if(!arr.length)c.append(mk("p",{class:"muted",text:"Ei varauksia."}));
-    arr.forEach(r=>c.append(mk("div",{class:"row"},mk("div",null,mk("b",{text:`${fd(r.date)} klo ${String(r.time).slice(0,5)} · ${r.name} · ${r.guests} hlö`}),mk("span",{class:"pill "+r.status,text:r.status}),
-      mk("small",{text:[r.phone,r.email,r.note].filter(Boolean).join(" · ")})),
-      mk("div",null,act("Vahvista (SMS)",async()=>{if(!confirm("Lähetetäänkö vahvistus asiakkaalle?"))return;const x=await api("confirm",{id:r.id,ok:true});toast(x.sent===false?"Merkitty. Viestipalvelu ei ole käytössä, ilmoita asiakkaalle itse: "+r.phone:"Vahvistus lähetetty");sbLoad()}),
-        act("Peru (SMS)",async()=>{if(!confirm("Lähetetäänkö peruutus asiakkaalle?"))return;const x=await api("confirm",{id:r.id,ok:false});toast(x.sent===false?"Merkitty. Viestipalvelu ei ole käytössä, ilmoita asiakkaalle itse: "+r.phone:"Peruutus lähetetty");sbLoad()},"o"),
-        act("Poista",async()=>{if(!confirm("Poistetaanko varaus?"))return;await SB.from("reservations").delete().eq("id",r.id);sbLoad()},"x del")))));return c};
-  m.append(list(up,"Tulevat"),list(past.reverse(),"Menneet"),act("Kirjaudu ulos",async()=>{await SB.auth.signOut();RES=SUB=null;render()},"o"))}
-function vSubs(m){m.append(mk("h2",{text:"Tilaajat"}));if(sbGate(m))return;
-  const c=mk("div",{class:"card"},mk("h3",{text:"Uutiskirjeen tilaajat ("+SUB.length+")"}),act("Lataa CSV",()=>{const q=s=>'"'+String(s||"").replace(/"/g,'""')+'"';
-    const u=URL.createObjectURL(new Blob(["﻿sahkoposti,nimi,tilattu\n"+SUB.map(s=>[q(s.email),q(s.name),q(String(s.created_at).slice(0,10))].join(",")).join("\n")],{type:"text/csv"}));mk("a",{href:u,download:"tilaajat.csv"}).click()},"o"));
-  SUB.forEach(s=>c.append(mk("div",{class:"row"},mk("div",null,mk("b",{text:s.email}),mk("small",{text:(s.name||"")+" · "+fd(String(s.created_at).slice(0,10))})),act("Poista",async()=>{if(!confirm("Poistetaanko "+s.email+"?"))return;await SB.from("subscribers").delete().eq("id",s.id);sbLoad()},"x del"))));m.append(c)}
+    const f=mk("form",{class:"card",style:"max-width:420px"},mk("h3",{text:"Kirjaudu varausjärjestelmään"}),lab("Sähköposti",em),lab("Salasana",pw),mk("button",{text:"Kirjaudu"}),
+      mk("p",{class:"muted",text:"Tunnus ja salasana ovat ne, jotka loit Supabasessa (Authentication → Users)."}));
+    f.onsubmit=async e=>{e.preventDefault();const {error}=await SB.auth.signInWithPassword({email:em.value.trim(),password:pw.value});if(error)return toast("Kirjautuminen epäonnistui: tarkista sähköposti ja salasana",true);await sbLoad();render()};m.append(f);return true}}
+const pill=s=>mk("span",{class:"pill "+s,text:{uusi:"odottaa",vahvistettu:"vahvistettu",peruttu:"peruttu"}[s]||s});
+function svcWarn(){if(!SVC)return null;if(SVC.down)return mk("div",{class:"card warn"},mk("b",{text:"Palvelinfunktiot eivät vastaa. "}),"Varauksia voi katsella, mutta hyväksyntäviestit eivät lähde. Julkaise admin- ja public-funktiot Supabasessa (Edge Functions).");
+  if(!SVC.mail)return mk("div",{class:"card warn"},mk("b",{text:"Sähköposti-ilmoitukset eivät ole käytössä. "}),"Uusista varauksista ei tule sinulle sähköpostia, eivätkä asiakkaat saa vahvistusviestejä. Lisää Brevon avain Supabaseen: Edge Functions → Secrets → ",mk("code",{text:"BREVO_KEY"}),".");return null}
+function resRow(r,compact){const contact=mk("small",null,mk("a",{href:"tel:"+r.phone,text:r.phone}),r.email?" · ":"",r.email?mk("a",{href:"mailto:"+r.email,text:r.email}):"",r.source==="puhelin"?" · lisätty käsin":"");
+  const btns=mk("div",{class:"rbtn"});
+  if(r.status==="uusi")btns.append(act("Hyväksy",()=>reply(r,"confirm")),act("Peru",()=>reply(r,"cancel"),"o"));
+  else if(r.status==="vahvistettu"&&r.date>=hToday())btns.append(act("Peru",()=>reply(r,"cancel"),"o"));
+  if(!compact)btns.append(act("Poista",async()=>{if(!confirm("Poistetaanko varaus pysyvästi? Asiakkaalle ei lähetetä viestiä."))return;const {error}=await SB.from("reservations").delete().eq("id",r.id);if(error)throw error;await sbLoad()},"x del"));
+  return mk("div",{class:"row res "+r.status},mk("div",{class:"rmain"},mk("div",{class:"rwhen"},mk("b",{text:tm(r.time)}),mk("small",{text:wd(r.date)+" "+fd(r.date)})),
+    mk("div",null,mk("b",{text:r.name+" · "+r.guests+" hlö"}),pill(r.status),contact,r.note?mk("small",{class:"note",text:"“"+r.note+"”"}):null)),btns)}
+function reply(r,kind){const list=tplList().filter(t=>t.kind===kind),ov=mk("div",{class:"modal",role:"dialog","aria-modal":"true"}),box=mk("div",{class:"mbox"});
+  const sl=mk("select");list.forEach(t=>sl.add(new Option(t.title,t.key)));const sub=mk("input"),body=mk("textarea",{style:"min-height:200px"});
+  const ld=()=>{const t=list.find(x=>x.key===sl.value);sub.value=fill(t.subject,r);body.value=fill(t.body,r)};sl.onchange=ld;ld();
+  const em=mk("input",{type:"checkbox"});em.checked=!!r.email&&!!SVC?.mail;em.disabled=!r.email||!SVC?.mail;
+  const sm=mk("input",{type:"checkbox"});sm.checked=false;sm.disabled=!SVC?.sms;
+  const close=()=>{ov.remove();document.body.style.overflow=""};
+  const go=mk("button",{text:kind==="confirm"?"Hyväksy varaus":"Peru varaus"});
+  go.onclick=async()=>{go.disabled=true;go.textContent="Lähetetään…";
+    try{const x=await api("reply",{id:r.id,status:kind==="confirm"?"vahvistettu":"peruttu",subject:sub.value,body:body.value,email:em.checked,sms:sm.checked});close();
+      const sent=[x.mail&&"sähköposti",x.sms&&"tekstiviesti"].filter(Boolean);
+      toast((kind==="confirm"?"Varaus hyväksytty. ":"Varaus peruttu. ")+(sent.length?"Asiakkaalle lähti "+sent.join(" ja ")+".":"Viestiä ei lähetetty – ilmoita asiakkaalle itse: "+r.phone),!sent.length&&!x.errors?.length?false:!!x.errors?.length);
+      if(x.errors?.length)toast(x.errors.join(" · "),true);await sbLoad()}
+    catch(e){toast(e.message,true);go.disabled=false;go.textContent=kind==="confirm"?"Hyväksy varaus":"Peru varaus"}};
+  box.append(mk("h2",{text:kind==="confirm"?"Hyväksy varaus":"Peru varaus"}),mk("p",{class:"muted",text:`${r.name} · ${wd(r.date)} ${fd(r.date)} klo ${tm(r.time)} · ${r.guests} hlö`}),
+    lab("Valmis viesti",sl),lab("Otsikko",sub),lab("Viesti asiakkaalle (voit muokata ennen lähettämistä)",body),
+    mk("label",{class:"ck"},em,"Lähetä sähköpostina"+(r.email?" ("+r.email+")":" (ei sähköpostia)")+(SVC?.mail?"":" – ei käytössä")),
+    mk("label",{class:"ck"},sm,"Lähetä tekstiviestinä ("+r.phone+")"+(SVC?.sms?"":" – ei käytössä")),
+    mk("div",{class:"mact"},mk("button",{class:"o",text:"Sulje",onclick:close}),go));
+  ov.append(box);ov.onclick=e=>{if(e.target===ov)close()};document.body.append(ov);document.body.style.overflow="hidden";sl.focus()}
+function vOver(m){m.append(mk("h2",{text:"Yleiskatsaus"}));if(sbGate(m))return;const w=svcWarn();if(w)m.append(w);
+  const t=hToday(),wk=addDays(t,7),live=RES.filter(r=>r.status!=="peruttu");
+  const pend=RES.filter(r=>r.status==="uusi"&&r.date>=t),tod=live.filter(r=>r.date===t),week=live.filter(r=>r.date>t&&r.date<=wk);
+  const cust=customers();
+  const tile=(n,l,go)=>mk("button",{class:"tile",onclick:go},mk("b",{text:String(n)}),mk("span",{text:l}));
+  m.append(mk("div",{class:"tiles"},tile(pend.length,"odottaa hyväksyntää",()=>{rf="odottaa";tab="Varaukset";render()}),
+    tile(tod.length+" / "+tod.reduce((a,r)=>a+r.guests,0),"varausta / henkilöä tänään",()=>{rf="tulevat";tab="Varaukset";render()}),
+    tile(week.length,"varausta seuraavat 7 pv",()=>{rf="tulevat";tab="Varaukset";render()}),
+    tile(cust.length,"asiakasta",()=>{cNews=false;tab="Asiakkaat";render()}),
+    tile(SUB.length,"uutiskirjeen tilaajaa",()=>{cNews=true;tab="Asiakkaat";render()})));
+  const c1=mk("div",{class:"card"},mk("h3",{text:"Odottaa hyväksyntää ("+pend.length+")"}));if(!pend.length)c1.append(mk("p",{class:"muted",text:"Ei käsittelemättömiä varauksia. 👍"}));pend.forEach(r=>c1.append(resRow(r,true)));
+  const c2=mk("div",{class:"card"},mk("h3",{text:"Tänään "+fd(t)}));if(!tod.length)c2.append(mk("p",{class:"muted",text:"Ei varauksia tänään."}));tod.forEach(r=>c2.append(resRow(r,true)));
+  const nx=RES.filter(r=>r.created_at).slice().sort((a,b)=>b.created_at.localeCompare(a.created_at)).slice(0,5);
+  const c3=mk("div",{class:"card"},mk("h3",{text:"Viimeksi tulleet"}));if(!nx.length)c3.append(mk("p",{class:"muted",text:"Ei vielä varauksia."}));
+  nx.forEach(r=>c3.append(mk("div",{class:"row"},mk("div",null,mk("b",{text:r.name}),mk("small",{text:`${wd(r.date)} ${fd(r.date)} klo ${tm(r.time)} · ${r.guests} hlö · tullut ${new Date(r.created_at).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}`})),pill(r.status))));
+  m.append(c1,c2,c3,mk("p",{class:"muted",text:"Sivu päivittyy automaattisesti minuutin välein."}))}
+function vRes(m){m.append(mk("h2",{text:"Varaukset"}));if(sbGate(m))return;const w=svcWarn();if(w)m.append(w);
+  const t=hToday(),F={odottaa:["Odottaa",r=>r.status==="uusi"&&r.date>=t],tulevat:["Tulevat",r=>r.status==="vahvistettu"&&r.date>=t],menneet:["Menneet",r=>r.date<t&&r.status!=="peruttu"],peruttu:["Perutut",r=>r.status==="peruttu"],kaikki:["Kaikki",()=>true]};
+  m.append(mk("div",{class:"cats"},Object.entries(F).map(([k,[l,f]])=>mk("button",{class:k===rf?"on":"",text:l+" ("+RES.filter(f).length+")",onclick:()=>{rf=k;render()}})),
+    mk("button",{class:"o",text:addOpen?"× Sulje":"+ Lisää varaus",onclick:()=>{addOpen=!addOpen;render()}})));
+  if(addOpen)m.append(addForm());
+  let arr=RES.filter(F[rf][1]);if(rf==="menneet"||rf==="peruttu"||rf==="kaikki")arr=arr.slice().reverse();
+  const c=mk("div",{class:"card"});if(!arr.length)c.append(mk("p",{class:"muted",text:"Ei varauksia."}));
+  let last="";arr.forEach(r=>{if(r.date!==last){last=r.date;c.append(mk("div",{class:"dhead",text:(r.date===t?"Tänään · ":"")+wd(r.date)+" "+fd(r.date)}))}c.append(resRow(r))});
+  m.append(c,act("Kirjaudu ulos varausjärjestelmästä",async()=>{await SB.auth.signOut();RES=SUB=null;render()},"o"))}
+function addForm(){const f=mk("form",{class:"card"}),v={};const fl=(k,l,a)=>{v[k]=mk("input",a);return lab(l,v[k])};
+  const g=mk("select");for(let i=1;i<=30;i++)g.add(new Option(i+" hlö",i));g.value=2;
+  f.append(mk("h3",{text:"Lisää varaus (esim. puhelimessa sovittu)"}),mk("div",{class:"g2"},fl("name","Nimi",{required:true}),fl("phone","Puhelin",{type:"tel",required:true})),
+    mk("div",{class:"g3"},fl("date","Päivä",{type:"date",required:true,value:hToday()}),fl("time","Aika",{type:"time",required:true,step:900}),lab("Henkilöitä",g)),
+    mk("div",{class:"g2"},fl("email","Sähköposti (valinnainen)",{type:"email"}),fl("note","Lisätieto (valinnainen)",{})),mk("button",{text:"Tallenna vahvistettuna varauksena"}));
+  f.onsubmit=async e=>{e.preventDefault();const row={name:v.name.value.trim(),phone:v.phone.value.trim(),date:v.date.value,time:v.time.value,guests:+g.value,email:v.email.value.trim().toLowerCase()||null,note:v.note.value.trim()||null,status:"vahvistettu",source:"puhelin",handled_at:new Date().toISOString()};
+    const {error}=await SB.from("reservations").insert(row);if(error)return toast(error.message,true);addOpen=false;rf="tulevat";toast("Varaus lisätty");await sbLoad()};return f}
+function customers(){const M=new Map(),key=(e,p)=>(e||"").toLowerCase()||String(p||"").replace(/\D/g,"").replace(/^358/,"0");
+  (RES||[]).forEach(r=>{const k=key(r.email,r.phone);let c=M.get(k);if(!c){c={name:r.name,email:r.email||"",phone:r.phone,res:[],news:false};M.set(k,c)}c.res.push(r);if(!c.phone)c.phone=r.phone;c.name=r.name});
+  (SUB||[]).forEach(s=>{const k=s.email.toLowerCase();let c=M.get(k);if(!c){c={name:s.name||"",email:s.email,phone:"",res:[],news:false};M.set(k,c)}c.news=true;c.subId=s.id;c.subAt=s.created_at});
+  const arr=[...M.values()];arr.forEach(c=>{c.res.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));c.last=c.res[0]?.date||""});
+  return arr.sort((a,b)=>(b.last||"").localeCompare(a.last||"")||(a.name||a.email).localeCompare(b.name||b.email))}
+function vCust(m){m.append(mk("h2",{text:"Asiakkaat"}));if(sbGate(m))return;
+  const all=customers(),q=mk("input",{type:"search",placeholder:"Hae nimellä, sähköpostilla tai puhelimella…",value:cq});
+  const box=mk("div",{class:"card"});
+  const draw=()=>{const v=cq.toLowerCase(),arr=all.filter(c=>(!cNews||c.news)&&(!v||[c.name,c.email,c.phone].join(" ").toLowerCase().includes(v)));box.textContent="";
+    box.append(mk("p",{class:"muted",text:arr.length+" asiakasta"}));
+    arr.forEach(c=>{const d=mk("details",{class:"cust"});const n=c.res.filter(r=>r.status!=="peruttu").length;
+      d.append(mk("summary",null,mk("div",null,mk("b",{text:c.name||c.email}),c.news?mk("span",{class:"pill nl",text:"uutiskirje"}):null,
+        mk("small",{text:[c.phone,c.email].filter(Boolean).join(" · ")})),mk("small",{class:"cr",text:n?n+" varaus"+(n>1?"ta":"")+(c.last?" · viim. "+fd(c.last):""):"ei varauksia"})));
+      const inner=mk("div",{class:"cin"});
+      inner.append(mk("div",{class:"rbtn"},c.phone?mk("a",{class:"btnl",href:"tel:"+c.phone,text:"Soita"}):null,c.email?mk("a",{class:"btnl",href:"mailto:"+c.email,text:"Sähköposti"}):null,
+        c.news?act("Poista uutiskirjeestä",async()=>{if(!confirm("Poistetaanko "+c.email+" uutiskirjeen tilaajista?"))return;const {error}=await SB.from("subscribers").delete().eq("id",c.subId);if(error)throw error;await sbLoad();render()},"x del"):null));
+      c.res.forEach(r=>inner.append(mk("div",{class:"row"},mk("small",{text:`${wd(r.date)} ${fd(r.date)} klo ${tm(r.time)} · ${r.guests} hlö`+(r.note?" · “"+r.note+"”":"")}),pill(r.status))));
+      if(c.news)inner.append(mk("small",{class:"muted",text:"Tilasi uutiskirjeen "+fd(String(c.subAt).slice(0,10))}));
+      d.append(inner);box.append(d)})};
+  q.oninput=()=>{cq=q.value;draw()};
+  const nb=mk("input",{type:"checkbox"});nb.checked=cNews;nb.onchange=()=>{cNews=nb.checked;draw()};
+  m.append(mk("div",{class:"g2",style:"align-items:center"},q,mk("label",{class:"ck",style:"margin:0"},nb,"Näytä vain uutiskirjeen tilaajat")),
+    mk("div",{style:"margin:10px 0"},act("Lataa asiakkaat (CSV)",()=>{const s=x=>'"'+String(x??"").replace(/"/g,'""')+'"';
+    const rows=all.filter(c=>!cNews||c.news).map(c=>[s(c.name),s(c.email),s(c.phone),c.res.length,s(c.last?fd(c.last):""),c.news?"kyllä":"ei"].join(","));
+    const u=URL.createObjectURL(new Blob(["﻿nimi,sahkoposti,puhelin,varauksia,viimeisin,uutiskirje\n"+rows.join("\n")],{type:"text/csv"}));mk("a",{href:u,download:"asiakkaat.csv"}).click()},"o")),box);draw()}
 const TPL={"Viikon tarjous":["Viikon tarjous Malakaissa","Hei {nimi}!\n\nTämän viikon tarjous: [kirjoita tarjous ja hinta]\nVoimassa: [pvm–pvm]\n\nTilaa Woltista tai tule paikan päälle: Tampereentie 414, Lempäälä.\n\nMalakai Ravintola"],
 "Pizzabuffet-muistutus":["Pizzabuffet odottaa","Hei {nimi}!\n\nPizzabuffet arkisin klo 10.30–15.00 hintaan 13,70 € ja viikonloppuisin klo 13.00–18.00 hintaan 14,90 €.\n\nNähdään Malakaissa!\nMalakai Ravintola"],
 "Poikkeusaukiolot":["Poikkeavat aukioloajat","Hei {nimi}!\n\nHuomioithan poikkeavat aukioloajat: [pvm] ravintola on avoinna [kellonajat].\n\nMalakai Ravintola"],
 "Kiitos käynnistä":["Kiitos käynnistä!","Hei {nimi}!\n\nKiitos kun vierailit Malakai Ravintolassa. Jos viihdyit, jätäthän meille arvostelun Googleen:\nhttps://www.google.com/search?q=Malakai+Ravintola+Lemp%C3%A4%C3%A4l%C3%A4\n\nTervetuloa uudelleen!\nMalakai Ravintola"],
 "Oma viesti":["",""]};
-function vMsg(m){m.append(mk("h2",{text:"Viestit"}));if(sbGate(m))return;
-  const sl=mk("select"),sub=mk("input"),body=mk("textarea",{style:"min-height:180px"}),to=mk("input",{type:"tel",placeholder:"esim. 040 123 4567"});Object.keys(TPL).forEach(k=>sl.add(new Option(k,k)));
+function vMsg(m){m.append(mk("h2",{text:"Uutiskirje"}));if(sbGate(m))return;
+  const sl=mk("select"),sub=mk("input"),body=mk("textarea",{style:"min-height:200px"});Object.keys(TPL).forEach(k=>sl.add(new Option(k,k)));
   const ld=()=>{sub.value=TPL[sl.value][0];body.value=TPL[sl.value][1]};sl.onchange=ld;ld();
-  m.append(mk("div",{class:"card"},lab("Viestipohja",sl),lab("Otsikko (sähköposti)",sub),lab("Viesti ({nimi} korvautuu tilaajan nimellä)",body),
-    act(`Lähetä uutiskirje (${SUB.length} tilaajaa)`,async()=>{if(!sub.value||!body.value)return toast("Täytä otsikko ja viesti",true);if(!confirm(`Lähetetäänkö viesti ${SUB.length} tilaajalle?`))return;const r=await api("newsletter",{subject:sub.value,body:body.value});toast(`Lähetetty ${r.sent} tilaajalle`)})),
-    mk("div",{class:"card"},mk("h3",{text:"Yksittäinen tekstiviesti"}),lab("Puhelinnumero",to),act("Lähetä tekstiviesti",async()=>{if(!to.value)return toast("Anna puhelinnumero",true);await api("sms",{to:to.value,text:body.value.replace(/\{nimi\}/g,"").trim()});toast("Tekstiviesti lähetetty")},"o")))}
+  m.append(mk("div",{class:"card"},lab("Viestipohja",sl),lab("Otsikko",sub),lab("Viesti ({nimi} korvautuu tilaajan nimellä)",body),
+    act(`Lähetä ${SUB.length} tilaajalle`,async()=>{if(!sub.value||!body.value)return toast("Täytä otsikko ja viesti",true);if(!confirm(`Lähetetäänkö viesti ${SUB.length} tilaajalle?`))return;const r=await api("newsletter",{subject:sub.value,body:body.value});toast(`Lähetetty ${r.sent} tilaajalle`)})))}
+function resCard(){const c=mk("div",{class:"card"},mk("h3",{text:"Varausviestien valmiit tekstit"}));
+  if(!C.url||!SB||RES===null){c.append(mk("p",{class:"muted",text:"Kirjaudu ensin varausjärjestelmään (Yleiskatsaus-välilehti), niin voit muokata tekstejä."}));return c}
+  c.append(mk("p",{class:"muted",text:"Nämä tekstit tulevat valmiiksi, kun hyväksyt tai perut varauksen. {nimi}, {pvm}, {klo} ja {hlo} täyttyvät automaattisesti."}));
+  tplList().forEach(t=>{const s=mk("input",{value:t.subject}),b=mk("textarea",{style:"min-height:150px"});b.value=t.body;
+    c.append(mk("details",{class:"cust"},mk("summary",null,mk("b",{text:t.title})),mk("div",{class:"cin"},lab("Otsikko",s),lab("Viesti",b),
+      act("Tallenna teksti",async()=>{const {error}=await SB.from("templates").upsert({key:t.key,title:t.title,subject:s.value,body:b.value,updated_at:new Date().toISOString()});if(error)throw error;TPLS[t.key]={subject:s.value,body:b.value};toast("Teksti tallennettu")}),
+      act("Palauta oletus",async()=>{if(!confirm("Palautetaanko alkuperäinen teksti?"))return;await SB.from("templates").delete().eq("key",t.key);delete TPLS[t.key];render()},"o"))))});
+  return c}
 
 // ---------- Käynnistys
 $("#saveBtn").onclick=push;

@@ -76,7 +76,7 @@
 <label class="ck"><input type="checkbox" name="news"><span>Haluan saada tarjouksia ja etuja sähköpostiin (voit perua milloin tahansa).</span></label>
 <input name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
 <button class="btn y" type="submit" data-en="Confirm reservation">Vahvista varaus</button></form>
-<div class="done" id="resDone" hidden><p id="resTxt" style="margin-top:0"></p><div class="btns"><a class="btn y" id="resSms">Tekstiviestillä</a><a class="btn" id="resWa" target="_blank" rel="noopener">WhatsApp</a><a class="btn" id="resMail">Sähköpostilla</a></div><p style="color:var(--g);font-size:.88rem;margin-bottom:0">Varaus on tehty vasta, kun viesti on lähetetty. Saat vahvistuksen ravintolalta.</p></div></div></div></section>
+<p class="ferr" id="resErr" role="alert" hidden></p><div class="done" id="resDone" hidden role="status"><h3 style="margin:0 0 8px;color:var(--y)">Varauspyyntö vastaanotettu ✓</h3><p id="resTxt" style="margin:0"></p></div></div></div></section>
 
 <section class="alt" id="yhteys"><div class="wrap two"><div><span class="kick">Löydä meidät</span><h2 data-en="Contact <em>us</em>">Ota <em>yhteyttä</em></h2>
 <img class="front" src="media/hero.jpg" alt="Malakai Ravintola edestä" loading="lazy"><p style="font-size:1.2rem;font-weight:700;color:var(--y);margin:0 0 6px">Tampereentie 414, 33880 Lempäälä</p><p><a href="tel:+358453537000">045 353 7000</a><br><a href="mailto:malakairavintola@gmail.com">malakairavintola@gmail.com</a></p></div>
@@ -84,7 +84,7 @@
 
 <section id="edut"><div class="wrap two"><div><span class="kick" data-en="Stay in the loop">Pysy mukana</span><h2 data-en="Get the <em>perks</em> first">Saa edut <em>ensimmäisenä</em></h2><p class="lead">Tarjouksia, uusia annoksia ja tapahtumia suoraan sähköpostiisi. Voit perua tilauksen milloin tahansa.</p></div><div><form id="nlForm"><label><span data-en="Email">Sähköposti</span><input name="e" type="email" required autocomplete="email"></label><label><span data-en="Name (optional)">Nimi (valinnainen)</span><input name="n" autocomplete="name"></label>
 <input name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true"><button class="btn r" type="submit" data-en="Subscribe">Tilaa edut</button></form>
-<div class="done" id="nlDone" hidden><p style="margin-top:0">Viimeistele tilaus lähettämällä viesti.</p><div class="btns"><a class="btn y" id="nlSms">Tekstiviestillä</a><a class="btn" id="nlWa" target="_blank" rel="noopener">WhatsApp</a><a class="btn" id="nlMail">Sähköpostilla</a></div></div></div></div></section>
+<div class="done" id="nlDone" hidden role="status"></div></div></div></section>
 
 <div class="pop" id="pop" role="dialog" aria-modal="true" aria-label="Isänpäivä 8.11.2026, pizzabuffet" hidden><div class="pc2"><button class="x" id="popX" aria-label="Sulje">×</button><img id="popImg" src="media/isanpaiva.jpg" alt="Isänpäivä 8.11.2026: pizzabuffet klo 13–18, 12,90 € (norm. 14,90 €). Varaa pöytäsi ajoissa, 045 353 7000, Tampereentie 414, Lempäälä" width="1080" height="1350"><div class="pb"><a class="btn y" href="tel:+358453537000">Soita 045 353 7000</a><a class="btn r" href="#varaa" id="popB">Varaa verkossa</a></div></div></div>
 </main><footer><div class="wrap ft2">
