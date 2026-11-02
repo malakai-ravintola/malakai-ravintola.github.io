@@ -4,7 +4,7 @@ window.SITE=/*BEGIN*/{
  "daily": {
   "ma": {
    "name": "Tropicana",
-   "img": "media/pizza-ma.png"
+   "img": "media/ladatut/mvyxtsr3-img_7920.jpeg"
   },
   "ti": {
    "name": "Kebab Pizza",
