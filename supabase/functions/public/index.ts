@@ -32,11 +32,40 @@ async function mail(to: string, subject: string, text: string, replyTo?: string)
 }
 const s = (x: unknown, n = 200) => String(x ?? "").trim().slice(0, n);
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Helsinki" }).format(new Date());
+// Kävijälaskuri: ei evästeitä, IP-osoitetta ei tallenneta (vain päivittäin vaihtuva tiiviste)
+const SALT = Deno.env.get("VISIT_SALT") ?? "malakai-kavijat";
+async function hash(x: string) {
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(x));
+  return Array.from(new Uint8Array(b)).slice(0, 12).map((v) => v.toString(16).padStart(2, "0")).join("");
+}
+function source(ref: string) {
+  if (!ref) return "suora";
+  let h = ""; try { h = new URL(ref).hostname.replace(/^www\./, ""); } catch { return "suora"; }
+  if (/malakairavintola\.fi$|github\.io$/.test(h)) return "sivusto";
+  if (/google\./.test(h)) return "Google";
+  if (/instagram\./.test(h)) return "Instagram";
+  if (/facebook\.|fb\.|messenger\./.test(h)) return "Facebook";
+  if (/tiktok\./.test(h)) return "TikTok";
+  if (/bing\.|duckduckgo\.|yahoo\.|ecosia\./.test(h)) return "Muu hakukone";
+  return h.slice(0, 60);
+}
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
     const b = await req.json();
     if (b.website) return j({ ok: true }); // roskapostiansa
+    if (b.action === "hit") {
+      const ua = req.headers.get("user-agent") ?? "";
+      if (!ua || /bot|crawl|spider|slurp|headless|preview|lighthouse|monitor/i.test(ua)) return j({ ok: true });
+      const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
+      const path = s(b.p, 80).replace(/\/index\.html$/, "/").replace(/\.html$/, "") || "/";
+      if (/admin|tulostus/.test(path)) return j({ ok: true });
+      const day = today();
+      await db.from("page_views").insert({ day, path, source: source(s(b.r, 300)),
+        device: /mobile|android|iphone|ipad/i.test(ua) ? "puhelin" : "tietokone",
+        visitor: await hash(`${ip}|${ua}|${day}|${SALT}`) });
+      return j({ ok: true });
+    }
     if (b.action === "reserve") {
       const r = { name: s(b.n, 80), email: s(b.e, 120).toLowerCase(), phone: s(b.p, 30), guests: Math.min(Math.max(+b.g || 2, 1), 30),
         date: s(b.d, 10), time: s(b.t, 5), note: s(b.m, 300), source: "verkko" };

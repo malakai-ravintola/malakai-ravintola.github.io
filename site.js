@@ -114,6 +114,9 @@ const post=async body=>{if(!API)throw new Error("Ei yhteyttä");let r,last;
     if(r.status!==404){FN=n;break}}
   if(!r)throw last||new Error("Failed to fetch");
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error((j.error||j.message||j.msg||"Virhe")+" · koodi "+r.status);return j};
+// Kävijälaskuri (ei evästeitä)
+if(API&&/malakairavintola\.fi$/.test(location.hostname)&&navigator.doNotTrack!=="1"&&!/admin|tulostus/.test(location.pathname))
+  setTimeout(()=>post({action:"hit",p:location.pathname,r:document.referrer}).catch(()=>{}),800);
 const busy=(f,on,txt)=>{const b=f.querySelector("button[type=submit]");if(!b.dataset.t)b.dataset.t=b.innerHTML;b.disabled=on;b.innerHTML=on?txt:b.dataset.t};
 const rf=$("#resForm");
 if(rf){const g=rf.g;for(let i=1;i<=8;i++)g.add(new Option(i+(i==1?" vieras":" vierasta"),i));g.value=2;

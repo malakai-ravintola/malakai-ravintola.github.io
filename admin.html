@@ -26,6 +26,7 @@ button.x:hover{color:var(--w);border-color:#666}button.del:hover{color:var(--bad
 button:disabled{opacity:.45;cursor:not-allowed}
 .card{background:var(--k2);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0}
 .muted{color:var(--g);font-size:.88rem}
+.vrow{display:grid;grid-template-columns:1fr 90px auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:.9rem}.vrow i{display:block;height:6px;background:#2a2a2a;border-radius:3px;overflow:hidden}.vrow em{display:block;height:100%;background:var(--y)}.vrow b{font-weight:600;color:var(--g);font-size:.82rem;white-space:nowrap}.tile small{font-size:.75rem}
 .ovcols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ovcols>.card{margin:0}@media(max-width:760px){.ovcols{grid-template-columns:1fr}}
 .ovg{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}.ovimg{width:96px;height:96px;object-fit:contain}
 .kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line)}.kv span{color:var(--g)}.kv b{text-align:right}
@@ -101,8 +102,8 @@ a{color:var(--y)}
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1793574477"></script>
-<script src="config.js?v=1793574477"></script>
+<script src="data.js?v=1793692669"></script>
+<script src="config.js?v=1793692669"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -382,7 +383,26 @@ function vOver(m){m.append(mk("h2",{text:"Yleiskatsaus"}));
     const nx=RES.filter(r=>r.created_at).slice().sort((a,b)=>b.created_at.localeCompare(a.created_at)).slice(0,5);
     const c3=mk("div",{class:"card"},mk("h3",{text:"Viimeksi tulleet"}));if(!nx.length)c3.append(mk("p",{class:"muted",text:"Ei vielä varauksia."}));
     nx.forEach(r=>c3.append(mk("div",{class:"row"},mk("div",null,mk("b",{text:r.name}),mk("small",{text:`${wd(r.date)} ${fd(r.date)} klo ${tm(r.time)} · ${r.guests} hlö · tullut ${new Date(r.created_at).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}`})),pill(r.status))));
-    resWrap.append(c1,c2,c3)}
+    resWrap.append(c1,c2,c3);
+    // --- Kävijätilastot
+    const vw=mk("div");resWrap.prepend(vw);vw.append(mk("h3",{class:"sec",text:"Kävijät"}),mk("p",{class:"muted",text:"Ladataan kävijätilastoja…"}));
+    SB.rpc("visit_stats").then(({data:V,error})=>{vw.textContent="";vw.append(mk("h3",{class:"sec",text:"Kävijät"}));
+      if(error||!V){vw.append(mk("div",{class:"card warn"},mk("b",{text:"Kävijätilastot eivät ole vielä käytössä. "}),"Aja tiedosto supabase/kavijat.sql Supabasen SQL Editorissa ja päivitä public-funktio."));return}
+      const P=V.periods||{},g=k=>P[k]||{views:0,visits:0},n=x=>Number(x||0).toLocaleString("fi-FI");
+      const T=(k,l)=>mk("div",{class:"tile"},mk("b",{text:n(g(k).visits)}),mk("span",{text:l}),mk("small",{class:"muted",text:n(g(k).views)+" sivunäyttöä"}));
+      vw.append(mk("div",{class:"tiles"},T("d1","kävijää tänään"),T("d7","kävijää 7 pv"),T("d30","kävijää 30 pv"),T("d365","kävijää vuodessa")));
+      const chart=(title,rows,lab)=>{const mx=Math.max(1,...rows.map(r=>r.u));const b=mk("div",{class:"bars",style:`grid-template-columns:repeat(${rows.length},1fr);gap:${rows.length>15?3:8}px`});
+        rows.forEach((r,i)=>b.append(mk("div",{class:"bar"+(i===rows.length-1?" now":""),title:lab(r)+": "+r.u+" kävijää, "+r.v+" sivunäyttöä"},mk("small",{text:rows.length>15?"\u00a0":(r.u||"\u00a0")}),mk("i",{style:"height:"+Math.max(3,r.u/mx*100)+"%"}),mk("span",{text:rows.length>15?(i%5===0||i===rows.length-1?lab(r):"\u00a0"):lab(r)}))));
+        return mk("div",{class:"card"},mk("h3",{text:title}),b)};
+      const MN=["tammi","helmi","maalis","huhti","touko","kesä","heinä","elo","syys","loka","marras","joulu"];
+      vw.append(chart("Kävijät päivittäin, 30 päivää",V.daily||[],r=>fd(r.d).slice(0,5)),chart("Kävijät kuukausittain, 12 kuukautta",V.monthly||[],r=>MN[+r.m.slice(5)-1]));
+      const PN={"/":"Etusivu","/ruokalista":"Ruokalista","/lounas":"Lounas","/pikkujoulut":"Pikkujoulut","/lahjakortit":"Lahjakortit","/pizza-lempaala":"Pizza Lempäälä","/kebab-lempaala":"Kebab Lempäälä","/kayttoehdot":"Käyttöehdot","/tietosuoja":"Tietosuoja"};
+      const list=(title,rows,f)=>{const tot=rows.reduce((a,r)=>a+r.n,0)||1;const c=mk("div",{class:"card",style:"margin:0"},mk("h3",{text:title}));
+        if(!rows.length)c.append(mk("p",{class:"muted",text:"Ei vielä tietoja."}));
+        rows.forEach(r=>c.append(mk("div",{class:"vrow"},mk("span",{text:f(r.k)}),mk("i",null,mk("em",{style:"width:"+Math.round(r.n/tot*100)+"%"})),mk("b",{text:n(r.n)+" · "+Math.round(r.n/tot*100)+" %"}))));return c};
+      vw.append(mk("div",{class:"ovcols",style:"margin:14px 0"},list("Suosituimmat sivut (30 pv)",V.pages||[],k=>PN[k]||k),list("Mistä kävijät tulevat (30 pv)",V.sources||[],k=>k==="suora"?"Suoraan / sovellus":k)),
+        mk("div",{class:"ovcols",style:"margin:14px 0"},list("Laitteet (30 pv)",V.devices||[],k=>k==="puhelin"?"Puhelin":"Tietokone"),mk("div",{class:"card",style:"margin:0"},mk("h3",{text:"Hyvä tietää"}),mk("p",{class:"muted",text:"Kävijä = eri laite päivässä. Sama ihminen lasketaan uudelleen eri päivinä, joten 7 pv, 30 pv ja vuoden luvut ovat käyntejä. Tilastot eivät käytä evästeitä, ja botit sekä admin-sivu jätetään pois."}))))
+    })}
   const todo=mk("div",{class:"card"+(warns.length?" warn":"")},mk("h3",{text:"Muistutukset ("+warns.length+")"}));
   if(!warns.length)todo.append(mk("p",{class:"muted",text:"Kaikki kunnossa, ei muistutuksia."}));else{const ul=mk("ul",{class:"todo"});warns.forEach(x=>ul.append(mk("li",{text:x})));todo.append(ul)}
   m.append(todo,mk("div",{class:"ovcols"},today,live),resWrap,mk("div",{class:"ovcols"},menu,sys),links,mk("p",{class:"muted",text:"Varaustiedot päivittyvät automaattisesti minuutin välein."}))}
