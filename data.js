@@ -8,7 +8,7 @@ window.SITE=/*BEGIN*/{
   },
   "ti": {
    "name": "Kebab Pizza",
-   "img": "media/pizza-ti.webp?v=2"
+   "img": "media/pizza-ti.webp?v=3"
   },
   "ke": {
    "name": "Mexicana",
