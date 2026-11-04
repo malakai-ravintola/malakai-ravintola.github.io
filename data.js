@@ -12,7 +12,7 @@ window.SITE=/*BEGIN*/{
   },
   "ke": {
    "name": "Mexicana",
-   "img": "media/pizza-ke.png"
+   "img": "media/pizza-ke.webp?v=2"
   },
   "to": {
    "name": "Americano",
