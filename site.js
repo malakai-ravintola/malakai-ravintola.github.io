@@ -119,7 +119,7 @@ if(API&&/malakairavintola\.fi$/.test(location.hostname)&&navigator.doNotTrack!==
   setTimeout(()=>post({action:"hit",p:location.pathname,r:document.referrer}).catch(()=>{}),800);
 const busy=(f,on,txt)=>{const b=f.querySelector("button[type=submit]");if(!b.dataset.t)b.dataset.t=b.innerHTML;b.disabled=on;b.innerHTML=on?txt:b.dataset.t};
 const rf=$("#resForm");
-if(rf){const g=rf.g;for(let i=1;i<=8;i++)g.add(new Option(i+(i==1?" vieras":" vierasta"),i));g.value=2;
+if(rf){const g=rf.g;for(let i=1;i<=20;i++)g.add(new Option(i+(i==1?" vieras":" vierasta"),i));g.value=2;
   rf.d.min=now.date;
   const slots=()=>{const t=rf.t;t.textContent="";t.add(new Option("Valitse aika",""));if(!rf.d.value)return;
     const dow=new Date(rf.d.value+"T12:00:00").getDay();if(!H[dow]){t.options[0].text="Suljettu tänä päivänä";return}const[a,b]=H[dow],min=rf.d.value===now.date?now.t+.5:0;
