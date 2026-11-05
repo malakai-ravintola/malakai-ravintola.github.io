@@ -16,7 +16,7 @@ window.SITE=/*BEGIN*/{
   },
   "to": {
    "name": "Americano",
-   "img": "media/pizza-to.png"
+   "img": "media/pizza-to.webp?v=1"
   },
   "pe": {
    "name": "Mamma Mia",
