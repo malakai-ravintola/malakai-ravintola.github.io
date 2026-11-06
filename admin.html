@@ -101,6 +101,31 @@ button.o,button.x{background:transparent}button.o:hover{background:transparent;b
 .card{border-radius:14px}.tile{border-top:3px solid var(--y)}
 .bar.now i{background:var(--y)}.bar i{background:#4a4a4a}
 a{color:var(--y)}
+
+/* Omavalvonta */
+.ovhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-start}.ovhead h3{margin:0}.ovhead p{margin:4px 0 0}
+.ovst{font-size:.85rem;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--g)}.ovst.ok{color:var(--ok);border-color:var(--ok)}
+.ovcard input{font-size:1.05rem;min-height:46px}
+.ovg{margin:18px 0 6px;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--y)}
+.ovgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}@media(max-width:760px){.ovgrid{grid-template-columns:1fr 1fr}}
+input.ovbad{border-color:var(--bad)!important;color:var(--bad);background:rgba(255,107,107,.08)}
+.ovrow{display:grid;gap:8px;width:100%;text-align:left;background:var(--k2);color:var(--w);border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0 0;font:inherit;cursor:pointer}.ovrow:hover{border-color:var(--y)}
+.ovrt{display:flex;justify-content:space-between;gap:10px}.ovrt small{color:var(--g)}
+.ovchips{display:flex;flex-wrap:wrap;gap:6px}.ovchip{font-size:.82rem;font-weight:600;padding:5px 9px;border-radius:7px;background:var(--k3);border:1px solid var(--line)}
+.ovchip.ok{color:var(--ok);border-color:transparent;background:rgba(123,216,143,.1)}.ovchip.bad{color:var(--bad);border-color:transparent;background:rgba(255,107,107,.12)}
+#ovPrint{display:none}
+@media print{:root{color-scheme:light}html{background:#fff!important}body.ovprinting>*:not(#ovPrint){display:none!important}body.ovprinting{padding:0!important;background:#fff!important}
+ body.ovprinting #ovPrint{display:block;color:#1A1410;font:10pt Inter,Arial,sans-serif}
+ #ovPrint .ovph{display:flex;gap:14px;align-items:center;border-bottom:2px solid #C9971F;padding-bottom:8px;margin-bottom:10px}
+ #ovPrint .ovph img{width:20mm;height:20mm;border-radius:50%;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #ovPrint h1{font:700 17pt "Playfair Display",Georgia,serif;margin:0 0 3px;color:#0E0B09}#ovPrint .ovph p{margin:1px 0;font-size:9pt;color:#5A4E42}
+ #ovPrint table{width:100%;border-collapse:collapse;table-layout:fixed}
+ #ovPrint th{background:#0E0B09!important;color:#EFE5D3!important;text-align:left;font-size:8.5pt;padding:5px;border:1px solid #CEC1AC;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #ovPrint td{padding:5px;border:1px solid #CEC1AC;color:#1A1410;word-wrap:break-word}#ovPrint td.d{font-weight:700;width:22mm}
+ #ovPrint th:first-child{width:22mm}#ovPrint th:last-child{width:28%}#ovPrint td.bad{color:#8E1B1B;font-weight:700}
+ #ovPrint tr:nth-child(even) td{background:#F8F3EA;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #ovPrint .blank td{height:8mm}#ovPrint thead{display:table-header-group}#ovPrint tr{break-inside:avoid}
+ #ovPrint .ovpf{margin-top:8px;font-size:8pt;color:#786C60}}
 </style></head><body>
 <header><div class="w"><h1 class="lg"><a href="index.html" target="_blank" rel="noopener"><b>Malakai</b><small>RAVINTOLA</small></a><span>Ylläpito</span></h1><a href="index.html" target="_blank" rel="noopener">Avaa sivusto ↗</a>
 <nav class="tabs" id="tabs"></nav></div></header>
@@ -153,12 +178,12 @@ function imgPicker(cur,set){const prev=mk("img",{class:"prev",src:cur,alt:""}),i
 
 // ---------- Näkymät
 let tab="Yleiskatsaus",cat=null;
-const TABS=["Yleiskatsaus","Varaukset","Asiakkaat","Uutiskirje","Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet","Asetukset"];
+const TABS=["Yleiskatsaus","Varaukset","Asiakkaat","Uutiskirje","Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet","Omavalvonta","Asetukset"];
 const CONTENT=new Set(TABS.slice(4,8));
 function render(){const t=$("#tabs");t.textContent="";TABS.forEach(k=>{const n=k==="Varaukset"&&RES?RES.filter(r=>r.status==="uusi"&&r.date>=hToday()).length:0;t.append(mk("button",{class:k===tab?"on":"",onclick:()=>{tab=k;render()}},k,n?mk("span",{class:"badge",text:String(n)}):null))});if(!TABS.includes(tab))tab="Yleiskatsaus";
   $("#saveBar").hidden=!CONTENT.has(tab);const m=$("#main");m.textContent="";
   if(CONTENT.has(tab)&&!TOKEN)m.append(mk("div",{class:"card"},mk("b",{text:"Muokkaus vaatii GitHub-avaimen. "}),"Voit katsella sisältöä, mutta tallentaminen ei onnistu ennen kuin lisäät avaimen ",mk("a",{href:"#",text:"Asetuksissa",onclick:e=>{e.preventDefault();tab="Asetukset";render()}}),"."));
-  ({"Yleiskatsaus":vOver,"Varaukset":vRes,"Asiakkaat":vCust,"Uutiskirje":vMsg,"Ruokalista":vMenu,"Päivän pizza":vDaily,"Ilmoitukset":vAnn,"Aukiolo & buffet":vHours,"Asetukset":vSet})[tab](m)}
+  ({"Yleiskatsaus":vOver,"Varaukset":vRes,"Asiakkaat":vCust,"Uutiskirje":vMsg,"Ruokalista":vMenu,"Päivän pizza":vDaily,"Ilmoitukset":vAnn,"Aukiolo & buffet":vHours,"Omavalvonta":vOmav,"Asetukset":vSet})[tab](m)}
 const inp=(val,on,attrs={})=>{const e=mk("input",{value:val??"",...attrs});e.oninput=()=>{on(e.value);mark()};return e};
 const area=(val,on,attrs={})=>{const e=mk("textarea",attrs);e.value=val??"";e.oninput=()=>{on(e.value);mark()};return e};
 const chk=(val,on,txt)=>{const e=mk("input",{type:"checkbox"});e.checked=!!val;e.onchange=()=>{on(e.checked);mark()};return mk("label",{class:"ck"},e,txt)};
@@ -503,6 +528,88 @@ function resCard(){const c=mk("div",{class:"card"},mk("h3",{text:"Varausviestien
       act("Tallenna teksti",async()=>{const {error}=await SB.from("templates").upsert({key:t.key,title:t.title,subject:s.value,body:b.value,updated_at:new Date().toISOString()});if(error)throw error;TPLS[t.key]={subject:s.value,body:b.value};toast("Teksti tallennettu")}),
       act("Palauta oletus",async()=>{if(!confirm("Palautetaanko alkuperäinen teksti?"))return;await SB.from("templates").delete().eq("key",t.key);delete TPLS[t.key];render()},"o"))))});
   return c}
+
+// ---------- Omavalvonta
+const OVF=[
+ {key:"kylma",name:"Kylmälaitteet",target:"Jääkaapit ja vetolaatikot +6 °C tai kylmempi. Pakastimet −18 °C tai kylmempi.",byDate:true,groups:[
+  ["Jääkaapit ja vetolaatikot",[{id:"jk1",l:"Jääkaappi 1",p:"Jääkaappi 1",max:6},{id:"jk2",l:"Jääkaappi 2",p:"Jääkaappi 2",max:6},{id:"vl1",l:"Vetolaatikko 1",p:"Vetolaatikko 1",max:6},{id:"vl2",l:"Vetolaatikko 2",p:"Vetolaatikko 2",max:6}]],
+  ["Pakastimet",[{id:"pp1",l:"Pystypakastin 1",p:"Pysty-pakastin 1",max:-18},{id:"ap1",l:"Arkkupakastin 1",p:"Arkku-pakastin 1",max:-18},{id:"ap2",l:"Arkkupakastin 2",p:"Arkku-pakastin 2",max:-18},{id:"ap3",l:"Arkkupakastin 3",p:"Arkku-pakastin 3",max:-18}]]]},
+ {key:"pesu",name:"Astianpesukone",target:"Pesuvesi 60–65 °C. Huuhteluvesi 80–85 °C.",byDate:true,groups:[
+  ["Lämpötilat",[{id:"pesu",l:"Pesuvesi",p:"Pesuvesi",min:60},{id:"huuhtelu",l:"Huuhteluvesi",p:"Huuhteluvesi",min:80}]]]},
+ {key:"ruoka",name:"Kebab ja riisi",target:"Kuumana tarjoiltava ruoka vähintään +60 °C, enintään 4 tuntia.",byDate:true,groups:[
+  ["Kebab-liha",[{id:"kebabKlo",l:"Kellonaika",p:"Kebab klo",t:1,ph:"11.00"},{id:"kebab",l:"Lämpötila",p:"Kebab",min:60}]],
+  ["Riisi",[{id:"riisiKlo",l:"Kellonaika",p:"Riisi klo",t:1,ph:"11.30"},{id:"riisi",l:"Lämpötila",p:"Riisi",min:60}]]]},
+ {key:"buffet",name:"Buffet",target:"Kuuma ruoka vähintään +60 °C, kylmä enintään +12 °C, enintään 4 tuntia. Kirjaa jokainen ruoka erikseen.",byDate:false,groups:[
+  ["Mittaus",[{id:"ruoka",l:"Ruoka",p:"Ruoka",t:1,ph:"esim. kana"},{id:"klo",l:"Kellonaika",p:"Klo",t:1,ph:"10.30"},{id:"temp",l:"Lämpötila",p:"Lämpötila",min:60}]]]}];
+OVF.forEach(f=>f.fields=f.groups.flatMap(([g,fs])=>fs.map(x=>({...x,g}))));
+const OVC=[{id:"kuittaus",l:"Kuittaus (nimikirjaimet)",p:"Kuittaus",t:1,ph:"esim. ZH"},{id:"huom",l:"Poikkeamat ja toimenpiteet",p:"Poikkeamat ja toimenpiteet",t:1,ph:"Kirjaa, jos lukema on rajan väärällä puolella"}];
+let OV=null,ovk="kylma",ovEdit=null,ovDraft=null,ovDel=false;
+const ovIso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const ovFi=s=>{if(!s)return"";const[y,m,d]=s.split("-");return(+d)+"."+(+m)+"."+y};
+const ovNum=v=>{const s=String(v??"").replace(",",".").replace("−","-").replace(/[^\d.+-]/g,"");if(!/\d/.test(s))return null;const n=parseFloat(s);return isNaN(n)?null:n};
+const ovBad=(f,v)=>{const n=ovNum(v);if(n==null||f.t)return null;return(f.max!=null&&n>f.max)||(f.min!=null&&n<f.min)};
+const ovForm=()=>OVF.find(f=>f.key===ovk);
+const ovNew=()=>({pvm:ovIso(new Date())});
+async function ovLoad(){const{data,error}=await SB.from("omavalvonta").select("*").order("pvm",{ascending:false});
+  if(error){OV=[];toast(error.message.includes("does not exist")||error.code==="42P01"?"Omavalvonta-taulu puuttuu: aja supabase/omavalvonta.sql Supabasessa":error.message,true);return}
+  OV=data.map(r=>({...r.data,id:r.id,lomake:r.lomake,pvm:r.pvm}))}
+function vOmav(m){m.append(mk("h2",{text:"Omavalvonta"}),mk("p",{class:"muted",text:"Lämpötilojen kirjaus viikoittain. Punainen lukema ylittää rajan: kirjaa silloin toimenpide."}));
+  if(sbGate(m))return;
+  if(OV===null){m.append(mk("p",{class:"muted",text:"Ladataan kirjauksia…"}));ovLoad().then(()=>{if(tab==="Omavalvonta")render()});return}
+  const F=ovForm();if(!ovDraft)ovDraft=ovNew();
+  m.append(mk("div",{class:"cats noprint"},OVF.map(f=>mk("button",{class:f.key===ovk?"on":"",text:f.name,onclick:()=>{ovk=f.key;ovEdit=null;ovDraft=null;ovDel=false;render()}}))));
+  const rows=OV.filter(r=>r.lomake===ovk),today=ovIso(new Date()),done=rows.some(r=>r.pvm===today);
+  // Kirjauslomake
+  const c=mk("div",{class:"card ovcard"});
+  c.append(mk("div",{class:"ovhead"},mk("div",null,mk("h3",{text:(ovEdit?"Muokkaa: ":"")+F.name}),mk("p",{class:"muted",text:"Tavoite: "+F.target})),
+    mk("span",{class:"ovst"+(done?" ok":""),text:done?"✓ Tämän päivän kirjaus tehty":"Tämän päivän kirjaus puuttuu"})));
+  const field=(f,num)=>{const e=mk("input",{value:ovDraft[f.id]??"",placeholder:f.ph||(f.max!=null?"enintään "+f.max:f.min!=null?"vähintään "+f.min:""),inputmode:num?"decimal":null,"aria-label":f.l});
+    const paint=()=>e.classList.toggle("ovbad",!!ovBad(f,e.value));paint();e.oninput=()=>{ovDraft[f.id]=e.value;paint()};return lab(f.l+(num?" (°C)":""),e)};
+  const d=mk("input",{type:"date",value:ovDraft.pvm});d.oninput=()=>ovDraft.pvm=d.value;
+  c.append(mk("div",{class:"g3"},lab("Päivämäärä",d)));
+  F.groups.forEach(([g,fs])=>c.append(mk("p",{class:"ovg",text:g}),mk("div",{class:"ovgrid"},fs.map(f=>field(f,!f.t)))));
+  c.append(mk("p",{class:"ovg",text:"Kuittaus"}),mk("div",{class:"g2"},OVC.map(f=>field(f,false))));
+  const save=async()=>{const x={...ovDraft};if(!x.pvm)return toast("Valitse päivämäärä",true);
+    if(!F.fields.some(f=>String(x[f.id]||"").trim()))return toast("Täytä vähintään yksi lukema",true);
+    const bad=F.fields.filter(f=>ovBad(f,x[f.id]));if(bad.length&&!String(x.huom||"").trim())return toast("Raja ylittyy ("+bad.map(f=>f.p).join(", ")+"). Kirjaa toimenpide.",true);
+    const data={};F.fields.concat(OVC).forEach(f=>data[f.id]=String(x[f.id]??"").trim());
+    const id=F.byDate?ovk+"/"+x.pvm:(ovEdit||ovk+"/"+x.pvm+"/"+Date.now().toString(36));
+    if(F.byDate&&!ovEdit&&OV.some(r=>r.id===id)&&!ovDel){ovDel=true;return toast("Päivälle "+ovFi(x.pvm)+" on jo kirjaus. Paina Tallenna uudelleen korvataksesi sen.",true)}
+    const{error}=await SB.from("omavalvonta").upsert({id,lomake:ovk,pvm:x.pvm,data,updated_at:new Date().toISOString()});if(error)throw error;
+    if(ovEdit&&ovEdit!==id){const r2=await SB.from("omavalvonta").delete().eq("id",ovEdit);if(r2.error)throw r2.error}
+    toast("Tallennettu: "+ovFi(x.pvm));ovEdit=null;ovDraft=null;ovDel=false;await ovLoad();render()};
+  const btns=mk("div",{class:"btnrow"},act("Tallenna kirjaus",save),act("Uusi kirjaus",()=>{ovEdit=null;ovDraft=null;ovDel=false;render()},"o"));
+  if(ovEdit)btns.append(act(ovDel?"Vahvista poisto":"Poista kirjaus",async()=>{if(!ovDel){ovDel=true;render();return}
+    const{error}=await SB.from("omavalvonta").delete().eq("id",ovEdit);if(error)throw error;toast("Kirjaus poistettu");ovEdit=null;ovDraft=null;ovDel=false;await ovLoad();render()},"x del"));
+  c.append(btns);m.append(c);
+  // Tulostus
+  m.append(mk("div",{class:"card noprint"},mk("h3",{text:"Tulosta"}),
+    mk("p",{class:"muted",text:"Avaa tulostusikkunan. Voit tulostaa paperille tai valita tulostimeksi \"Tallenna PDF-tiedostona\"."}),
+    mk("div",{class:"btnrow"},act("Tulosta kirjaukset",()=>ovPrint(false)),act("Tulosta tyhjä lomake (52 viikkoa)",()=>ovPrint(true),"o"))));
+  // Aiemmat
+  m.append(mk("h3",{class:"sec",text:"Aiemmat kirjaukset ("+rows.length+")"}));
+  if(!rows.length)m.append(mk("p",{class:"muted",text:"Ei vielä kirjauksia tällä lomakkeella."}));
+  const sorted=rows.slice().sort((a,b)=>b.pvm.localeCompare(a.pvm)||String(b.klo||"").localeCompare(String(a.klo||"")));
+  sorted.forEach(r=>{const chips=F.fields.filter(f=>f.id!=="ruoka"&&r[f.id]).map(f=>{const b=ovBad(f,r[f.id]);
+      const lbl=F.groups.length>1&&(f.l==="Lämpötila"||f.l==="Kellonaika")?f.g+" "+f.l.toLowerCase():f.l;
+      return mk("span",{class:"ovchip"+(b===true?" bad":b===false?" ok":""),text:lbl+": "+r[f.id]+(f.t||ovNum(r[f.id])==null?"":" °C")})});
+    m.append(mk("button",{class:"ovrow",onclick:()=>{ovEdit=r.id;ovDraft={...r};ovDel=false;render();scrollTo({top:0,behavior:"smooth"})}},
+      mk("span",{class:"ovrt"},mk("b",{text:ovFi(r.pvm)+(r.ruoka?" · "+r.ruoka:"")}),mk("small",{text:r.kuittaus?"Kuitannut "+r.kuittaus:"Ei kuitattu"})),
+      mk("span",{class:"ovchips"},chips),r.huom?mk("small",{class:"muted",text:r.huom}):null))})}
+function ovPrint(blank){const F=ovForm();let body;
+  if(blank){body=[];const d=new Date();for(let i=0;i<52;i++){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()+i*7);body.push({pvm:ovIso(x)})}}
+  else{body=OV.filter(r=>r.lomake===ovk).sort((a,b)=>a.pvm.localeCompare(b.pvm)||String(a.klo||"").localeCompare(String(b.klo||"")));if(!body.length)return toast("Ei tulostettavia kirjauksia",true)}
+  const cols=F.fields.concat(OVC);
+  const tbl=mk("table",{class:"ovpt"+(blank?" blank":"")},mk("thead",null,mk("tr",null,mk("th",{text:"Pvm"}),cols.map(f=>mk("th",{text:f.p+(f.t?"":" °C")})))),
+    mk("tbody",null,body.map(r=>mk("tr",null,mk("td",{class:"d",text:ovFi(r.pvm)}),cols.map(f=>mk("td",{class:ovBad(f,r[f.id])?"bad":"",text:blank?"":(r[f.id]||"")}))))));
+  const old=document.getElementById("ovPrint");if(old)old.remove();
+  const P=mk("div",{id:"ovPrint",class:F.key==="kylma"?"land":""},
+    mk("div",{class:"ovph"},mk("img",{src:"kuvat/logo.jpg",alt:"Malakai Ravintola"}),mk("div",null,mk("h1",{text:F.name+" – lämpötilaseuranta"}),
+      mk("p",{text:"Malakai Ravintola, Lempäälä · Omavalvonnan kirjanpito"}),mk("p",{text:"Tavoite: "+F.target}))),
+    tbl,mk("p",{class:"ovpf",text:"Tulostettu "+ovFi(ovIso(new Date()))+" · Säilytä vähintään 1 vuosi"}));
+  document.body.append(P);const st=document.getElementById("ovPage")||mk("style",{id:"ovPage"});st.textContent="@page{size:A4 "+(F.key==="kylma"?"landscape":"portrait")+";margin:12mm}";document.head.append(st);
+  document.body.classList.add("ovprinting");const done=()=>{document.body.classList.remove("ovprinting");P.remove();removeEventListener("afterprint",done)};
+  addEventListener("afterprint",done);const img=P.querySelector("img");const go=()=>setTimeout(()=>print(),50);img.complete?go():(img.onload=go,img.onerror=go)}
 
 // ---------- Käynnistys
 $("#saveBtn").onclick=push;
