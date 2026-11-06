@@ -20,7 +20,7 @@ window.SITE=/*BEGIN*/{
   },
   "pe": {
    "name": "Mamma Mia",
-   "img": "media/pizza-pe.png"
+   "img": "media/pizza-pe.webp?v=1"
   },
   "la": {
    "name": "Julia",
