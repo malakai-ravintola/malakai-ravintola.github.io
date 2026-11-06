@@ -560,7 +560,7 @@ window.SITE=/*BEGIN*/{
    "text": "Omavalintainen perhepizza, 4 täytettä + 1,5 l juoma. Vain noutona.",
    "price": "19,90 €",
    "was": "29,00 €",
-   "image": "media/kuvat/tarjous-perhepizza.jpg?hq=1",
+   "image": "media/kuvat/tarjous-perhepizza.jpg?hq=2",
    "from": "2026-10-30",
    "until": "2026-11-08",
    "cta": "Tilaa 045 353 7000",
