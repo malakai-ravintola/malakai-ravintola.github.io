@@ -102,8 +102,8 @@ a{color:var(--y)}
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1793952123"></script>
-<script src="config.js?v=1793952123"></script>
+<script src="data.js?v=1793952732"></script>
+<script src="config.js?v=1793952732"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -339,7 +339,7 @@ function vOver(m){m.append(mk("h2",{text:"Yleiskatsaus"}));
   // --- Pikalinkit
   const L=(t2,u)=>mk("a",{class:"ql",href:u,target:"_blank",rel:"noopener",text:t2});
   const links=mk("div",{class:"card"},mk("h3",{text:"Pikalinkit"}),mk("div",{class:"qls"},
-    L("Avaa sivusto","index.html"),L("Ruokalista","ruokalista.html"),L("Lahjakortit","lahjakortit.html"),L("Tulosta lahjakortteja","lahjakortti-tulostus.html"),
+    L("Avaa sivusto","index.html"),L("Ruokalista","ruokalista.html"),
     L("Google-arvostelut","https://www.google.com/search?q=Malakai+Ravintola+Lemp%C3%A4%C3%A4l%C3%A4"),L("Oiva-raportti","https://www.oivahymy.fi/api/raportti/227129"),
     L("Tilaussivu","https://order.site/malakai-ravintola"),L("Käyttöehdot","kayttoehdot.html"),L("Tietosuoja","tietosuoja.html"),
     L("Supabase","https://supabase.com/dashboard/project/vyqrlzdwdwswsjyhszji"),L("Brevo (sähköpostit)","https://app.brevo.com/"),L("GitHub","https://github.com/"+REPO)));
@@ -396,7 +396,7 @@ function vOver(m){m.append(mk("h2",{text:"Yleiskatsaus"}));
         return mk("div",{class:"card"},mk("h3",{text:title}),b)};
       const MN=["tammi","helmi","maalis","huhti","touko","kesä","heinä","elo","syys","loka","marras","joulu"];
       vw.append(chart("Kävijät päivittäin, 30 päivää",V.daily||[],r=>fd(r.d).slice(0,5)),chart("Kävijät kuukausittain, 12 kuukautta",V.monthly||[],r=>MN[+r.m.slice(5)-1]));
-      const PN={"/":"Etusivu","/ruokalista":"Ruokalista","/lounas":"Lounas","/pikkujoulut":"Pikkujoulut","/lahjakortit":"Lahjakortit","/pizza-lempaala":"Pizza Lempäälä","/kebab-lempaala":"Kebab Lempäälä","/kayttoehdot":"Käyttöehdot","/tietosuoja":"Tietosuoja"};
+      const PN={"/":"Etusivu","/ruokalista":"Ruokalista","/lounas":"Lounas","/pikkujoulut":"Pikkujoulut","/pizza-lempaala":"Pizza Lempäälä","/kebab-lempaala":"Kebab Lempäälä","/kayttoehdot":"Käyttöehdot","/tietosuoja":"Tietosuoja"};
       const list=(title,rows,f)=>{const tot=rows.reduce((a,r)=>a+r.n,0)||1;const c=mk("div",{class:"card",style:"margin:0"},mk("h3",{text:title}));
         if(!rows.length)c.append(mk("p",{class:"muted",text:"Ei vielä tietoja."}));
         rows.forEach(r=>c.append(mk("div",{class:"vrow"},mk("span",{text:f(r.k)}),mk("i",null,mk("em",{style:"width:"+Math.round(r.n/tot*100)+"%"})),mk("b",{text:n(r.n)+" · "+Math.round(r.n/tot*100)+" %"}))));return c};
