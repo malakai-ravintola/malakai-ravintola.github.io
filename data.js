@@ -24,7 +24,7 @@ window.SITE=/*BEGIN*/{
   },
   "la": {
    "name": "Julia",
-   "img": "media/pizza-la.png"
+   "img": "media/pizza-la.webp?v=1"
   },
   "su": {
    "name": "Opera Special",
