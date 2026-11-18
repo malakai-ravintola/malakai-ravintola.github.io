@@ -86,16 +86,16 @@ window.SITE=/*BEGIN*/{
  },
  "ann": {
   "on": true,
-  "text": "Isänpäivä su 8.11. · Pizzabuffet 12,90 € · Varaa pöytä →",
-  "text_en": "Father’s Day Sun 8 Nov · Pizza buffet €12.90 · Book a table →",
-  "link": "lounas.html#isanpaiva",
-  "until": "2026-11-08"
+  "text": "Pikkujoulut 20.11.–20.12. · Buffet, pizzat ja salaattipöytä · Varaa pöytä →",
+  "text_en": "Christmas parties 20 Nov–20 Dec · Buffet, pizzas & salad bar · Book a table →",
+  "link": "pikkujoulut.html",
+  "until": "2026-12-20"
  },
  "event": {
   "on": true,
-  "title": "Isänpäivä su 8.11.2026",
-  "text": "Pizzabuffet klo 13–18: 12,90 € (norm. 14,90 €). Varaa pöytäsi ajoissa!",
-  "until": "2026-11-08"
+  "title": "Pikkujoulut 20.11.–20.12.",
+  "text": "Lämmin buffet, tuoreet pizzat ja runsas salaattipöytä. Yrityksille, työporukoille, perheille ja kavereille – varaa pöytä ajoissa!",
+  "until": "2026-12-20"
  },
  "popup": {
   "on": true,
