@@ -99,9 +99,9 @@ window.SITE=/*BEGIN*/{
  },
  "popup": {
   "on": true,
-  "image": "media/isanpaiva.jpg",
-  "alt": "Isänpäivä 8.11.2026: pizzabuffet klo 13–18, 12,90 € (norm. 14,90 €). Varaa pöytäsi ajoissa, 045 353 7000, Tampereentie 414, Lempäälä",
-  "until": "2026-11-08"
+  "image": "media/pikkujoulut.jpg",
+  "alt": "Pikkujoulut Malakaissa 20.11.–20.12.2026: lämmin buffet, tuoreet pizzat ja runsas salaattipöytä. Yrityksille, työporukoille, perheille ja kavereille. Varaa pöytä: 045 353 7000 tai malakairavintola.fi. Tampereentie 414, Lempäälä",
+  "until": "2026-12-20"
  },
  "menu": {
   "Pizza": {
