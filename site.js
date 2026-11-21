@@ -76,7 +76,9 @@ try{if(localStorage.getItem("lang")==="en")setLang(true)}catch(x){}
 const pop=$("#pop");
 let popSeen=false;try{popSeen=sessionStorage.getItem("popSeen")==="1";sessionStorage.setItem("popSeen","1")}catch(e){}
 if(pop&&until(S.popup)&&!popSeen){const close=()=>{pop.hidden=true;document.body.style.overflow=""};
-  setTimeout(()=>{pop.hidden=false;document.body.style.overflow="hidden";$("#popX").focus()},80);
+  // Näytetään vasta 8 s jälkeen tai kun sivua on vieritetty, ei heti latauksessa (Google ei suosi heti peittäviä ikkunoita).
+  let shown=false;const show=()=>{if(shown)return;shown=true;removeEventListener("scroll",onSc);pop.hidden=false;document.body.style.overflow="hidden";$("#popX").focus()};
+  const onSc=()=>{if(scrollY>innerHeight*1.2)show()};addEventListener("scroll",onSc,{passive:true});setTimeout(show,8000);
   $("#popX").onclick=close;$("#popB").onclick=close;pop.addEventListener("click",e=>{if(e.target===pop)close()});
   addEventListener("keydown",e=>{if(e.key==="Escape"&&!pop.hidden)close()})}
 
@@ -119,7 +121,8 @@ if(API&&/malakairavintola\.fi$/.test(location.hostname)&&navigator.doNotTrack!==
   setTimeout(()=>post({action:"hit",p:location.pathname,r:document.referrer}).catch(()=>{}),800);
 const busy=(f,on,txt)=>{const b=f.querySelector("button[type=submit]");if(!b.dataset.t)b.dataset.t=b.innerHTML;b.disabled=on;b.innerHTML=on?txt:b.dataset.t};
 const rf=$("#resForm");
-if(rf){const g=rf.g;for(let i=1;i<=20;i++)g.add(new Option(i+(i==1?" vieras":" vierasta"),i));g.value=2;
+const PJ=rf&&rf.dataset.kind==="pikkujoulu";
+if(rf){const g=rf.g;if(PJ){for(let i=2;i<=30;i++)g.add(new Option(i+" henkilöä",i));g.add(new Option("Yli 30 henkilöä","31"));g.value=10}else{for(let i=1;i<=20;i++)g.add(new Option(i+(i==1?" vieras":" vierasta"),i));g.value=2}
   rf.d.min=now.date;
   const slots=()=>{const t=rf.t;t.textContent="";t.add(new Option("Valitse aika",""));if(!rf.d.value)return;
     const dow=new Date(rf.d.value+"T12:00:00").getDay();if(!H[dow]){t.options[0].text="Suljettu tänä päivänä";return}const[a,b]=H[dow],min=rf.d.value===now.date?now.t+.5:0;
@@ -128,9 +131,10 @@ if(rf){const g=rf.g;for(let i=1;i<=20;i++)g.add(new Option(i+(i==1?" vieras":" v
   rf.d.onchange=slots;slots();
   const err=$("#resErr");
   rf.onsubmit=async e=>{e.preventDefault();const v=e.target;err.hidden=true;busy(rf,true,"Lähetetään…");
-    try{await post({action:"reserve",n:v.n.value,e:v.e.value,p:v.p.value,g:v.g.value,d:v.d.value,t:v.t.value,m:v.m.value,news:v.news.checked,website:v.website.value});
+    const big=v.g.value==="31",note=PJ?["PIKKUJOULUT",v.c&&v.c.value.trim(),big?"yli 30 hlö":"",v.m.value.trim()].filter(Boolean).join(" · "):v.m.value;
+    try{await post({action:"reserve",n:v.n.value,e:v.e.value,p:v.p.value,g:big?30:v.g.value,d:v.d.value,t:v.t.value,m:note.slice(0,300),news:v.news.checked,website:v.website.value});
       const dd=v.d.value.split("-").reverse().join("."),d=$("#resDone");
-      $("#resTxt").textContent=`Kiitos ${v.n.value.split(" ")[0]}! Varauspyyntösi ${dd} klo ${v.t.value} (${v.g.value} hlö) on vastaanotettu. Saat vahvistuksen sähköpostiisi ${v.e.value}, kun olemme käsitelleet varauksen.`;
+      $("#resTxt").textContent=PJ?`Kiitos ${v.n.value.split(" ")[0]}! Pikkujoulujen tarjouspyyntö ${dd} klo ${v.t.value} (${big?"yli 30":v.g.value} hlö) on vastaanotettu. Otamme yhteyttä puhelimitse tai sähköpostilla ${v.e.value}.`:`Kiitos ${v.n.value.split(" ")[0]}! Varauspyyntösi ${dd} klo ${v.t.value} (${v.g.value} hlö) on vastaanotettu. Saat vahvistuksen sähköpostiisi ${v.e.value}, kun olemme käsitelleet varauksen.`;
       rf.hidden=true;d.hidden=false;d.scrollIntoView({block:"center",behavior:"smooth"})}
     catch(x){err.textContent="Varauksen lähetys ei onnistunut. Yritä uudelleen tai soita 045 353 7000. ("+(x.message==="Failed to fetch"||x.message==="Load failed"?"ei yhteyttä palvelimeen":x.message)+")";err.hidden=false}
     finally{busy(rf,false)}}}
@@ -146,6 +150,9 @@ if(nf)nf.onsubmit=async e=>{e.preventDefault();const v=e.target,d=$("#nlDone");b
   sl.forEach((_,n)=>{const b=document.createElement("button");b.type="button";b.setAttribute("aria-label","Kuva "+(n+1));if(!n)b.className="on";b.onclick=()=>{go(n);re()};dw.appendChild(b)});
   const re=()=>{clearInterval(t);if(!matchMedia("(prefers-reduced-motion: reduce)").matches)t=setInterval(()=>go(k+1),6000)};
   $(".hx-prev").onclick=()=>{go(k-1);re()};$(".hx-next").onclick=()=>{go(k+1);re()};re()}}
+
+// --- Vuosiluku alatunnisteeseen
+$$(".cy").forEach(e=>e.textContent=new Date().getFullYear());
 
 // --- Videot
 // Kaikki videot pyörivät jatkuvasti loopilla (äänettä).

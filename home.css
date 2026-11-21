@@ -535,3 +535,10 @@
 .hx .hx-h em{-webkit-text-stroke:0!important;color:var(--yel)!important;font-family:"Playfair Display",Georgia,serif!important;font-style:italic!important;font-weight:500}
 .hx-h{font-size:clamp(3rem,10vw,6.6rem)!important}
 
+
+/* Pikkujoulut: hinta ja lomake */
+.x-price{border:1px solid var(--dyel,#C9A227);border-radius:18px;padding:18px 20px;margin:6px 0 18px;background:#0B0B0B}
+.x-price small{letter-spacing:.2em;text-transform:uppercase;color:var(--dyel,#C9A227);font-size:.72rem}
+.x-price p{margin:6px 0 0;font-size:1.15rem;color:#ddd}.x-price b{font-size:1.5rem;color:#fff}
+.x-price .x-pnote{font-size:.92rem;color:#bbb}
+.x-alt{margin-top:16px}.x-addr{color:#999;font-size:.9rem;margin-top:12px}
