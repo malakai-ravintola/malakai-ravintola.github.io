@@ -313,6 +313,10 @@
 .h-xvid+.h-xbg{background:linear-gradient(90deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.72) 50%,rgba(0,0,0,.35) 100%)}
 @media(max-width:760px){.h-xvid+.h-xbg{background:rgba(0,0,0,.68)}}
 .x-vids .h-lead{max-width:640px}
+.x-vids{padding-block:44px!important}
+.x-vids .h-vgrid{max-width:600px;gap:12px}
+.x-vids .h-vgrid video{border-radius:16px}
+@media(max-width:760px){.x-vids .h-vgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible;margin-inline:0;padding-inline:0;gap:8px}.x-vids .h-vgrid video{border-radius:12px}}
 .h-xin{position:relative;padding:clamp(28px,5vw,64px);max-width:640px}
 .h-xin .h-kick{letter-spacing:.3em}
 .h-xin h2{font-family:"Playfair Display",Georgia,serif!important;text-transform:none!important;font-weight:500!important}

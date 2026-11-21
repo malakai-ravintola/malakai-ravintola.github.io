@@ -148,5 +148,15 @@ if(nf)nf.onsubmit=async e=>{e.preventDefault();const v=e.target,d=$("#nlDone");b
   $(".hx-prev").onclick=()=>{go(k-1);re()};$(".hx-next").onclick=()=>{go(k+1);re()};re()}}
 
 // --- Videot
-if(matchMedia("(prefers-reduced-motion: reduce)").matches)$$("video").forEach(v=>{v.removeAttribute("autoplay");v.pause()});
+// Kaikki videot pyörivät jatkuvasti loopilla (äänettä).
+{const vids=$$("video");
+const go=v=>{v.muted=true;v.loop=true;if(v.paused){const p=v.play();if(p&&p.catch)p.catch(()=>{})}};
+vids.forEach(v=>{v.muted=true;v.setAttribute("muted","");v.loop=true;v.playsInline=true;
+v.addEventListener("ended",()=>{v.currentTime=0;go(v)});
+v.addEventListener("pause",()=>{if(!document.hidden)setTimeout(()=>go(v),300)});
+v.addEventListener("canplay",()=>go(v),{once:true});go(v)});
+const all=()=>vids.forEach(go);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)all()});
+["touchstart","click","scroll"].forEach(e=>addEventListener(e,all,{passive:true,once:true}));
+addEventListener("pageshow",all);}
 })();
