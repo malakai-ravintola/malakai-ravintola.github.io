@@ -143,8 +143,8 @@ input.ovbad{border-color:var(--bad)!important;color:var(--bad);background:rgba(2
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1795284318"></script>
-<script src="config.js?v=1795284318"></script>
+<script src="data.js?v=1795285662"></script>
+<script src="config.js?v=1795285662"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -524,7 +524,7 @@ function vCust(m){m.append(mk("h2",{text:"Asiakkaat"}));if(sbGate(m))return;
 const TPL={"Viikon tarjous":["Viikon tarjous Malakaissa","Hei {nimi}!\n\nTämän viikon tarjous: [kirjoita tarjous ja hinta]\nVoimassa: [pvm–pvm]\n\nTilaa Woltista tai tule paikan päälle: Tampereentie 414, Lempäälä.\n\nMalakai Ravintola"],
 "Pizzabuffet-muistutus":["Pizzabuffet odottaa","Hei {nimi}!\n\nPizzabuffet arkisin klo 10.30–15.00 hintaan 13,70 € ja viikonloppuisin klo 13.00–18.00 hintaan 14,90 €.\n\nNähdään Malakaissa!\nMalakai Ravintola"],
 "Poikkeusaukiolot":["Poikkeavat aukioloajat","Hei {nimi}!\n\nHuomioithan poikkeavat aukioloajat: [pvm] ravintola on avoinna [kellonajat].\n\nMalakai Ravintola"],
-"Kiitos käynnistä":["Kiitos käynnistä!","Hei {nimi}!\n\nKiitos kun vierailit Malakai Ravintolassa. Jos viihdyit, jätäthän meille arvostelun Googleen:\nhttps://www.google.com/search?q=Malakai+Ravintola+Lemp%C3%A4%C3%A4l%C3%A4\n\nTervetuloa uudelleen!\nMalakai Ravintola"],
+"Kiitos käynnistä":["Kiitos käynnistä!","Hei {nimi}!\n\nKiitos kun vierailit Malakai Ravintolassa. Jos viihdyit, jätäthän meille arvostelun Googleen:\nhttps://search.google.com/local/writereview?placeid=ChIJ-5aOe3_fjkYRQ_Anq7PATkc\n\nTervetuloa uudelleen!\nMalakai Ravintola"],
 "Oma viesti":["",""]};
 function vMsg(m){m.append(mk("h2",{text:"Uutiskirje"}));if(sbGate(m))return;
   const sl=mk("select"),sub=mk("input"),body=mk("textarea",{style:"min-height:200px"});Object.keys(TPL).forEach(k=>sl.add(new Option(k,k)));
