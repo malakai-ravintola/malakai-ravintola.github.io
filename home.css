@@ -309,6 +309,10 @@
 .h-xmas{background:#000}
 .h-xcard{position:relative;border-radius:28px;overflow:hidden;border:1px solid #333;min-height:380px;display:flex;align-items:center}
 .h-xbg{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.7) 50%,rgba(0,0,0,.25) 100%),url(media/kuvat/buffet-lautanen.jpg) right center/cover}
+.h-xvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 62%}
+.h-xvid+.h-xbg{background:linear-gradient(90deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.72) 50%,rgba(0,0,0,.35) 100%)}
+@media(max-width:760px){.h-xvid+.h-xbg{background:rgba(0,0,0,.68)}}
+.x-vids .h-lead{max-width:640px}
 .h-xin{position:relative;padding:clamp(28px,5vw,64px);max-width:640px}
 .h-xin .h-kick{letter-spacing:.3em}
 .h-xin h2{font-family:"Playfair Display",Georgia,serif!important;text-transform:none!important;font-weight:500!important}
