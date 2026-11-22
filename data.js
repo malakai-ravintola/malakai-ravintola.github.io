@@ -556,13 +556,13 @@ window.SITE=/*BEGIN*/{
  "offers": [
   {
    "on": true,
-   "title": "Perhepizza-noutotarjous",
-   "text": "Omavalintainen perhepizza, 4 täytettä + 1,5 l juoma. Vain noutona.",
-   "price": "19,90 €",
-   "was": "29,00 €",
-   "image": "media/kuvat/tarjous-perhepizza.jpg?hq=2",
-   "from": "2026-10-30",
-   "until": "2026-11-08",
+   "title": "3 pizzaa -noutotarjous",
+   "text": "Valitse 3 pizzaa listalta + 1,5 l juoma. Vain noutona.",
+   "price": "34,90 €",
+   "was": "",
+   "image": "media/kuvat/tarjous-3-pizzaa.jpg",
+   "from": "2026-11-22",
+   "until": "2026-11-30",
    "cta": "Tilaa 045 353 7000",
    "link": "tel:+358453537000"
   }
