@@ -28,7 +28,7 @@ window.SITE=/*BEGIN*/{
   },
   "su": {
    "name": "Opera Special",
-   "img": "media/pizza-su.png"
+   "img": "media/pizza-su.webp?v=1"
   }
  },
  "hours": {
