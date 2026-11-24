@@ -298,10 +298,8 @@ footer .brand2 b{font-size:2.2rem}footer .brand2 small{font-size:.7rem}
 .pjc .pjb h2{margin:0 0 2px;font:500 clamp(1.1rem,4.6vw,1.35rem)/1.15 "Playfair Display",Georgia,serif;color:#fff;text-transform:none;letter-spacing:0}
 .pjc .pjb h2 em{color:#E3A51C;font-style:italic}
 .pjt{margin:0;color:#cfcfcf;font-size:.84rem;line-height:1.35}
-.pja{grid-column:1/-1;display:flex;gap:8px;margin-top:4px}
-.pjc .pjl,.pjc .pjs{flex:1;text-align:center;text-decoration:none;border-radius:999px;padding:10px 12px;font:700 .85rem Inter,sans-serif;white-space:nowrap}
-.pjc .pjl{background:#E3A51C;color:#111}.pjc .pjl:hover{background:#F0B732}
-.pjc .pjs{border:1.5px solid #444;color:#fff}.pjc .pjs:hover{border-color:#E3A51C}
+.pjc .pjl{display:inline-flex;align-items:center;gap:8px;margin-top:6px;color:#E3A51C;text-decoration:none;font:700 .8rem Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase}
+.pjc .pjl span{transition:transform .2s}.pjc .pjl:hover{color:#fff}.pjc .pjl:hover span{transform:translateX(4px)}
+.pji{align-self:stretch;height:auto;min-height:84px}
 .pjx{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;border:0;background:#222;color:#ddd;font-size:1.3rem;line-height:1;cursor:pointer;padding:0}.pjx:hover{background:#333;color:#fff}
 @media(min-width:900px){.pjc{left:auto;right:24px;bottom:24px;width:440px}}
-@media(max-width:380px){.pjc .pjs{display:none}}

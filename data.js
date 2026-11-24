@@ -86,22 +86,22 @@ window.SITE=/*BEGIN*/{
  },
  "ann": {
   "on": true,
-  "text": "Pikkujoulut 20.11.–20.12. · Buffet, pizzat ja salaattipöytä · Varaa pöytä →",
-  "text_en": "Christmas parties 20 Nov–20 Dec · Buffet, pizzas & salad bar · Book a table →",
+  "text": "Pikkujoulut 20.11.–23.12. · Buffet, pizzat ja salaattipöytä · Varaa pöytä →",
+  "text_en": "Christmas parties 20 Nov–23 Dec · Buffet, pizzas & salad bar · Book a table →",
   "link": "pikkujoulut.html",
-  "until": "2026-12-20"
+  "until": "2026-12-23"
  },
  "event": {
   "on": true,
-  "title": "Pikkujoulut 20.11.–20.12.",
+  "title": "Pikkujoulut 20.11.–23.12.",
   "text": "Lämmin buffet, tuoreet pizzat ja runsas salaattipöytä. Yrityksille, työporukoille, perheille ja kavereille – varaa pöytä ajoissa!",
-  "until": "2026-12-20"
+  "until": "2026-12-23"
  },
  "popup": {
   "on": true,
   "image": "media/pikkujoulut.jpg",
-  "alt": "Pikkujoulut Malakaissa 20.11.–20.12.2026: lämmin buffet, tuoreet pizzat ja runsas salaattipöytä. Yrityksille, työporukoille, perheille ja kavereille. Varaa pöytä: 045 353 7000 tai malakairavintola.fi. Tampereentie 414, Lempäälä",
-  "until": "2026-12-20"
+  "alt": "Pikkujoulut Malakaissa 20.11.–23.12.2026: lämmin buffet, tuoreet pizzat ja runsas salaattipöytä. Yrityksille, työporukoille, perheille ja kavereille. Varaa pöytä: 045 353 7000 tai malakairavintola.fi. Tampereentie 414, Lempäälä",
+  "until": "2026-12-23"
  },
  "menu": {
   "Pizza": {
