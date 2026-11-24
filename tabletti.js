@@ -39,21 +39,34 @@ const RUN=()=>(ORD||[]).filter(o=>o.status==="hyvaksytty"||o.status==="valmis").
 const DONE=()=>(ORD||[]).filter(o=>(o.status==="luovutettu"||o.status==="peruttu")&&hDate(o.done_at||o.created_at)===hToday());
 
 function boot(){$("#top").hidden=false;$("#tabs").hidden=false;$("#snd").hidden=false;
-  $("#sndOn").onclick=()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();soundOk=true;beep();$("#snd").hidden=true;keepAwake();if("Notification"in window&&Notification.permission==="default")Notification.requestPermission()}catch(e){toast("Ääntä ei voitu ottaa käyttöön",true)}};
+  $("#sndOn").onclick=()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();soundOk=true;alarm();if(!NEW().length)beep();$("#snd").hidden=true;keepAwake();if("Notification"in window&&Notification.permission==="default")Notification.requestPermission()}catch(e){toast("Ääntä ei voitu ottaa käyttöön",true)}};
   document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.t;view="aktiiviset";render()});
   $("#mn").onclick=()=>$("#dr").classList.add("open");$("#drx").onclick=()=>$("#dr").classList.remove("open");
   $("#dr").onclick=e=>{if(e.target.id==="dr")$("#dr").classList.remove("open")};
   document.querySelectorAll(".mi").forEach(b=>b.onclick=()=>{view=b.dataset.v;$("#dr").classList.remove("open");render()});
   $("#sb").onclick=storeSheet;$("#cnt").onclick=()=>{tab=NEW().length?"uudet":"kaynnissa";view="aktiiviset";render()};
   document.addEventListener("visibilitychange",()=>{if(!document.hidden){load();keepAwake()}});
-  load();setInterval(load,8000);setInterval(()=>{if(NEW().length)beep()},3500);render()}
+  load();setInterval(load,8000);setInterval(alarm,1000);render()}
 async function keepAwake(){try{if("wakeLock"in navigator&&!wake){wake=await navigator.wakeLock.request("screen");wake.addEventListener("release",()=>wake=null)}}catch(e){}}
-function beep(){if(!soundOk||!AC)return;try{const t=AC.currentTime;[0,.22,.44,.66].forEach((d,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=i%2?1320:990;o.type="square";g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.5,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.18);o.connect(g).connect(AC.destination);o.start(t+d);o.stop(t+d+.2)})}catch(e){}}
+// ---------- Äänet: 3 tilausääntä, voimakkuus, soi kunnes tilaus hyväksytään/hylätään (5 s tauko välissä)
+const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+let VOL=+(LS.get("tab_vol")??80),SND=LS.get("tab_snd")||"kello",alarmOn=false,alarmT=null;
+const SOUNDS={kello:"Kello (ding-dong)",soitto:"Puhelinsoitto",melodia:"Melodia"};
+function tone(dst,f,t,len,type,peak,partials){(partials||[[1,1]]).forEach(([m,a])=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type||"sine";o.frequency.value=f*m;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(peak*a,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+len);o.connect(g).connect(dst);o.start(t);o.stop(t+len+.05)})}
+function play(kind,vol){if(!AC)return 0;const out=AC.createGain();out.gain.value=Math.pow((vol??VOL)/100,1.6);out.connect(AC.destination);const t=AC.currentTime+.05;
+  if(kind==="soitto"){for(let r=0;r<2;r++)for(let i=0;i<12;i++){const s=t+r*1.4+i*.05;tone(out,i%2?1000:800,s,.05,"sine",.5)}return 2.9}
+  if(kind==="melodia"){[[659,0],[784,.16],[988,.32],[1319,.48],[988,.8],[1319,.96]].forEach(([f,d])=>tone(out,f,t+d,.5,"sine",.45,[[1,1],[4,.12]]));return 1.7}
+  // kello: kaksi ding-dong-sarjaa
+  [[880,0],[698,.55],[880,1.3],[698,1.85]].forEach(([f,d])=>tone(out,f,t+d,1.2,"sine",.55,[[1,1],[2,.35],[3,.12]]));return 3.2}
+function beep(){if(soundOk)play(SND)}
+function alarm(){const want=soundOk&&NEW().length>0;if(!want){alarmOn=false;clearTimeout(alarmT);return}if(alarmOn)return;alarmOn=true;
+  const loop=()=>{if(!soundOk||!NEW().length){alarmOn=false;return}const d=play(SND);alarmT=setTimeout(loop,(d+5)*1000)};loop()}
 async function load(){try{const since=new Date(Date.now()-8*864e5).toISOString();
   const[a,b]=await Promise.all([SB.from("orders").select("*").or(`created_at.gte."${since}",status.in.(uusi,hyvaksytty,valmis)`).order("created_at",{ascending:false}),SB.from("settings").select("value").eq("key","orders").maybeSingle()]);
   if(a.error)throw new Error(a.error.message);
   const fresh=a.data.filter(o=>o.status==="uusi"&&!seen.has(o.id));
-  if(ORD&&fresh.length){tab="uudet";view="aktiiviset";beep();if("Notification"in window&&Notification.permission==="granted")try{new Notification("Uusi tilaus #"+fresh[0].no,{body:(fresh[0].kind==="kuljetus"?"Kuljetus":"Nouto")+" · "+eur(fresh[0].total)})}catch(e){}}
+  if(ORD&&fresh.length){tab="uudet";view="aktiiviset";if("Notification"in window&&Notification.permission==="granted")try{new Notification("Uusi tilaus #"+fresh[0].no,{body:(fresh[0].kind==="kuljetus"?"Kuljetus":"Nouto")+" · "+eur(fresh[0].total)})}catch(e){}}
   ORD=a.data;a.data.forEach(o=>seen.add(o.id));CFG=(b.data&&b.data.value)||{};
   const busy=$(".sheet")||(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName));if(!busy)render();else head()}catch(e){if(!ORD){ORD=[];render()}}}
 async function setOrd(o,status,extra={}){const r=await api("order",{id:o.id,status,...extra});Object.assign(o,{status},extra);
@@ -131,10 +144,19 @@ function vProd(m){const out=new Set(CFG.soldout||[]),M=S.menu||{},box=mk("div",{
     its.forEach(i=>{const k=cat+"|"+i[0],so=out.has(k);box.append(mk("div",{class:"pr"},mk("span",null,i[0],mk("br"),mk("small",{text:so?"LOPPU":"Myynnissä"})),
       mk("button",{class:"tg"+(so?" on":""),"aria-label":"Loppu",onclick:async()=>{if(so)out.delete(k);else out.add(k);CFG={...CFG,soldout:[...out]};try{await saveCfg(so?i[0]+" taas myynnissä":i[0]+" merkitty loppuneeksi")}catch(e){toast(e.message,true)}}})))})});
   m.append(box)}
-function vSet(m){const box=mk("div",{class:"sec"},
+function vSet(m){const box=mk("div",{class:"sec"},mk("h3",{text:"Nettitilaus"}),
   mk("div",{class:"pr"},mk("span",null,"Nettitilaus",mk("br"),mk("small",{text:CFG.on?"Auki – asiakkaat voivat tilata":"Pois päältä"})),mk("button",{class:"tg ok"+(CFG.on?" on":""),onclick:async()=>{CFG={...CFG,on:!CFG.on};try{await saveCfg(CFG.on?"Nettitilaus avattu":"Nettitilaus suljettu")}catch(e){toast(e.message,true)}}})),
   mk("div",{class:"pr"},mk("span",null,"Kotiinkuljetus",mk("br"),mk("small",{text:CFG.delivery?"Käytössä":"Vain nouto"})),mk("button",{class:"tg ok"+(CFG.delivery?" on":""),onclick:async()=>{CFG={...CFG,delivery:!CFG.delivery};try{await saveCfg(CFG.delivery?"Kotiinkuljetus päällä":"Vain nouto")}catch(e){toast(e.message,true)}}})),
-  mk("div",{class:"pr"},mk("span",null,"Äänimerkki",mk("br"),mk("small",{text:soundOk?"Päällä – piippaa kunnes tilaus hyväksytään":"Ei päällä"})),btn("Testaa ääni",async()=>{if(!soundOk)$("#sndOn").click();beep()},"o")),
+  mk("h3",{text:"Tilausääni"}),
+  mk("p",{style:"color:var(--mut);margin:0 0 6px",text:soundOk?"Ääni soi uudesta tilauksesta, kunnes hyväksyt tai hylkäät sen – 5 sekunnin tauko soittojen välissä.":"Ääni ei ole päällä – paina ylhäältä \"Ota äänet käyttöön\"."}),
+  Object.entries(SOUNDS).map(([k,t])=>mk("div",{class:"pr"},mk("span",null,t,mk("br"),mk("small",{text:k===SND?"Valittu":""})),
+    btn("▶ Kuuntele",async()=>{if(!soundOk)$("#sndOn").click();play(k)},"o"),
+    mk("button",{class:"tg ok"+(k===SND?" on":""),"aria-label":"Valitse "+t,onclick:()=>{SND=k;LS.set("tab_snd",k);if(soundOk)play(k);render()}}))),
+  (()=>{const v=mk("b",{text:VOL+" %"}),r=mk("input",{type:"range",min:"5",max:"100",step:"5",value:String(VOL),style:"flex:1;accent-color:#E3A51C;height:34px"});
+    r.oninput=()=>{VOL=+r.value;v.textContent=VOL+" %";LS.set("tab_vol",VOL)};r.onchange=()=>{if(soundOk)play(SND)};
+    return mk("div",{class:"pr"},mk("span",{style:"flex:none;width:130px"},"Voimakkuus"),r,v)})(),
+  mk("p",{style:"color:var(--mut);margin:6px 0 18px;font-size:.92rem",text:"Tämä säätää sivun äänen. Pidä myös tabletin oma äänenvoimakkuus kovalla."}),
+
   mk("p",{style:"color:var(--mut);margin-top:18px",text:"Vinkki: pidä tämä sivu auki ja tabletti laturissa. Laita tabletin äänet kovalle ja näytön lukitus pois."}),
   btn("Kirjaudu ulos",async()=>{await SB.auth.signOut()},"x"));
   m.append(box)}
