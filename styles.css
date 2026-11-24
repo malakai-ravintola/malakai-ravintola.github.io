@@ -303,3 +303,10 @@ footer .brand2 b{font-size:2.2rem}footer .brand2 small{font-size:.7rem}
 .pji{align-self:stretch;height:auto;min-height:84px}
 .pjx{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;border:0;background:#222;color:#ddd;font-size:1.3rem;line-height:1;cursor:pointer;padding:0}.pjx:hover{background:#333;color:#fff}
 @media(min-width:900px){.pjc{left:auto;right:24px;bottom:24px;width:440px}}
+
+/* Isompi kuva kortissa */
+.pjc{grid-template-columns:clamp(118px,34vw,150px) 1fr;align-items:stretch;padding:12px}
+.pjc .pji{width:100%;height:100%;min-height:120px;align-self:stretch;border-radius:16px;object-fit:cover;object-position:center 62%}
+.pjb{align-self:center;padding:2px 26px 2px 0}
+@media(min-width:900px){.pjc{width:470px;grid-template-columns:160px 1fr}}
+.pjk{white-space:nowrap}@media(max-width:520px){.pjc{grid-template-columns:30vw 1fr}.pjk{font-size:.64rem;padding:3px 8px;letter-spacing:0}.pjb{padding-right:30px}}
