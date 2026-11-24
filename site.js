@@ -168,3 +168,16 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden)all()});
 ["touchstart","click","scroll"].forEach(e=>addEventListener(e,all,{passive:true,once:true}));
 addEventListener("pageshow",all);}
 })();
+
+// --- Tilaa uudelleen (kirjautunut asiakas, etusivu)
+(function(){const el=document.getElementById("reord");if(!el)return;let L=null,inn=false;
+  try{inn=!!Object.keys(localStorage).find(k=>/^sb-.*-auth-token$/.test(k)&&localStorage.getItem(k));L=JSON.parse(localStorage.getItem("mk_last")||"null")}catch(e){}
+  if(!inn||!L||!L.items||!L.items.length)return;
+  const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+  const d=new Date(L.date),days=Math.round((Date.now()-d)/864e5),when=days<1?"tänään":days===1?"eilen":days+" päivää sitten";
+  const imgs=L.items.slice(0,3).map(i=>i.img?`<img src="${esc(i.img)}" alt="" loading="lazy">`:`<span class="ph"><img src="media/logo-malakai.svg" alt=""></span>`).join("");
+  const names=L.items.map(i=>(i.q>1?i.q+" × ":"")+i.n).join(", ");
+  el.innerHTML=`<div class="wrap"><div class="ro-card"><div class="ro-img">${imgs}</div><div class="ro-tx"><small>${L.name?"Tervetuloa takaisin, "+esc(L.name)+"!":"Tervetuloa takaisin!"}</small><b>Tilaa sama uudelleen?</b><span>${esc(names)}</span><em>Edellinen tilaus ${when}</em></div><div class="ro-act"><button class="btn r" type="button" id="roGo">Tilaa uudelleen</button><a href="tili.html">Omat tilaukset →</a></div></div></div>`;
+  el.hidden=false;
+  document.getElementById("roGo").onclick=()=>{try{const c=JSON.parse(localStorage.getItem("mk_cart")||"[]");L.items.forEach(i=>{const x={...i};delete x.img;c.push(x)});localStorage.setItem("mk_cart",JSON.stringify(c))}catch(e){}location.href="tilaa.html"};
+})();

@@ -135,9 +135,11 @@ function vKoti(m){const t=hToday(),y=addDays(t,-1),L=live(),T=onDay(L,t),Y=onDay
   m.append(mk("section",{class:"card"},mk("h2",{text:"Suosituimmat tuotteet (7 pv)"}),top.length?top.map(([n,k],i)=>mk("div",{class:"kv"},mk("span",{text:(i+1)+". "+n}),mk("b",{text:k+" kpl"}))):mk("p",{class:"mut",text:"Ei vielä tilauksia viimeisen viikon ajalta."})));
   if(!c.on)m.append(mk("div",{class:"warn"},mk("b",{text:"Nettitilaus on pois päältä. "}),"Asiakkaat eivät voi tilata sivulta. Kytke se päälle yllä olevasta kytkimestä."))}
 
-function ordCard(o){const del=o.kind==="kuljetus",want=o.want==="heti"?"Heti":"klo "+o.want.replace(":",".");
+const preOf=w=>{const m=String(w||"").match(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})$/);return m?{d:m[1],t:m[2]}:null};
+const wantTxt=w=>{if(w==="heti")return"Heti";const p=preOf(w);return p?wd(p.d)+" "+fd(p.d)+" klo "+p.t.replace(":","."):"klo "+String(w).replace(":",".")};
+function ordCard(o){const del=o.kind==="kuljetus",pre=preOf(o.want),want=wantTxt(o.want);
   const c=mk("div",{class:"oc "+o.status},
-    mk("h4",null,"#"+o.no,mk("span",{class:"k"+(del?" del":""),text:del?"KULJETUS":"NOUTO"}),mk("small",{text:hm(o.created_at)+(hDate(o.created_at)!==hToday()?" · "+fd(hDate(o.created_at)):"")})),
+    mk("h4",null,"#"+o.no,mk("span",{class:"k"+(del?" del":""),text:del?"KULJETUS":"NOUTO"}),pre?mk("span",{class:"k",style:"background:var(--y2);color:#7A5200",text:"ENNAKKO"}):null,mk("small",{text:hm(o.created_at)+(hDate(o.created_at)!==hToday()?" · "+fd(hDate(o.created_at)):"")})),
     mk("div",{class:"meta"},mk("b",{text:o.name}),"  ",mk("a",{href:"tel:"+o.phone,text:o.phone}),mk("br"),"Toivottu aika: ",mk("b",{text:want}),o.eta?mk("span",null," · Luvattu: ",mk("b",{text:"klo "+o.eta.replace(":",".")})):null,
       del?mk("div",null,"Osoite: ",mk("b",{text:o.address+", "+o.zip+" "+(o.city||"")})," ",mk("a",{href:"https://maps.google.com/?q="+encodeURIComponent(o.address+", "+o.zip+" "+(o.city||"")),target:"_blank",rel:"noopener",text:"kartta"})):null),
     mk("ul",null,(o.items||[]).map(i=>mk("li",null,mk("b",{text:i.q+" × "+i.n}),i.opt?mk("small",{text:i.opt}):null,i.m?mk("em",{text:"Toive: "+i.m}):null))),
@@ -145,7 +147,7 @@ function ordCard(o){const del=o.kind==="kuljetus",want=o.want==="heti"?"Heti":"k
     mk("div",{class:"tot"},eur(o.total),mk("span",{text:"  sis. ALV "+eur(vatOf(+o.total))+" · "+(o.pay==="kateinen"?"KÄTEINEN":"KORTTI")+(o.fee>0?" · kuljetus "+eur(o.fee):"")+(o.discount>0?" · "+(o.discount_note||"alennus")+" −"+eur(o.discount):"")})));
   if(o.status==="uusi"){const now=new Date();
     c.append(mk("div",{class:"mut",text:"Hyväksy ja valitse "+(del?"toimitusaika":"valmistumisaika")+":"}),
-      mk("div",{class:"etas"},(o.want==="heti"?[10,15,20,30,45,60]:[0]).map(mn=>{const t=o.want==="heti"?hm(new Date(now.getTime()+mn*60e3)):o.want;return act(o.want==="heti"?mn+" min":"klo "+t.replace(":","."),()=>setOrd(o,"hyvaksytty",{eta:t}),"g")})),
+      mk("div",{class:"etas"},(o.want==="heti"?[10,15,20,30,45,60]:[0]).map(mn=>{const t=o.want==="heti"?hm(new Date(now.getTime()+mn*60e3)):(pre?pre.t:o.want);return act(o.want==="heti"?mn+" min":"Vahvista "+wantTxt(o.want),()=>setOrd(o,"hyvaksytty",{eta:t}),"g")})),
       mk("div",{class:"row"},act("Hylkää tilaus",()=>{const r=prompt("Hylkäyksen syy asiakkaalle (esim. tuote loppu, liian kaukana):","");if(r===null)return;return setOrd(o,"peruttu",{reason:r})},"o")))}
   else if(o.status==="hyvaksytty")c.append(mk("div",{class:"row"},act(del?"Lähti kuljetukseen":"Valmis noudettavaksi",()=>setOrd(o,"valmis",{notify:true}),"y"),act(del?"Toimitettu":"Noudettu",()=>setOrd(o,"luovutettu"),"o")));
   else if(o.status==="valmis")c.append(mk("div",{class:"row"},act(del?"Toimitettu":"Noudettu",()=>setOrd(o,"luovutettu"),"g")));
@@ -155,7 +157,7 @@ function vTil(m){const c=OCFG;
   const sB=act(oSound?"🔔 Äänimerkki päällä":"🔕 Ota äänimerkki käyttöön",async()=>{oSound=!oSound;ls.set("ord_sound",oSound?"1":null);if(oSound){beep();if("Notification"in window&&Notification.permission==="default")Notification.requestPermission()}render()},oSound?"o":"y");
   const wB=act(oWake?"Näyttö pysyy päällä":"Pidä näyttö päällä",async()=>{if(oWake){await oWake.release();oWake=null}else if(navigator.wakeLock){oWake=await navigator.wakeLock.request("screen");oWake.addEventListener("release",()=>{oWake=null})}else toast("Laite ei tue tätä. Säädä näytön lukitus puhelimen asetuksista.",true);render()},"o");
   m.append(mk("section",{class:"card"},mk("div",{class:"row",style:"justify-content:space-between"},mk("div",null,mk("b",{text:c.on?"🟢 Nettitilaus online":"⚪ Nettitilaus offline"}),mk("div",{class:"mut",text:"Päivittyy itsestään 10 sekunnin välein"})),mk("div",{class:"row"},sB,wB))));
-  const open=ORD.filter(o=>["uusi","hyvaksytty","valmis"].includes(o.status)).sort((a,b)=>({uusi:0,hyvaksytty:1,valmis:2}[a.status]-{uusi:0,hyvaksytty:1,valmis:2}[b.status])||new Date(a.created_at)-new Date(b.created_at));
+  const pk=o=>{const p=preOf(o.want);return p?p.d+" "+p.t:"0"},open=ORD.filter(o=>["uusi","hyvaksytty","valmis"].includes(o.status)).sort((a,b)=>(a.status==="uusi"?0:1)-(b.status==="uusi"?0:1)||pk(a).localeCompare(pk(b))||({uusi:0,hyvaksytty:1,valmis:2}[a.status]-{uusi:0,hyvaksytty:1,valmis:2}[b.status])||new Date(a.created_at)-new Date(b.created_at));
   m.append(open.length?mk("div",{class:"oq",style:"margin-top:16px"},open.map(ordCard)):mk("section",{class:"card"},mk("p",{class:"mut",text:c.on?"Ei avoimia tilauksia.":"Nettitilaus on pois päältä, joten asiakkaat eivät voi tilata. Kytke se päälle Koti-sivulta."})));
   const t=hToday(),done=ORD.filter(o=>["luovutettu","peruttu"].includes(o.status)&&hDate(o.created_at)>=addDays(t,-1)),T=onDay(live(),t),s=sumT(T);
   m.append(mk("p",{class:"mut",style:"margin:16px 4px"},"Tänään "+T.length+" tilausta · "+eur(s)+" (ALV "+eur(vatOf(s))+"). ",done.length?mk("a",{href:"#",text:oShowDone?"Piilota valmiit":"Näytä valmiit ("+done.length+")",onclick:e=>{e.preventDefault();oShowDone=!oShowDone;render()}}):null));
@@ -234,6 +236,7 @@ function vYri(m){const c=OCFG,kv=(k,v)=>mk("div",{class:"kv"},mk("span",{text:k}
   m.append(mk("section",{class:"card"},mk("h2",{text:"Tilausasetukset"}),
     mk("div",{class:"g3"},f("fee","Kuljetusmaksu €",{type:"number",step:"0.1",min:"0"}),f("min","Kuljetuksen vähimmäistilaus €",{type:"number",step:"1",min:"0"}),f("prep","Noudon valmistusaika (min)",{type:"number",min:"5"})),
     mk("div",{class:"g3"},f("dtime","Kuljetuksen toimitusaika (min)",{type:"number",min:"10"}),f("area","Toimitusalue (näkyy asiakkaalle)"),f("note","Ilmoitus tilaussivulle")),
+    mk("div",{class:"g3"},f("preDays","Ennakkotilaus päiviä eteenpäin (0 = pois)",{type:"number",min:"0",max:"7"})),
     act("Tallenna asetukset",async()=>saveCfg("Asetukset tallennettu"),"y")),
     mk("section",{class:"card"},mk("h2",{text:"Tili"}),mk("p",{class:"mut",text:"Kauppiasportaaliin ja ylläpitoon pääsee vain omistajan sähköpostilla ja salasanalla. Kirjaudu ulos, jos käytät yhteistä laitetta."}),act("Kirjaudu ulos",async()=>SB.auth.signOut(),"r")))}
 })();

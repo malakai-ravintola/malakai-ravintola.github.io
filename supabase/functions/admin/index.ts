@@ -63,17 +63,18 @@ Deno.serve(async (req) => {
       if (st === "luovutettu" || st === "valmis") up.done_at = new Date().toISOString();
       const { error } = await db.from("orders").update(up).eq("id", b.id);
       if (error) throw error;
-      const fn = String(o.name || "").split(" ")[0], del = o.kind === "kuljetus", eta = String(up.eta ?? o.eta ?? "").replace(":", ".");
+      const pm = String(o.want || "").match(/^(\d{4})-(\d{2})-(\d{2}) /), pd = pm ? ["su", "ma", "ti", "ke", "to", "pe", "la"][new Date(`${pm[1]}-${pm[2]}-${pm[3]}T12:00:00Z`).getUTCDay()] + ` ${+pm[3]}.${+pm[2]}. ` : "";
+      const fn = String(o.name || "").split(" ")[0], del = o.kind === "kuljetus", eta = pd + "klo " + String(up.eta ?? o.eta ?? "").replace(":", ".");
       const foot = "\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000";
       const eur = (n: number) => Number(n).toFixed(2).replace(".", ",") + " €";
       const items = (o.items || []).map((i: any) => `${i.q} × ${i.n}${i.opt ? " (" + i.opt + ")" : ""}`).join("\n");
       let sub = "", txt = "", html = "";
       const H = (pre: string, tag: string, title: string, body: string) => E.shell({ pre, tag, title, body, foot: E.btn(`${E.SITE}/tili.html`, "Seuraa tilausta") + E.btn("tel:+358453537000", "Soita meille", true) });
       if (st === "hyvaksytty") {
-        sub = `Tilauksesi #${o.no} on vahvistettu – ${del ? "perillä noin" : "valmiina noin"} klo ${eta}`;
-        txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on vahvistettu ja se on työn alla.\n\n${del ? `Toimitamme sen osoitteeseen ${o.address}, ${o.zip} noin klo ${eta}.` : `Tilauksesi on noudettavissa noin klo ${eta} osoitteesta Tampereentie 414, Lempäälä.`}\n\n${items}\n\nYhteensä ${eur(o.total)} (sis. ALV 13,5 % ${eur(Math.round(o.total * 13.5 / 113.5 * 100) / 100)}), maksu ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${del ? "toimitettaessa" : "noudettaessa"}.` + foot;
-        html = H(`${del ? "Perillä" : "Valmiina"} noin klo ${eta}`, "Tilaus vahvistettu", `Tilauksesi #${o.no} on työn alla, ${E.esc(fn)}!`,
-          E.p(del ? "Valmistamme tilaustasi, ja kuljettaja tuo sen sinulle." : "Valmistamme tilaustasi. Tervetuloa noutamaan!") + E.big("klo " + eta, del ? "Arvioitu toimitus" : "Valmiina noudettavaksi") + E.steps(1, del) +
+        sub = `Tilauksesi #${o.no} on vahvistettu – ${del ? "perillä noin" : "valmiina noin"} ${eta}`;
+        txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on vahvistettu ja se on työn alla.\n\n${del ? `Toimitamme sen osoitteeseen ${o.address}, ${o.zip} noin ${eta}.` : `Tilauksesi on noudettavissa noin ${eta} osoitteesta Tampereentie 414, Lempäälä.`}\n\n${items}\n\nYhteensä ${eur(o.total)} (sis. ALV 13,5 % ${eur(Math.round(o.total * 13.5 / 113.5 * 100) / 100)}), maksu ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${del ? "toimitettaessa" : "noudettaessa"}.` + foot;
+        html = H(`${del ? "Perillä" : "Valmiina"} noin ${eta}`, "Tilaus vahvistettu", `Tilauksesi #${o.no} on työn alla, ${E.esc(fn)}!`,
+          E.p(del ? "Valmistamme tilaustasi, ja kuljettaja tuo sen sinulle." : "Valmistamme tilaustasi. Tervetuloa noutamaan!") + E.big(eta, del ? "Arvioitu toimitus" : "Valmiina noudettavaksi") + E.steps(1, del) +
           E.infoBox([["Tilausnumero", "#" + o.no], [del ? "Toimitusosoite" : "Nouto", del ? `${o.address}, ${o.zip} ${o.city || ""}` : "Tampereentie 414, Lempäälä"]]) + E.orderSummary(o));
       } else if (st === "peruttu") {
         sub = `Tilauksesi #${o.no} on valitettavasti peruttu`;

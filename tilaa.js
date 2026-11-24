@@ -116,7 +116,7 @@ function draw(){
   const T=totals(),n=cart.reduce((a,x)=>a+x.q,0);
   $("#odSum").innerHTML=`<div><span>Tuotteet</span><span>${eur(T.s)}</span></div>`+(kind()==="kuljetus"?`<div><span>Kuljetus</span><span>${eur(T.fee)}</span></div>`:"")+(T.d?`<div class="disc"><span>${FIRST?"Uuden asiakkaan etu":"Kanta-asiakasetu"} −${T.pct} %</span><span>−${eur(T.d)}</span></div>`:"")+`<div class="tot"><span>Yhteensä</span><span>${eur(T.t)}</span></div>`+`<div class="vat"><span>Veroton hinta</span><span>${eur(T.t-vat(T.t))}</span></div><div class="vat"><span>ALV 13,5 % (sisältyy hintaan)</span><span>${eur(vat(T.t))}</span></div>`;
   upsell();$("#odBarN").textContent=n;$("#odBarT").textContent=eur(T.t);$("#odBar").hidden=!n;
-  const send=$("#odSend"),why=!CFG?"Ladataan…":!CFG.on?"Nettitilaus ei ole käytössä":!CFG.isOpen?"Olemme kiinni":!n?"Ostoskori on tyhjä":(kind()==="kuljetus"&&T.s<CFG.min?"Vähimmäistilaus kuljetukseen "+eur(CFG.min):"");
+  const send=$("#odSend"),why=!CFG?"Ladataan…":!CFG.on?"Nettitilaus ei ole käytössä":!$("#odWhen").value?"Ei vapaita aikoja":!n?"Ostoskori on tyhjä":(kind()==="kuljetus"&&T.s<CFG.min?"Vähimmäistilaus kuljetukseen "+eur(CFG.min):"");
   send.disabled=!!why;send.textContent=why||"Lähetä tilaus · "+eur(T.t)}
 $("#odLines").addEventListener("click",e=>{const b=e.target.closest("button[data-i]");if(!b)return;const x=cart[+b.dataset.i];x.q+=+b.dataset.d;if(x.q<1)cart.splice(+b.dataset.i,1);save();draw()});
 $("#odBar").onclick=()=>{$("#odCart").classList.add("open");setTimeout(()=>$("#odClose").focus(),30)};
@@ -124,14 +124,21 @@ $("#odClose").onclick=()=>$("#odCart").classList.remove("open");
 $("#odCart").addEventListener("click",e=>{if(e.target.id==="odCart")$("#odCart").classList.remove("open")});
 
 // ---------- Toimitustapa ja aika
-function when(){const sel=$("#odWhen"),k=kind(),c=CFG;if(!c||c.open==null){sel.innerHTML='<option value="heti">Mahdollisimman pian</option>';return}
-  const lead=k==="kuljetus"?c.dtime:c.prep,first=Math.ceil((c.now+lead+5)/15)*15,cur=sel.value;let h=`<option value="heti">Mahdollisimman pian (noin ${lead} min)</option>`;
-  for(let m=Math.max(first,c.open+lead);m<=c.close;m+=15)h+=`<option value="${clock(m)}">Tänään klo ${clock(m).replace(":",".")}</option>`;
-  sel.innerHTML=h;if([...sel.options].some(o=>o.value===cur))sel.value=cur}
+const WDF=["Sunnuntai","Maanantai","Tiistai","Keskiviikko","Torstai","Perjantai","Lauantai"];
+const dLabel=(d,i)=>i===1?"Huomenna":WDF[new Date(d+"T12:00:00Z").getUTCDay()]+" "+(+d.slice(8))+"."+(+d.slice(5,7))+".";
+function when(){const sel=$("#odWhen"),k=kind(),c=CFG;if(!c||!c.days){sel.innerHTML='<option value="heti">Mahdollisimman pian</option>';return}
+  const lead=k==="kuljetus"?c.dtime:c.prep,cur=sel.value;let h="";
+  c.days.forEach((d,i)=>{if(d.open==null)return;let m0=i===0?Math.max(Math.ceil((c.now+lead+5)/15)*15,d.open+lead):d.open+lead,opts="";
+    if(i===0&&c.isOpen)opts+=`<option value="heti">Mahdollisimman pian (noin ${lead} min)</option>`;
+    for(let m=m0;m<=d.close;m+=15)opts+=`<option value="${i===0?clock(m):d.date+" "+clock(m)}">${i===0?"Tänään":dLabel(d.date,i)} klo ${clock(m).replace(":",".")}</option>`;
+    if(opts)h+=`<optgroup label="${i===0?"Tänään":(i===1?"Huomenna – ennakkotilaus":dLabel(d.date,i)+" – ennakkotilaus")}">${opts}</optgroup>`});
+  sel.innerHTML=h||'<option value="">Ei vapaita aikoja</option>';if([...sel.options].some(o=>o.value===cur))sel.value=cur;
+  const pre=/^\d{4}-/.test(sel.value);$("#odPre").hidden=!pre;if(pre)$("#odPre").textContent="📅 Ennakkotilaus: "+sel.options[sel.selectedIndex].text+". Saat vahvistuksen sähköpostiin.";}
 function kindUi(){const k=kind();$("#odAddr").hidden=k!=="kuljetus";$$("#odAddr input").forEach(i=>i.required=k==="kuljetus");
   $("#odPayInfo").textContent=k==="kuljetus"?"Maksat kuljettajalle, kun ruoka tuodaan.":"Maksat kassalla, kun noudat tilauksen.";$("#odKindInfo").textContent=!CFG?"":k==="kuljetus"?`Kuljetus ${eur(CFG.fee)} · vähimmäistilaus ${eur(CFG.min)}${CFG.area?" · Toimitusalue: "+CFG.area:""} · Maksu toimitettaessa.`:"Nouto: Tampereentie 414, Lempäälä. Maksu noudettaessa.";
   when();draw()}
 $$('input[name="kind"]').forEach(i=>i.onchange=kindUi);
+$("#odWhen").addEventListener("change",()=>{when();draw()});
 let fT=null;async function checkFirst(){const f=$("#odForm"),e=f.elements.e.value.trim(),p=f.elements.p.value.trim();
   if(!/^\S+@\S+\.\S+$/.test(e)||p.replace(/\D/g,"").length<7){FIRST=false;LOY=null;stamps();draw();return}
   try{const r=await call({action:"first",e,p});FIRST=!!r.first;if(CFG)CFG.firstPct=r.pct;LOY=r.every>0&&r.loyPct>0?{n:+r.count||0,every:+r.every,pct:+r.loyPct,now:!!r.loy}:null}catch(x){FIRST=false;LOY=null}
@@ -155,7 +162,7 @@ async function load(){
   try{CFG=await call({action:"order_cfg"})}catch(e){CFG={on:false,isOpen:false,delivery:false,fee:0,min:0}}
   const st=$("#odState"),note=$("#odNote");
   if(!CFG.on){st.textContent="Nettitilaus avautuu pian";note.hidden=false;note.className="od-note bad";note.innerHTML='Nettitilaus ei ole juuri nyt käytössä. Tilaa soittamalla <a href="tel:+358453537000">045 353 7000</a>.'}
-  else if(!CFG.isOpen){st.textContent="Kiinni juuri nyt";note.hidden=false;note.className="od-note bad";note.innerHTML=CFG.open!=null&&CFG.now<CFG.open?`Avaamme tänään klo ${clock(CFG.open).replace(":",".")}. Voit koota ostoskorin valmiiksi.`:"Olemme tältä päivältä kiinni. Tervetuloa tilaamaan huomenna!"}
+  else if(!CFG.isOpen){st.textContent=CFG.preDays>0?"Kiinni nyt · ennakkotilaus auki":"Kiinni juuri nyt";note.hidden=false;note.className="od-note bad";note.className="od-note";note.innerHTML=CFG.open!=null&&CFG.now<CFG.open?`Avaamme tänään klo ${clock(CFG.open).replace(":",".")}. Voit jo nyt tehdä <b>ennakkotilauksen</b> – valitse aika alta.`:"Olemme tältä päivältä kiinni. Voit tehdä <b>ennakkotilauksen</b> huomiselle – valitse aika alta."}
   else{st.textContent=CFG.delivery?"Nouto ja kotiinkuljetus":"Nouto";if(CFG.note){note.hidden=false;note.className="od-note";note.textContent=CFG.note}}
   const d=$('input[name="kind"][value="kuljetus"]');d.disabled=!CFG.delivery;$("#odDelLab").title=CFG.delivery?"":"Kotiinkuljetus ei ole juuri nyt käytössä";
   if(!CFG.delivery)$('input[name="kind"][value="nouto"]').checked=true;
@@ -171,6 +178,7 @@ $("#odForm").onsubmit=async e=>{e.preventDefault();const f=e.target,send=$("#odS
   try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,pay:($('input[name="pay"]:checked')||{}).value||"kortti",total:totals().t,
       items:cart.map(x=>({c:x.c,n:x.n,s:x.s,o:x.o,t:x.t,x:x.x,meal:x.meal,q:x.q,m:x.m}))});
     $("#odDoneT").innerHTML=`Tilausnumerosi on <b>#${r.no}</b>.${r.discount?" Sait uuden asiakkaan alennuksen "+eur(r.discount)+".":""} Lähetimme vahvistuksen osoitteeseen ${esc(v("e"))}.<br><br>Saat toisen viestin, kun olemme hyväksyneet tilauksen ja ${k==="kuljetus"?"arvioineet toimitusajan":"tiedämme valmistumisajan"}. Kiireellisissä asioissa soita 045 353 7000.`;
+    try{const im=x=>{const f=IMG[x.c==="Päivän pizza"?x.n:x.n]||(x.c==="Wings"?"wings":"");return f?T+(f.includes(".")?f:f+".webp"):""};ls.set("mk_last",{no:r.no,date:new Date().toISOString(),total:r.total,name:v("n").split(" ")[0],items:cart.filter(x=>x.c!=="Päivän pizza").map(x=>({...x,img:im(x)}))})}catch(e){}
     cart=[];save();draw();$("#odCart").classList.remove("open");$("#odDone").hidden=false}
   catch(x){if(x.j&&x.j.total){await checkFirst();alert("Hinta päivittyi: "+eur(x.j.total)+". Tarkista summa ja lähetä uudelleen.")}else alert(x.message);draw()}};
 

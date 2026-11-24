@@ -182,3 +182,6 @@
 .od-st-r i{width:24px;height:24px;border-radius:50%;border:1.5px dashed #555;display:grid;place-items:center;font:800 .7rem Inter,sans-serif;font-style:normal;color:#111}
 .od-st-r i.on{background:var(--oy);border:0}.od-st-r i.gift{border-color:var(--oy);color:var(--oy)}.od-st-r i.gift.on{color:#111}
 .od-promo span b{font:800 .86rem Inter,sans-serif!important;white-space:nowrap}
+
+.od-pre{margin:8px 0 0;padding:10px 12px;border-radius:10px;background:rgba(227,165,28,.12);border:1px solid rgba(227,165,28,.5);color:#fff;font-weight:600;font-size:.88rem}
+#odWhen optgroup{color:#E3A51C;font-weight:700}#odWhen option{color:#fff}

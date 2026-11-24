@@ -25,6 +25,7 @@ async function load(){
     SB.from("customers").select("orders,spent,first_order").maybeSingle(),pub({action:"order_cfg"}).catch(()=>null)]);
   ORD=o.error?[]:o.data;CUS=c.data||null;CFG=g||CFG||{};
   const me=USER.user_metadata||{};ls.set("mk_me",{...(ls.get("mk_me")||{}),n:me.name||"",p:me.phone||"",e:USER.email,a:me.address||"",z:me.zip||"",ci:me.city||"Lempäälä"});
+  try{const last=ORD.find(o=>o.status!=="peruttu"&&(o.items||[]).some(i=>i.c!=="Päivän pizza"));if(last)ls.set("mk_last",{no:last.no,date:last.created_at,total:last.total,name:(USER.user_metadata?.name||"").split(" ")[0],items:(last.items||[]).filter(i=>i.c!=="Päivän pizza").map(i=>({...toCart(i),img:IMGF(i.n,i.c)}))});else localStorage.removeItem("mk_last")}catch(e){}
   render();clearInterval(poll);poll=setInterval(async()=>{if(document.hidden||!USER)return;const r=await SB.from("orders").select("id,status,eta,reason").in("status",["uusi","hyvaksytty","valmis"]);
     const open=(ORD||[]).filter(x=>["uusi","hyvaksytty","valmis"].includes(x.status));if(!open.length&&!(r.data||[]).length)return;
     const fresh=await SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city").order("created_at",{ascending:false}).limit(60);if(!fresh.error){ORD=fresh.data;render()}},20000)}
@@ -67,7 +68,7 @@ function vReset(){$("#acH").innerHTML="Uusi <em>salasana</em>";$("#acSub").textC
 
 function vTop(){const nm=USER.user_metadata?.name||"";const ini=(nm||USER.email).split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
   M.append(mk("div",{class:"ac-card ac-top"},mk("span",{class:"ac-av",text:ini}),mk("div",null,mk("b",{text:nm||USER.email}),mk("small",{text:USER.email+(CUS?.first_order?" · asiakkaana "+fdt(CUS.first_order)+" alkaen":"")})),
-    mk("div",{class:"ac-quick"},mk("a",{class:"ac-btn",href:"tilaa.html",text:"Tilaa nyt"}),mk("button",{class:"ac-btn o",text:"Kirjaudu ulos",onclick:async()=>{clearInterval(poll);await SB.auth.signOut();toast("Kirjauduit ulos")}}))))}
+    mk("div",{class:"ac-quick"},mk("a",{class:"ac-btn",href:"tilaa.html",text:"Tilaa nyt"}),mk("button",{class:"ac-btn o",text:"Kirjaudu ulos",onclick:async()=>{clearInterval(poll);try{localStorage.removeItem("mk_last")}catch(e){}await SB.auth.signOut();toast("Kirjauduit ulos")}}))))}
 
 const STEP={uusi:0,hyvaksytty:1,valmis:2,luovutettu:3};
 function vLive(){const act=ORD.filter(o=>["uusi","hyvaksytty","valmis"].includes(o.status));
@@ -99,6 +100,8 @@ function vPerks(){const fp=+(CFG?.firstPct??15),ev=+(CFG?.loyEvery??10),pc=+(CFG
   if(saved>0)c.append(mk("div",{class:"ac-kv"},mk("span",{text:"Olet säästänyt etuina yhteensä"}),mk("b",{style:"color:var(--ay)",text:eur(saved)})));
   return c}
 
+const IMGM={"Tropicana":"tropicana","Kebab Pizza":"kebab","Mexicana":"mexicana","Americano":"americano","Mamma Mia":"mammamia","Julia":"julia","Opera Special":"opera","Barbeque":"bbq","Margarita Mozzarella":"margarita","Oma valinta":"oma","Kebab ranskalaisilla":"kebab-ranskalaiset","Rullakebab":"kebabrulla","Kana ranskalaisilla":"kana-ranskalaiset","Kebabsalaatti":"kebabsalaatti","Iskender":"iskender","Kanasalaatti":"kanasalaatti","Kana riisillä":"kana-riisi","Malakai Special":"malakai-special"};
+const IMGF=(n,c)=>{const k=IMGM[n]||(/rulla$/i.test(n)?"rulla":/^Sticky Fingers/.test(n)?"sticky":/^Hot ?wings/i.test(n)?"wings":/burgeri$/i.test(n)?"burgeri":"");return k?"media/tilaa/"+k+".webp":""};
 // Tilaa uudelleen: muunnetaan tallennettu rivi takaisin ostoskorimuotoon
 function toCart(i){const parts=String(i.opt||"").split(" · "),x={c:i.c,n:i.n,q:+i.q||1,s:"n",m:i.m||""};
   parts.forEach(p=>{if(p==="Perhe")x.s="p";else if(/^Kastike /.test(p))x.o=p.slice(8);else if(/^Lisätäytteet: /.test(p))x.x=p.slice(14).split(", ");else if(/^Ateria/.test(p))x.meal=true});

@@ -107,6 +107,9 @@ function priceLine(S: any, day: string, x: any, out: string[] = []) {
   if (c === "Burgerit" && x.meal) { unit += MEAL; opt.push("Ateria: ranskalaiset + 0,33 l juoma"); }
   return { c, n, q, unit: Math.round(unit * 100) / 100, opt: opt.join(" · "), m: s(x.m, 120) };
 }
+const WDF = ["sunnuntaina", "maanantaina", "tiistaina", "keskiviikkona", "torstaina", "perjantaina", "lauantaina"];
+const whenTxt = (w: string) => { if (w === "heti") return "mahdollisimman pian"; const m = w.match(/^(\d{4})-(\d{2})-(\d{2}) (.+)$/);
+  if (!m) return "tänään klo " + w.replace(":", "."); const d = new Date(`${m[1]}-${m[2]}-${m[3]}T12:00:00Z`); return `${WDF[d.getUTCDay()]} ${+m[3]}.${+m[2]}. klo ${m[4].replace(":", ".")} (ennakkotilaus)`; };
 const lines = (items: any[]) => items.map((i) => `${i.q} × ${i.n}${i.opt ? " (" + i.opt + ")" : ""}  ${eur(i.unit * i.q)}${i.m ? "\n    Lisätoive: " + i.m : ""}`).join("\n");
 async function orderCount(email: string, phone: string) {
   const e = email.toLowerCase().trim(), p = norm(phone);
@@ -161,13 +164,18 @@ async function orderCfg() {
   const [S, c] = await Promise.all([site(), cfg()]), now = hel(), h = S.hours?.[now.day];
   const open = h && h[0] ? hm(h[0]) : null, close = h && h[1] ? hm(h[1]) : null;
   const isOpen = open !== null && close !== null && now.min >= open && now.min <= close - 15;
-  return { on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
+  const pre = c.preDays === 0 ? 0 : Math.min(7, +c.preDays || 2), t0 = today();
+  const days = Array.from({ length: pre + 1 }, (_, i) => {
+    const d = new Date(t0 + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + i); const date = d.toISOString().slice(0, 10);
+    const hh = S.hours?.[["su", "ma", "ti", "ke", "to", "pe", "la"][d.getUTCDay()]];
+    return { date, open: hh && hh[0] ? hm(hh[0]) : null, close: hh && hh[1] ? hm(hh[1]) : null };
+  });
+  return { days, preDays: pre, on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
     soldout: Array.isArray(c.soldout) ? c.soldout : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, loyEvery: loyOf(c).every, loyPct: loyOf(c).pct, day: now.day, now: now.min, open, close, isOpen };
 }
 async function placeOrder(b: any) {
   const C = await orderCfg(), S = await site();
   if (!C.on) return j({ error: "Nettitilaus ei ole juuri nyt käytössä. Soita 045 353 7000." }, 400);
-  if (!C.isOpen) return j({ error: "Olemme kiinni tai sulkemassa. Tilaa aukioloaikana tai soita 045 353 7000." }, 400);
   const kind = b.kind === "kuljetus" ? "kuljetus" : "nouto";
   if (kind === "kuljetus" && !C.delivery) return j({ error: "Kotiinkuljetus ei ole juuri nyt käytössä. Valitse nouto." }, 400);
   const o: any = { name: s(b.n, 80), phone: norm(s(b.p, 30)), email: s(b.e, 120).toLowerCase(), kind, note: s(b.m, 400), pay: b.pay === "kateinen" ? "kateinen" : "kortti",
@@ -182,10 +190,15 @@ async function placeOrder(b: any) {
   const fee = kind === "kuljetus" ? C.fee : 0;
   if (kind === "kuljetus" && subtotal < C.min) return j({ error: `Kotiinkuljetuksen vähimmäistilaus on ${eur(C.min)}` }, 400);
   let want = "heti";
-  if (b.w && b.w !== "heti") {
-    const w = hm(s(b.w, 5)), lead = kind === "kuljetus" ? C.dtime : C.prep;
-    if (!/^\d{2}:\d{2}$/.test(s(b.w, 5)) || w < C.now + lead - 5 || w > (C.close ?? 0)) return j({ error: "Valitse toinen aika (aikaisintaan " + clock(Math.ceil((C.now + lead) / 5) * 5) + ")" }, 400);
-    want = clock(w);
+  const lead = kind === "kuljetus" ? C.dtime : C.prep, wv = s(b.w, 16) || "heti";
+  if (wv === "heti") {
+    if (!C.isOpen) return j({ error: "Olemme juuri nyt kiinni. Valitse ennakkotilaukselle aika tai soita 045 353 7000." }, 400);
+  } else {
+    const m = wv.match(/^(?:(\d{4}-\d{2}-\d{2}) )?(\d{2}:\d{2})$/);
+    const di = m ? (m[1] ? C.days.findIndex((d) => d.date === m[1]) : 0) : -1, D0 = di >= 0 ? C.days[di] : null, w = m ? hm(m[2]) : -1;
+    if (!m || !D0 || D0.open === null || (m[1] && di === 0) || w < D0.open + lead - 5 || w > (D0.close ?? 0) || (di === 0 && w < C.now + lead - 5))
+      return j({ error: "Valittu aika ei ole enää vapaana. Valitse toinen aika." }, 400);
+    want = (di > 0 ? D0.date + " " : "") + clock(w);
   }
   const D = discountFor(await orderCount(o.email, o.phone), C.firstPct, { every: C.loyEvery, pct: C.loyPct });
   const discount = D.pct ? Math.round((subtotal + fee) * D.pct) / 100 : 0;
@@ -194,7 +207,7 @@ async function placeOrder(b: any) {
   if (typeof b.total === "number" && Math.abs(b.total - o.total) > 0.01) return j({ error: "Hinnat ovat muuttuneet. Tarkista ostoskori ja lähetä uudelleen.", total: o.total }, 409);
   const { data: row, error } = await db.from("orders").insert(o).select("id,no").single();
   if (error) throw error;
-  const when = want === "heti" ? "mahdollisimman pian" : "klo " + want.replace(":", ".");
+  const when = whenTxt(want);
   const kindTxt = kind === "kuljetus" ? `Kotiinkuljetus: ${o.address}, ${o.zip} ${o.city || ""}` : "Nouto ravintolasta";
   const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + (discount ? `\n${o.discount_note}: -${eur(discount)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksutapa: ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
   await saveCustomer(o).catch(() => {});
