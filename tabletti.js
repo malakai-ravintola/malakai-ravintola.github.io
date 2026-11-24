@@ -118,13 +118,20 @@ function card(o){const del=o.kind==="kuljetus",pre=preOf(o.want);
       mk("div",{class:"tot"},eur(o.total),mk("span",{text:(o.pay==="kateinen"?"KÄTEINEN":"KORTTI")+(del?" · kuljettajalle":" · kassalla")}))));
   if(o.status==="uusi"){const now=Date.now();
     c.append(mk("div",{class:"acts"},mk("p",{text:"Hyväksy – "+(del?"toimitus":"valmis")+" noin:"}),
-      o.want==="heti"?mk("div",{class:"eta"},[10,15,20,30,45,60].map(mn=>btn(mn+" min",()=>setOrd(o,"hyvaksytty",{eta:hm(now+mn*6e4)}),"g")))
+      o.want==="heti"?etaPick(o,del)
         :btn("Hyväksy "+wantTxt(o.want),()=>setOrd(o,"hyvaksytty",{eta:pre?pre.t:o.want}),"g wide"),
       btn("Hylkää tilaus",()=>rejectSheet(o),"x")))}
   else if(o.status==="hyvaksytty")c.append(mk("div",{class:"acts"},mk("div",{class:"row2"},btn(del?"Lähti kuljetukseen":"Valmis noudettavaksi",()=>setOrd(o,"valmis",{notify:true}),"y"),btn(del?"Toimitettu":"Noudettu",()=>setOrd(o,"luovutettu"),"o"))));
   else if(o.status==="valmis")c.append(mk("div",{class:"acts"},btn(del?"Toimitettu":"Noudettu",()=>setOrd(o,"luovutettu"),"g wide")));
   else c.append(mk("div",{class:"st "+(o.status==="peruttu"?"no":"ok"),text:o.status==="peruttu"?"Hylätty"+(o.reason?": "+o.reason:""):(del?"Toimitettu ":"Noudettu ")+(o.done_at?hm(o.done_at):"")}));
   return c}
+const ETA={};
+function etaPick(o,del){let v=ETA[o.id]??(del?Math.min(60,+CFG.dtime||45):Math.min(60,+CFG.prep||20));v=Math.max(5,Math.min(60,Math.round(v/5)*5));
+  const val=mk("b",{class:"ev"}),clk=mk("small"),ok=btn("",()=>setOrd(o,"hyvaksytty",{eta:hm(Date.now()+v*6e4)}),"g wide");
+  const upd=()=>{ETA[o.id]=v;val.textContent=v+" min";clk.textContent=(del?"Perillä":"Valmis")+" noin klo "+hm(Date.now()+v*6e4).replace(":",".");ok.textContent="Hyväksy · "+v+" min";mi.disabled=v<=5;pl.disabled=v>=60};
+  const mi=mk("button",{class:"es",text:"−5",onclick:()=>{v=Math.max(5,v-5);upd()}}),pl=mk("button",{class:"es",text:"+5",onclick:()=>{v=Math.min(60,v+5);upd()}});
+  const quick=mk("div",{class:"eq"},[10,15,20,30,45,60].map(n=>mk("button",{text:n+"",onclick:()=>{v=n;upd()}})));
+  upd();return mk("div",null,mk("div",{class:"ep"},mi,mk("div",{class:"ec"},val,clk),pl),quick,ok)}
 function rejectSheet(o){const ta=mk("textarea",{placeholder:"Syy asiakkaalle"});
   const close=()=>s.remove();
   const s=mk("div",{class:"sheet",onclick:e=>{if(e.target===s)close()}},mk("div",null,mk("h3",{text:"Hylkää tilaus #"+o.no}),mk("p",{text:"Asiakas saa sähköpostin, jossa syy kerrotaan."}),
