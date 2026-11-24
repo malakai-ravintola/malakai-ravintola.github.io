@@ -99,3 +99,4 @@
 .od-sum .disc{color:var(--oy);font-weight:700}
 .od-first{margin:12px 0 0;padding:10px 12px;border:1px solid var(--oy);border-radius:10px;color:var(--oy);font-weight:700;font-size:.9rem}
 .od-pay-l{font-size:.82rem;color:var(--om);margin-top:12px}.od-pay{margin-top:4px!important}
+.od-it.out b,.od-day.out b{text-decoration:line-through;opacity:.55}.od-it.out em,.od-day.out em{opacity:.4}.od-out{background:#444;color:#fff;font:800 .7rem Inter,sans-serif;letter-spacing:.1em;padding:4px 8px;border-radius:999px}

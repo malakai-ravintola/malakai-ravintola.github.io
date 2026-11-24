@@ -156,8 +156,8 @@ input.ovbad{border-color:var(--bad)!important;color:var(--bad);background:rgba(2
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1795515358"></script>
-<script src="config.js?v=1795515358"></script>
+<script src="data.js?v=1795515741"></script>
+<script src="config.js?v=1795515741"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -410,6 +410,13 @@ function vOrd(m){m.append(mk("h2",{text:"Tilaukset"}));if(sbGate(m))return;
     mk("div",{class:"g3"},f("dtime","Kuljetuksen toimitusaika (min)",{type:"number",min:"10"}),f("area","Toimitusalue (näkyy asiakkaalle)"),f("note","Ilmoitus tilaussivulle (valinnainen)")),
     mk("div",{class:"g3"},f("firstPct","Uuden asiakkaan alennus % (0 = pois)",{type:"number",min:"0",max:"50"})),
     act("Tallenna asetukset",()=>saveCfg())));
+  // Loppuneet tuotteet
+  const out=new Set(c.soldout||[]),M=S.menu||{},sq=mk("input",{type:"search",placeholder:"Hae tuotetta…"}),list=mk("div");
+  const drawOut=()=>{const v=sq.value.trim().toLowerCase();list.textContent="";Object.entries(M).forEach(([cat,o])=>{const its=o.items.filter(i=>(+i[2]>0||i[0]==="Oma valinta")&&(!v||i[0].toLowerCase().includes(v)));if(!its.length)return;
+    list.append(mk("b",{text:cat,style:"display:block;margin:10px 0 4px;color:var(--y)"}),mk("div",{class:"osw"},its.map(i=>{const k=cat+"|"+i[0],on=out.has(k);return mk("button",{class:on?"off":"o",text:(on?"LOPPU · ":"")+i[0],onclick:async()=>{if(on)out.delete(k);else out.add(k);OCFG={...OCFG,soldout:[...out]};try{await saveCfg();toast(on?i[0]+" taas myynnissä":i[0]+" merkitty loppuneeksi")}catch(e){toast(e.message,true)}}})})))})};
+  sq.oninput=drawOut;drawOut();
+  m.append(mk("details",{class:"card",open:out.size?true:null},mk("summary",{text:"Loppuneet tuotteet"+(out.size?" ("+out.size+" loppu)":"")}),mk("p",{class:"muted",text:"Paina tuotetta, niin se merkitään loppuneeksi eikä sitä voi tilata netissä. Paina uudelleen, kun tuotetta taas on."}),sq,list,
+    out.size?act("Kaikki taas myynnissä",async()=>{OCFG={...OCFG,soldout:[]};await saveCfg()},"o"):null));
   m.append(mk("p",{class:"muted"},"Tilaussivu asiakkaille: ",mk("a",{href:"tilaa.html",target:"_blank",text:"malakairavintola.fi/tilaa.html"})))}
 if(location.hash==="#tilaukset")tab="Tilaukset";
 

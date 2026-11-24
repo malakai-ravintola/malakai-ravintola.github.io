@@ -76,8 +76,9 @@ const hm = (t: string) => { const [a, b] = String(t || "").split(":"); return +a
 const clock = (m: number) => String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
 async function cfg() { const { data } = await db.from("settings").select("value").eq("key", "orders").maybeSingle(); return data?.value ?? { on: false }; }
 function needsSauce(cat: any, it: any[]) { return /Med tai Hot/i.test((cat.note || "") + " " + (it[1] || "")); }
-function priceLine(S: any, day: string, x: any) {
+function priceLine(S: any, day: string, x: any, out: string[] = []) {
   const q = Math.min(Math.max(Math.round(+x.q || 1), 1), 20), n = s(x.n, 80), c = s(x.c, 40);
+  if (out.includes((c === "Päivän pizza" ? "Pizza" : c) + "|" + n)) throw new Error(`${n} on valitettavasti loppu. Poista se ostoskorista.`);
   if (c === "Päivän pizza") {
     if (!S.daily?.[day]?.name || S.daily[day].name !== n) throw new Error("Päivän pizza on vaihtunut. Päivitä sivu.");
     return { c, n, q, unit: +S.dailyPrice, opt: "Päivän pizza", m: s(x.m, 120) };
@@ -144,7 +145,7 @@ async function orderCfg() {
   const open = h && h[0] ? hm(h[0]) : null, close = h && h[1] ? hm(h[1]) : null;
   const isOpen = open !== null && close !== null && now.min >= open && now.min <= close - 15;
   return { on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
-    firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, day: now.day, now: now.min, open, close, isOpen };
+    soldout: Array.isArray(c.soldout) ? c.soldout : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, day: now.day, now: now.min, open, close, isOpen };
 }
 async function placeOrder(b: any) {
   const C = await orderCfg(), S = await site();
@@ -159,7 +160,7 @@ async function placeOrder(b: any) {
   const raw = Array.isArray(b.items) ? b.items.slice(0, 40) : [];
   if (!raw.length) return j({ error: "Ostoskori on tyhjä" }, 400);
   let items;
-  try { items = raw.map((x: any) => priceLine(S, C.day, x)); } catch (e) { return j({ error: (e as Error).message }, 400); }
+  try { items = raw.map((x: any) => priceLine(S, C.day, x, C.soldout)); } catch (e) { return j({ error: (e as Error).message }, 400); }
   const subtotal = Math.round(items.reduce((a: number, i: any) => a + i.unit * i.q, 0) * 100) / 100;
   const fee = kind === "kuljetus" ? C.fee : 0;
   if (kind === "kuljetus" && subtotal < C.min) return j({ error: `Kotiinkuljetuksen vähimmäistilaus on ${eur(C.min)}` }, 400);
