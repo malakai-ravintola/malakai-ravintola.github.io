@@ -58,6 +58,7 @@ if(S.dailyPrice)$$(".dp").forEach(e=>e.textContent=f(S.dailyPrice));
 
 // --- Yläpalkki, valikko
 const tb=$("#topbar");if(tb){const sc=()=>tb.classList.toggle("solid",scrollY>40||document.body.dataset.solid);addEventListener("scroll",sc,{passive:true});sc()}
+try{const k=Object.keys(localStorage).find(k=>/^sb-.*-auth-token$/.test(k));const a=document.getElementById("acc");if(a&&k&&JSON.parse(localStorage.getItem(k)||"null")){a.classList.add("in");a.setAttribute("aria-label","Oma tili (kirjautunut)")}}catch(e){}
 const bg=$("#burger"),nav=$("#nav");if(bg){bg.onclick=()=>{const o=nav.classList.toggle("open");bg.setAttribute("aria-expanded",o)};nav.addEventListener("click",e=>{if(e.target.tagName==="A")nav.classList.remove("open")})}
 
 // --- Kielenvaihto FI/EN

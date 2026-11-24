@@ -1,0 +1,71 @@
+/* Asiakkaan oma tili */
+.acc-page{--ay:#E3A51C;--ar:#B3121F;--ar2:#D11F2E;--ab:#121212;--al:#262626;--am:#BDBDBD;--ag:#3FBF6F}
+.acc-page .bar{display:none!important}
+.ac{padding-top:110px;min-height:70vh}
+.ac-hero{padding:26px 0 8px!important}
+.ac-hero h1{font:500 clamp(2.4rem,7vw,4rem)/1.05 "Playfair Display",Georgia,serif!important;text-transform:none!important;letter-spacing:0!important;margin:.15em 0 .2em}
+.ac-hero h1 em{color:var(--ay);font-style:italic}
+.ac-sub{color:var(--am);margin:0;max-width:620px}
+.ac-body{padding-top:14px;padding-bottom:80px;display:grid;gap:16px}
+.ac-mut{color:var(--am)}
+.ac-card{background:var(--ab);border:1px solid var(--al);border-radius:20px;padding:20px}
+.ac-card h2{font:500 1.6rem/1.15 "Playfair Display",Georgia,serif!important;text-transform:none!important;letter-spacing:0!important;margin:0 0 12px!important}
+.ac-card h2 em{color:var(--ay);font-style:italic}
+.ac-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:820px){.ac-grid{grid-template-columns:1fr}}
+/* Lomakkeet */
+.ac-auth{max-width:460px;width:100%}
+.ac-tabs{display:grid;grid-template-columns:1fr 1fr;background:#0a0a0a;border:1px solid var(--al);border-radius:999px;padding:4px;margin-bottom:16px}
+.ac-tabs button{background:none;border:0;color:var(--am);border-radius:999px;padding:10px;font:700 .92rem Inter,sans-serif;cursor:pointer}
+.ac-tabs button.on{background:var(--ay);color:#111}
+.ac label{display:grid;gap:5px;font-size:.84rem;color:var(--am);margin:0 0 12px}
+.ac input:not([type=checkbox]){width:100%;background:#000;color:#fff;border:1px solid #333;border-radius:12px;padding:12px;font:inherit;font-size:16px}
+.ac input:focus{outline:2px solid var(--ay);border-color:var(--ay)}
+.ac label.ck{display:flex;align-items:flex-start;gap:10px;color:#ddd;font-size:.86rem}.ac label.ck input{width:20px;height:20px;accent-color:var(--ay);flex:none;margin-top:1px}
+.ac label.ck a{color:var(--ay)}
+.ac-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;padding:13px 20px;font:700 .95rem Inter,sans-serif;cursor:pointer;text-decoration:none;background:var(--ar);color:#fff}
+.ac-btn:hover{background:var(--ar2)}.ac-btn:disabled{opacity:.5;cursor:not-allowed}
+.ac-btn.w{width:100%}.ac-btn.y{background:var(--ay);color:#111}.ac-btn.y:hover{background:#F0B732}
+.ac-btn.o{background:none;border:1px solid #444;color:#fff}.ac-btn.o:hover{border-color:var(--ay);color:var(--ay)}
+.ac-link{background:none;border:0;color:var(--ay);font:600 .88rem Inter,sans-serif;cursor:pointer;padding:6px 0;text-decoration:underline}
+.ac-msg{padding:12px 14px;border-radius:12px;font-size:.9rem;margin:0 0 12px;border:1px solid rgba(227,165,28,.5);background:rgba(227,165,28,.1);color:#fff}
+.ac-msg.bad{border-color:#7a2a2a;background:rgba(179,18,31,.15)}
+/* Yläosa kirjautuneena */
+.ac-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.ac-av{width:58px;height:58px;border-radius:50%;background:var(--ay);color:#111;display:grid;place-items:center;font:800 1.3rem Inter,sans-serif;flex:none}
+.ac-top div{flex:1;min-width:180px}.ac-top b{display:block;font-size:1.15rem}.ac-top small{color:var(--am)}
+.ac-quick{display:flex;gap:8px;flex-wrap:wrap}
+/* Aktiivinen tilaus */
+.ac-live{border-color:rgba(227,165,28,.6);background:linear-gradient(135deg,rgba(227,165,28,.12),rgba(227,165,28,.02))}
+.ac-live h3{margin:0 0 4px;font:800 1.15rem Inter,sans-serif;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ac-live .eta{font:800 1.6rem Inter,sans-serif;color:var(--ay);margin:6px 0 2px}
+.ac-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0 6px}
+.ac-steps div{text-align:center;font-size:.74rem;color:var(--am)}
+.ac-steps i{display:block;height:6px;border-radius:3px;background:#333;margin-bottom:6px}
+.ac-steps .on i{background:var(--ay)}.ac-steps .on{color:#fff;font-weight:700}
+.ac-pill{display:inline-block;border-radius:999px;padding:3px 10px;font:800 .72rem Inter,sans-serif;letter-spacing:.05em;background:#2a2a2a;color:#ddd}
+.ac-pill.y{background:var(--ay);color:#111}.ac-pill.g{background:rgba(63,191,111,.18);color:var(--ag)}.ac-pill.r{background:rgba(179,18,31,.25);color:#ff8a8a}
+/* Leimakortti */
+.ac-stamps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:14px 0 10px;max-width:340px}
+.ac-stamps i{aspect-ratio:1;border-radius:50%;border:2px dashed #444;display:grid;place-items:center;font:800 1rem Inter,sans-serif;font-style:normal;color:#111}
+.ac-stamps i.on{background:var(--ay);border:0}
+.ac-stamps i.gift{border-color:var(--ay);color:var(--ay);font-size:.85rem}.ac-stamps i.gift.on{color:#111}
+.ac-big{font:800 2rem Inter,sans-serif;color:#fff}.ac-big span{font-size:1rem;color:var(--am);font-weight:600}
+/* Edut */
+.ac-perk{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--al)}
+.ac-perk:first-of-type{border-top:0}
+.ac-perk b.n{width:58px;height:58px;border-radius:16px;background:var(--ay);color:#111;display:grid;place-items:center;font:800 1rem Inter,sans-serif;flex:none}
+.ac-perk.off b.n{background:#2a2a2a;color:#888}
+.ac-perk div{flex:1}.ac-perk strong{display:block}.ac-perk small{color:var(--am)}
+/* Historia */
+.ac-ord{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:14px 0;border-top:1px solid var(--al)}
+.ac-ord:first-of-type{border-top:0}
+.ac-ord b{font-size:1rem}.ac-ord small{color:var(--am);grid-column:1}.ac-ord em{font-style:normal;font-weight:800;text-align:right}
+.ac-ord p{grid-column:1/-1;margin:2px 0 0;color:#ddd;font-size:.88rem}
+.ac-ord .row{grid-column:1/-1;display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.ac-ord .row .ac-btn{padding:8px 14px;font-size:.84rem}
+.ac-kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--al);font-size:.92rem}.ac-kv span{color:var(--am)}
+.ac-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.ac-2{grid-template-columns:1fr}.ac-card{padding:16px;border-radius:18px}}
+.ac-toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#fff;color:#111;padding:12px 18px;border-radius:14px;font-weight:700;z-index:60;max-width:92vw;text-align:center}
+.ac-toast.bad{background:var(--ar);color:#fff}

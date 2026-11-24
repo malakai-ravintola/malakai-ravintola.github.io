@@ -314,3 +314,10 @@ footer .brand2 b{font-size:2.2rem}footer .brand2 small{font-size:.7rem}
 /* Koko kuva näkyviin (ei rajausta) */
 .pjc{align-items:center}
 .pjc .pji{height:auto;min-height:0;aspect-ratio:3/4;object-fit:contain;align-self:center;background:#000}
+
+/* Oma tili -kuvake yläpalkissa */
+.top .acc{display:grid;place-items:center;width:44px;height:44px;border:1px solid #333;border-radius:12px;color:#fff;flex:none;position:relative;margin-left:auto;transition:border-color .2s,color .2s}
+.top .acc svg{width:24px;height:24px}
+.top .acc:hover{border-color:#E3A51C;color:#E3A51C}
+.top .acc.in::after{content:"";position:absolute;top:7px;right:7px;width:9px;height:9px;border-radius:50%;background:#E3A51C;box-shadow:0 0 0 2px #000}
+@media(min-width:1101px){.top nav{margin-left:auto}.top .acc{margin-left:0}}

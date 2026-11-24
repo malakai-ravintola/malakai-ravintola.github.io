@@ -46,3 +46,13 @@ end $$;
 revoke all on function public.only_owner_signup() from public, anon, authenticated;
 drop trigger if exists only_owner_signup on auth.users;
 create trigger only_owner_signup before insert or update of email on auth.users for each row execute function public.only_owner_signup();
+
+-- Asiakastilit (2026-11-24): rekisteröityminen sallittu, omistajan sivut suojattu RLS:llä omistajan sähköpostiin.
+-- Asiakas näkee vain omat tilauksensa ja asiakasrivinsä, ja vain vahvistetulla sähköpostilla.
+drop trigger if exists only_owner_signup on auth.users;
+drop function if exists public.only_owner_signup();
+create or replace function public.my_email() returns text language sql stable security definer set search_path = '' as $$
+  select lower(u.email) from auth.users u where u.id = auth.uid() and u.email_confirmed_at is not null $$;
+revoke all on function public.my_email() from public, anon; grant execute on function public.my_email() to authenticated;
+create policy cust_own_orders on public.orders for select to authenticated using (public.my_email() is not null and lower(email) = public.my_email());
+create policy cust_own_row on public.customers for select to authenticated using (public.my_email() is not null and lower(email) = public.my_email());
