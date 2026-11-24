@@ -262,7 +262,7 @@ async function placeOrder(b: any) {
           E.infoBox([["Tilausnumero", "#" + row.no], ["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto ravintolasta"], ...(kind === "kuljetus" ? addrRows : [["Nouto", "Tampereentie 414, Lempäälä"]] as [string, string][]), ["Toivottu aika", when]].concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
           E.orderSummary({ ...o, no: row.no }),
         foot: E.btn(`${SITE}/tili.html`, "Seuraa tilausta") + E.btn("tel:+358453537000", "Soita 045 353 7000", true) +
-          `<p style="margin:14px 0 0;font:13px/1.5 Arial,Helvetica,sans-serif;color:#6B6660">Luo <a href="${SITE}/tili.html" style="color:#B3121F">oma tili</a> samalla sähköpostilla, niin näet tilauksesi, leimakorttisi ja etusi. Joka 10. tilaus −20 %.</p>` })),
+          `<p style="margin:14px 0 0;font:13px/1.5 Arial,Helvetica,sans-serif;color:#6B6660">Luo <a href="${SITE}/tili.html" style="color:#B3121F">oma tili</a> samalla sähköpostilla, niin näet tilauksesi, leimakorttisi ja etusi.${C.loyEvery > 0 && C.loyPct > 0 ? ` Joka ${C.loyEvery}. tilaus −${C.loyPct} %.` : ""}</p>` })),
   ]);
   return j({ ok: true, no: row.no, total: o.total, discount });
 }
