@@ -38,7 +38,7 @@ const T="media/tilaa/";
 const IMG={"Tropicana":"pizza-tropicana","Kebab Pizza":"pizza-kebab","Mexicana":"pizza-mexicana","Americano":"pizza-americano","Mamma Mia":"pizza-mammamia","Julia":"pizza-julia","Opera Special":"pizza-opera","Barbeque":"pizza-bbq","Margarita Mozzarella":"pizza-margarita","Oma valinta":"pizza-parma","Kebab ranskalaisilla":"kebab-ranskalaiset","Rullakebab":"kebabrulla","Kana ranskalaisilla":"kana-ranskalaiset"};
 const CIMG={"Pizza":"pizza-margarita","Kebab":"kebab-ranskalaiset","Kana":"kana-ranskalaiset","Wings":"kat-wings","Burgerit":"kat-burgerit","Lisukkeet":"kat-lisukkeet"};
 const CNAME={"Pizza":"Pizzat","Kebab":"Kebabit","Kana":"Kana-annokset","Wings":"Hot Wings","Dipit ja juomat":"Dipit ja juomat"};
-const pic=(f,alt,cls)=>f?`<img src="${f.includes("/")?esc(f):T+f+".jpg?v=1"}" alt="${esc(alt)}" loading="lazy" class="${cls||""}">`:`<span class="od-ph ${cls||""}" aria-hidden="true"><img src="media/logo-malakai.svg" alt=""></span>`;
+const pic=(f,alt,cls)=>f?`<img src="${f.includes("/")?esc(f):T+f+".jpg?v=2"}" alt="${esc(alt)}" loading="lazy" class="${cls||""}">`:`<span class="od-ph ${cls||""}" aria-hidden="true"><img src="media/logo-malakai.svg" alt=""></span>`;
 function menu(){const m=$("#odMenu"),cats=$("#odCats"),tiles=$("#odTiles");let h="",ch="",th="";
   if(dp&&dp.name&&S.dailyPrice){
     th+=`<a class="od-tile" href="#paivan-pizza">${pic(dp.img,dp.name)}<b>Päivän pizza</b></a>`;
