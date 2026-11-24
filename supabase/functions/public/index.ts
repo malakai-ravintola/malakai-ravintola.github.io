@@ -1,5 +1,6 @@
 // Supabase Edge Function: public  (liitä KOKO tiedosto Supabasen editoriin, funktion nimi: public)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import * as E from "./email.ts";
 const OWNER_PHONE = Deno.env.get("OWNER_PHONE") ?? "+358456057475";
 const OWNER_EMAIL = "hardi7fateh@hotmail.com"; // tilaukset ja varaukset tulevat aina tähän osoitteeseen
 const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? OWNER_EMAIL;
@@ -22,11 +23,11 @@ async function sms(to: string, message: string) {
   return true;
 }
 // Sähköposti (Brevo). Ohitetaan, jos BREVO_KEY puuttuu.
-async function mail(to: string, subject: string, text: string, replyTo?: string) {
+async function mail(to: string, subject: string, text: string, replyTo?: string, html?: string) {
   if (!hasMail()) return false;
   const r = await fetch("https://api.brevo.com/v3/smtp/email", { method: "POST",
     headers: { "api-key": Deno.env.get("BREVO_KEY")!, "Content-Type": "application/json" },
-    body: JSON.stringify({ sender: { name: "Malakai Ravintola", email: SENDER_EMAIL }, to: [{ email: to }], subject, textContent: text,
+    body: JSON.stringify({ sender: { name: "Malakai Ravintola", email: SENDER_EMAIL }, to: [{ email: to }], subject, textContent: text, ...(html ? { htmlContent: html } : {}),
       replyTo: { email: replyTo ?? OWNER_EMAIL } }) });
   if (!r.ok) throw new Error("Sähköpostin lähetys epäonnistui: " + (await r.text()).slice(0, 200));
   return true;
@@ -144,7 +145,13 @@ async function sendReviews() {
         `👉 Anna arvio: ${REVIEW}\n\n` +
         `Jos jokin ei mennyt niin kuin piti, vastaa suoraan tähän viestiin. Luemme jokaisen palautteen itse ja korjaamme asian.\n\n` +
         `Tervetuloa uudelleen – nähdään pian!\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000\n${SITE}\n\n` +
-        `(Tilaus #${o.no}. Et halua palautepyyntöjä jatkossa? Vastaa tähän viestiin sanalla "ei kiitos".)`);
+        `(Tilaus #${o.no}. Et halua palautepyyntöjä jatkossa? Vastaa tähän viestiin sanalla "ei kiitos".)`, undefined,
+        E.shell({ pre: "Kertoisitko kokemuksestasi? Se vie alle minuutin.", tag: "Kiitos tilauksesta", title: `Miten onnistuimme, ${E.esc(fn)}?`,
+          body: E.p(`Kiitos, että tilasit Malakaista! Toivottavasti ${o.kind === "kuljetus" ? "ruoka saapui lämpimänä ja" : "ruoka"} maistui.`) +
+            E.p("Olemme pieni paikallinen ravintola Sääksjärvellä, ja jokainen arvio auttaa meitä todella paljon. Kertoisitko kokemuksestasi Googlessa? Se vie alle minuutin.") +
+            `<div style="font-size:30px;letter-spacing:6px;color:#E3A51C;padding:4px 0 14px">★★★★★</div>` + E.btn(REVIEW, "Anna arvio Googlessa") +
+            `<p style="margin:18px 0 0;font:14px/1.5 Arial,Helvetica,sans-serif;color:#6B6660">Jos jokin ei mennyt niin kuin piti, vastaa suoraan tähän viestiin – luemme jokaisen palautteen itse.</p>`,
+          foot: `<p style="margin:0;font:12px Arial,Helvetica,sans-serif;color:#9C968E">Tilaus #${o.no}. Et halua palautepyyntöjä? Vastaa tähän viestiin sanalla "ei kiitos".</p>` }));
       n++;
     } catch (_e) { /* yritetään seuraavaa */ }
   }
@@ -194,10 +201,19 @@ async function placeOrder(b: any) {
   await Promise.allSettled([
     mail(OWNER_EMAIL, `UUSI TILAUS #${row.no}: ${kind === "kuljetus" ? "kuljetus" : "nouto"} ${when}, ${eur(o.total)}`,
       `Uusi nettitilaus #${row.no}\n\n${kindTxt}\nAika: ${when}\nNimi: ${o.name}\nPuhelin: ${o.phone}\nSähköposti: ${o.email}` + (o.note ? `\nLisätiedot: ${o.note}` : "") +
-      `\n\n${sum}\n\nHyväksy tilaus kauppiasportaalissa:\n${SITE}/kauppias.html#tilaukset`, o.email),
+      `\n\n${sum}\n\nHyväksy tilaus kauppiasportaalissa:\n${SITE}/kauppias.html#tilaukset`, o.email,
+      E.shell({ pre: `${o.name} · ${when} · ${eur(o.total)}`, tag: "Uusi tilaus", title: `Tilaus #${row.no} odottaa hyväksyntää`,
+        body: E.btn(`${SITE}/kauppias.html#tilaukset`, "Avaa kauppiasportaali →") + E.infoBox([["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto"], ["Aika", when], ["Asiakas", o.name], ["Puhelin", o.phone], ["Sähköposti", o.email]].concat(kind === "kuljetus" ? [["Osoite", `${o.address}, ${o.zip} ${o.city || ""}`]] : []).concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
+          E.orderSummary({ ...o, no: row.no }) })),
     mail(o.email, `Tilauksesi #${row.no} on vastaanotettu – Malakai Ravintola`,
       `Hei ${o.name.split(" ")[0]}!\n\nKiitos tilauksestasi. Olemme vastaanottaneet sen, ja saat pian toisen viestin, kun tilaus on hyväksytty ja tiedämme valmistumisajan.\n\nTilausnumero: #${row.no}\n${kindTxt}\nToivottu aika: ${when}\n\n${sum}` +
-      (o.note ? `\n\nLisätiedot: ${o.note}` : "") + `\n\nJos haluat muuttaa tilausta, soita 045 353 7000.\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000`),
+      (o.note ? `\n\nLisätiedot: ${o.note}` : "") + `\n\nJos haluat muuttaa tilausta, soita 045 353 7000.\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000`, undefined,
+      E.shell({ pre: `Tilaus #${row.no} vastaanotettu – saat pian valmistumisajan.`, tag: "Tilaus vastaanotettu", title: `Kiitos tilauksesta, ${E.esc(o.name.split(" ")[0])}!`,
+        body: E.p("Olemme vastaanottaneet tilauksesi. Saat pian toisen viestin, kun ravintola on hyväksynyt sen ja tiedämme valmistumisajan.") + E.steps(0, kind === "kuljetus") +
+          E.infoBox([["Tilausnumero", "#" + row.no], ["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto ravintolasta"], [kind === "kuljetus" ? "Osoite" : "Nouto", kind === "kuljetus" ? `${o.address}, ${o.zip} ${o.city || ""}` : "Tampereentie 414, Lempäälä"], ["Toivottu aika", when]].concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
+          E.orderSummary({ ...o, no: row.no }),
+        foot: E.btn(`${SITE}/tili.html`, "Seuraa tilausta") + E.btn("tel:+358453537000", "Soita 045 353 7000", true) +
+          `<p style="margin:14px 0 0;font:13px/1.5 Arial,Helvetica,sans-serif;color:#6B6660">Luo <a href="${SITE}/tili.html" style="color:#B3121F">oma tili</a> samalla sähköpostilla, niin näet tilauksesi, leimakorttisi ja etusi. Joka 10. tilaus −20 %.</p>` })),
   ]);
   return j({ ok: true, no: row.no, total: o.total, discount });
 }

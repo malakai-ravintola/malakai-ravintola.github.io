@@ -1,5 +1,6 @@
 // Supabase Edge Function: admin  (liitä KOKO tiedosto Supabasen editoriin, funktion nimi: admin)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import * as E from "./email.ts";
 const OWNER_PHONE = Deno.env.get("OWNER_PHONE") ?? "+358456057475";
 const OWNER_EMAIL = "hardi7fateh@hotmail.com"; // ainoa ylläpitäjä
 const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? OWNER_EMAIL;
@@ -21,11 +22,11 @@ async function sms(to: string, message: string) {
   return true;
 }
 // Sähköposti (Brevo). Ohitetaan, jos BREVO_KEY puuttuu.
-async function mail(to: string, subject: string, text: string, replyTo?: string) {
+async function mail(to: string, subject: string, text: string, replyTo?: string, html?: string) {
   if (!hasMail()) return false;
   const r = await fetch("https://api.brevo.com/v3/smtp/email", { method: "POST",
     headers: { "api-key": Deno.env.get("BREVO_KEY")!, "Content-Type": "application/json" },
-    body: JSON.stringify({ sender: { name: "Malakai Ravintola", email: SENDER_EMAIL }, to: [{ email: to }], subject, textContent: text,
+    body: JSON.stringify({ sender: { name: "Malakai Ravintola", email: SENDER_EMAIL }, to: [{ email: to }], subject, textContent: text, ...(html ? { htmlContent: html } : {}),
       replyTo: { email: replyTo ?? OWNER_EMAIL } }) });
   if (!r.ok) throw new Error("Sähköpostin lähetys epäonnistui: " + (await r.text()).slice(0, 200));
   return true;
@@ -45,7 +46,7 @@ Deno.serve(async (req) => {
       if (!r) return j({ error: "Varausta ei löydy" }, 404);
       const body = String(b.body ?? "").slice(0, 3000), sub = String(b.subject ?? "").slice(0, 200) || "Pöytävarauksesi";
       const res = { mail: false, sms: false, errors: [] as string[] };
-      if (b.email && r.email && body) { try { res.mail = await mail(r.email, sub, body); } catch (e) { res.errors.push((e as Error).message); } }
+      if (b.email && r.email && body) { try { res.mail = await mail(r.email, sub, body, undefined, E.shell({ pre: sub, tag: status === "vahvistettu" ? "Pöytävaraus vahvistettu" : "Pöytävaraus", title: E.esc(sub), body: E.textToHtml(body) })); } catch (e) { res.errors.push((e as Error).message); } }
       if (b.sms && r.phone && body) { try { res.sms = await sms(r.phone, body.slice(0, 600)); } catch (e) { res.errors.push((e as Error).message); } }
       await db.from("reservations").update({ status, handled_at: new Date().toISOString() }).eq("id", b.id);
       return j({ ok: true, ...res });
@@ -66,22 +67,31 @@ Deno.serve(async (req) => {
       const foot = "\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000";
       const eur = (n: number) => Number(n).toFixed(2).replace(".", ",") + " €";
       const items = (o.items || []).map((i: any) => `${i.q} × ${i.n}${i.opt ? " (" + i.opt + ")" : ""}`).join("\n");
-      let sub = "", txt = "";
+      let sub = "", txt = "", html = "";
+      const H = (pre: string, tag: string, title: string, body: string) => E.shell({ pre, tag, title, body, foot: E.btn(`${E.SITE}/tili.html`, "Seuraa tilausta") + E.btn("tel:+358453537000", "Soita meille", true) });
       if (st === "hyvaksytty") {
         sub = `Tilauksesi #${o.no} on vahvistettu – ${del ? "perillä noin" : "valmiina noin"} klo ${eta}`;
         txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on vahvistettu ja se on työn alla.\n\n${del ? `Toimitamme sen osoitteeseen ${o.address}, ${o.zip} noin klo ${eta}.` : `Tilauksesi on noudettavissa noin klo ${eta} osoitteesta Tampereentie 414, Lempäälä.`}\n\n${items}\n\nYhteensä ${eur(o.total)} (sis. ALV 13,5 % ${eur(Math.round(o.total * 13.5 / 113.5 * 100) / 100)}), maksu ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${del ? "toimitettaessa" : "noudettaessa"}.` + foot;
+        html = H(`${del ? "Perillä" : "Valmiina"} noin klo ${eta}`, "Tilaus vahvistettu", `Tilauksesi #${o.no} on työn alla, ${E.esc(fn)}!`,
+          E.p(del ? "Valmistamme tilaustasi, ja kuljettaja tuo sen sinulle." : "Valmistamme tilaustasi. Tervetuloa noutamaan!") + E.big("klo " + eta, del ? "Arvioitu toimitus" : "Valmiina noudettavaksi") + E.steps(1, del) +
+          E.infoBox([["Tilausnumero", "#" + o.no], [del ? "Toimitusosoite" : "Nouto", del ? `${o.address}, ${o.zip} ${o.city || ""}` : "Tampereentie 414, Lempäälä"]]) + E.orderSummary(o));
       } else if (st === "peruttu") {
         sub = `Tilauksesi #${o.no} on valitettavasti peruttu`;
         txt = `Hei ${fn}!\n\nEmme valitettavasti pysty toimittamaan tilaustasi #${o.no}.` + (up.reason ? `\n\nSyy: ${up.reason}` : "") + `\n\nPahoittelemme. Voit soittaa meille numeroon 045 353 7000.` + foot;
+        html = E.shell({ pre: "Emme valitettavasti pysty toimittamaan tilaustasi.", tag: "Tilaus peruttu", title: `Pahoittelemme, ${E.esc(fn)}`,
+          body: E.p(`Emme valitettavasti pysty toimittamaan tilaustasi #${o.no}.`) + (up.reason ? E.infoBox([["Syy", String(up.reason)]]) : "") + E.p("Tilauksesta ei veloiteta mitään. Soita meille, niin etsitään korvaava vaihtoehto.") + E.itemsHtml(o.items || []),
+          foot: E.btn("tel:+358453537000", "Soita 045 353 7000") + E.btn(`${E.SITE}/tilaa.html`, "Tilaa uudelleen", true) });
       } else if (st === "valmis" && !del && b.notify) {
         sub = `Tilauksesi #${o.no} on valmis noudettavaksi`;
         txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on valmis. Tervetuloa noutamaan: Tampereentie 414, Lempäälä.` + foot;
+        html = H("Tervetuloa noutamaan!", "Valmis noudettavaksi", `Tilauksesi #${o.no} on valmis!`, E.p("Ruokasi odottaa lämpimänä tiskillä. Tervetuloa noutamaan!") + E.big("Tampereentie 414", "Noutopaikka") + E.steps(2, false) + E.orderSummary(o));
       } else if (st === "valmis" && del && b.notify) {
         sub = `Tilauksesi #${o.no} on matkalla`;
         txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on lähtenyt kuljetukseen ja on pian perillä.` + foot;
+        html = H("Ruokasi on matkalla!", "Matkalla", `Tilauksesi #${o.no} on matkalla!`, E.p(`Kuljettaja on lähtenyt, ja ruoka on pian perillä osoitteessa ${E.esc(o.address)}.`) + E.steps(2, true) + E.orderSummary(o));
       }
       let sent = false, err = "";
-      if (sub && o.email) { try { sent = await mail(o.email, sub, txt); } catch (e) { err = (e as Error).message; } }
+      if (sub && o.email) { try { sent = await mail(o.email, sub, txt, undefined, html || undefined); } catch (e) { err = (e as Error).message; } }
       return j({ ok: true, mail: sent, error: err || undefined });
     }
     if (b.action === "sms") {
@@ -94,8 +104,9 @@ Deno.serve(async (req) => {
       let n = 0;
       for (const s of subs ?? []) {
         try {
-          await mail(s.email, String(b.subject), String(b.body).replaceAll("{nimi}", s.name || "asiakkaamme") +
-            "\n\n--\nMalakai Ravintola, Tampereentie 414, Lempäälä\nVoit perua tilauksen vastaamalla tähän viestiin.");
+          const bt = String(b.body).replaceAll("{nimi}", s.name || "asiakkaamme");
+          await mail(s.email, String(b.subject), bt + "\n\n--\nMalakai Ravintola, Tampereentie 414, Lempäälä\nVoit perua tilauksen vastaamalla tähän viestiin.", undefined,
+            E.shell({ pre: String(b.subject), tag: "Uutiskirje", title: E.esc(String(b.subject)), body: E.textToHtml(bt), foot: E.btn(`${E.SITE}/tilaa.html`, "Tilaa netistä") + `<p style="margin:14px 0 0;font:12px Arial,Helvetica,sans-serif;color:#9C968E">Voit perua uutiskirjeen vastaamalla tähän viestiin.</p>` }));
           n++;
         } catch (_e) { /* jatketaan seuraavaan */ }
       }
