@@ -36,3 +36,13 @@ create table if not exists customers(id uuid primary key default gen_random_uuid
 alter table customers enable row level security;
 -- Palautepyynnöt: pg_cron ajaa public.run_review_mails() 5 min välein (työn nimi: palautepyynnot).
 alter table orders add column if not exists pay text not null default 'kortti'; -- kortti | kateinen
+
+-- Vain omistaja voi omistaa tunnuksen: estää kaikki muut rekisteröitymiset tietokantatasolla
+create or replace function public.only_owner_signup() returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  if lower(coalesce(new.email,'')) <> 'hardi7fateh@hotmail.com' then raise exception 'Rekisteröityminen ei ole sallittu'; end if;
+  return new;
+end $$;
+revoke all on function public.only_owner_signup() from public, anon, authenticated;
+drop trigger if exists only_owner_signup on auth.users;
+create trigger only_owner_signup before insert or update of email on auth.users for each row execute function public.only_owner_signup();

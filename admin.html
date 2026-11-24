@@ -150,14 +150,17 @@ input.ovbad{border-color:var(--bad)!important;color:var(--bad);background:rgba(2
  #ovPrint .blank td{height:7.5mm}
  #ovPrint thead{display:table-header-group}#ovPrint tr{break-inside:avoid}
  #ovPrint .ovpf{display:flex;justify-content:space-between;gap:10pt;margin-top:7pt;font-size:7.5pt;color:#786C60}}
+body:not(.auth) header,body:not(.auth) main,body:not(.auth) .save{display:none!important}
+#gate{max-width:420px;margin:12vh auto;padding:0 16px}#gate form{display:grid;gap:10px}
 </style></head><body>
+<div id="gate">Ladataan…</div>
 <header><div class="w"><h1 class="lg"><a href="index.html" target="_blank" rel="noopener"><b>Malakai</b><small>RAVINTOLA</small></a><span>Ylläpito</span></h1><a href="index.html" target="_blank" rel="noopener">Avaa sivusto ↗</a>
 <nav class="tabs" id="tabs"></nav></div></header>
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1795515741"></script>
-<script src="config.js?v=1795515741"></script>
+<script src="data.js?v=1795516341"></script>
+<script src="config.js?v=1795516341"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -202,7 +205,7 @@ function imgPicker(cur,set){const prev=mk("img",{class:"prev",src:cur,alt:""}),i
 
 // ---------- Näkymät
 let tab="Yleiskatsaus",cat=null;
-const TABS=["Yleiskatsaus","Tilaukset","Raportit","Varaukset","Asiakkaat","Uutiskirje","Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet","Omavalvonta","Asetukset"];
+const TABS=["Yleiskatsaus","Varaukset","Asiakkaat","Uutiskirje","Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet","Omavalvonta","Asetukset"];
 const CONTENT=new Set(["Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet"]);
 function renderTabs(){const t=$("#tabs");t.textContent="";TABS.forEach(k=>{const n=k==="Varaukset"&&RES?RES.filter(r=>r.status==="uusi"&&r.date>=hToday()).length:k==="Tilaukset"&&ORD?ORD.filter(o=>o.status==="uusi").length:0;t.append(mk("button",{class:k===tab?"on":"",onclick:()=>{tab=k;render()}},k,n?mk("span",{class:"badge",text:String(n)}):null))});}
 function render(){renderTabs();if(!TABS.includes(tab))tab="Yleiskatsaus";
@@ -287,7 +290,7 @@ function vSet(m){const t=mk("input",{type:"password",value:TOKEN,placeholder:"gi
     resCard())}
 
 // ---------- Varausjärjestelmä (Supabase)
-const C=window.MALAKAI||{};let SB=null,RES=null,SUB=null,TPLS=null,SVC=null,rf="odottaa",dDay=null,dStay=90,dCap=50,cq="",cNews=false,addOpen=false;
+const OWNER="hardi7fateh@hotmail.com";const C=window.MALAKAI||{};let SB=null,RES=null,SUB=null,TPLS=null,SVC=null,rf="odottaa",dDay=null,dStay=90,dCap=50,cq="",cNews=false,addOpen=false;
 const hToday=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki"}).format(new Date());
 const addDays=(d,n)=>{const x=new Date(d+"T12:00:00");x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
 const fd=d=>String(d).split("-").reverse().join(".");
@@ -303,8 +306,15 @@ const DEF_TPL=[
 const tplList=()=>DEF_TPL.map(([key,title,kind,subject,body])=>{const o=(TPLS||{})[key];return{key,title,kind,subject:o?.subject??subject,body:o?.body??body}});
 const fill=(t,r)=>t.replace(/\{nimi\}/g,(r.name||"").split(" ")[0]).replace(/\{pvm\}/g,wd(r.date)+" "+fd(r.date)).replace(/\{klo\}/g,tm(r.time)).replace(/\{hlo\}/g,r.guests);
 if(C.url&&C.anon){const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
-  s.onload=()=>{SB=supabase.createClient(C.url,C.anon);SB.auth.getSession().then(({data})=>{if(data.session)sbLoad();else if(!CONTENT.has(tab))render()})};
-  s.onerror=()=>{toast("Varausjärjestelmän lataus epäonnistui. Tarkista nettiyhteys.",true)};document.head.append(s)}
+  s.onload=()=>{SB=supabase.createClient(C.url,C.anon);SB.auth.onAuthStateChange(ev=>{if(ev==="SIGNED_OUT")location.reload()});
+    SB.auth.getSession().then(async({data})=>{const ok=data.session&&String(data.session.user?.email||"").toLowerCase()===OWNER;if(!ok){if(data.session)await SB.auth.signOut({scope:"local"});return gate()}start();sbLoad()})};
+  s.onerror=()=>{const g=$("#gate");g.textContent="Kirjautumisen lataus epäonnistui. Tarkista nettiyhteys ja päivitä sivu.";g.hidden=false};document.head.append(s)}
+else{const g=$("#gate");g.textContent="Kirjautuminen ei ole käytössä.";g.hidden=false}
+function gate(){const g=$("#gate");g.textContent="";g.hidden=false;const em=mk("input",{type:"email",autocomplete:"username",required:true}),pw=mk("input",{type:"password",autocomplete:"current-password",required:true}),b=mk("button",{text:"Kirjaudu"});
+  const f=mk("form",{class:"card"},mk("h2",{text:"Malakai ylläpito"}),mk("p",{class:"muted",text:"Vain omistajalle. Kirjaudu sähköpostilla ja salasanalla."}),lab("Sähköposti",em),lab("Salasana",pw),b);
+  f.onsubmit=async e=>{e.preventDefault();b.disabled=true;const {data,error}=await SB.auth.signInWithPassword({email:em.value.trim(),password:pw.value});
+    if(error||String(data?.user?.email||"").toLowerCase()!==OWNER){if(!error)await SB.auth.signOut({scope:"local"});b.disabled=false;pw.value="";return toast("Kirjautuminen epäonnistui",true)}location.reload()};
+  g.append(f);em.focus()}
 async function api(action,d){const {data:{session}}=await SB.auth.getSession();if(!session)throw new Error("Kirjaudu uudelleen");
   let r=null;for(const n of window.__AFN?[window.__AFN]:["admin","Admin"]){try{r=await fetch(C.url+"/functions/v1/"+n,{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+session.access_token},body:JSON.stringify({action,...d})})}catch(x){r=null;continue}if(r.status!==404){window.__AFN=n;break}}
   if(!r)throw new Error("Palvelinfunktio ei vastaa. Onko admin-funktio julkaistu Supabasessa?");
@@ -368,8 +378,6 @@ async function ordLoad(){if(!SB)return;const {data:{session}}=await SB.auth.getS
   ORD.forEach(o=>oSeen.add(o.id));
   const n=ORD.filter(o=>o.status==="uusi").length;document.title=(n?"("+n+") UUSI TILAUS – ":"")+"Malakai ylläpito";
   if(tab==="Tilaukset")render();else renderTabs()}
-setInterval(()=>{ordLoad().catch(()=>{})},10000);
-setInterval(()=>{if(ORD&&ORD.some(o=>o.status==="uusi"))beep()},4000);
 async function setOrd(o,status,extra={}){const r=await api("order",{id:o.id,status,...extra});Object.assign(o,{status},extra.eta?{eta:extra.eta}:{});
   toast((status==="hyvaksytty"?"Hyväksytty":status==="peruttu"?"Peruttu":status==="valmis"?"Merkitty valmiiksi":"Luovutettu")+(r.mail?" · asiakkaalle lähti sähköposti":""));await ordLoad();render()}
 async function saveCfg(){const {error}=await SB.from("settings").upsert({key:"orders",value:OCFG,updated_at:new Date().toISOString()});if(error)throw new Error(error.message);toast("Asetukset tallennettu");render()}
@@ -418,7 +426,7 @@ function vOrd(m){m.append(mk("h2",{text:"Tilaukset"}));if(sbGate(m))return;
   m.append(mk("details",{class:"card",open:out.size?true:null},mk("summary",{text:"Loppuneet tuotteet"+(out.size?" ("+out.size+" loppu)":"")}),mk("p",{class:"muted",text:"Paina tuotetta, niin se merkitään loppuneeksi eikä sitä voi tilata netissä. Paina uudelleen, kun tuotetta taas on."}),sq,list,
     out.size?act("Kaikki taas myynnissä",async()=>{OCFG={...OCFG,soldout:[]};await saveCfg()},"o"):null));
   m.append(mk("p",{class:"muted"},"Tilaussivu asiakkaille: ",mk("a",{href:"tilaa.html",target:"_blank",text:"malakairavintola.fi/tilaa.html"})))}
-if(location.hash==="#tilaukset")tab="Tilaukset";
+if(location.hash==="#tilaukset")location.replace("kauppias.html");
 
 // ---------- Tilausasiakkaat
 let CUS=null;
@@ -527,7 +535,7 @@ function vOver(m){m.append(mk("h2",{text:"Yleiskatsaus"}));
   const links=mk("div",{class:"card"},mk("h3",{text:"Pikalinkit"}),mk("div",{class:"qls"},
     L("Avaa sivusto","index.html"),L("Ruokalista","ruokalista.html"),
     L("Google-arvostelut","https://www.google.com/search?q=Malakai+Ravintola+Lemp%C3%A4%C3%A4l%C3%A4"),L("Oiva-raportti","https://www.oivahymy.fi/api/raportti/227129"),
-    L("Tilaussivu","tilaa.html"),L("Käyttöehdot","kayttoehdot.html"),L("Tietosuoja","tietosuoja.html"),
+    L("Kauppiasportaali (tilaukset)","kauppias.html"),L("Tilaussivu","tilaa.html"),L("Käyttöehdot","kayttoehdot.html"),L("Tietosuoja","tietosuoja.html"),
     L("Supabase","https://supabase.com/dashboard/project/vyqrlzdwdwswsjyhszji"),L("Brevo (sähköpostit)","https://app.brevo.com/"),L("GitHub","https://github.com/"+REPO)));
   // --- Varaukset (vaatii kirjautumisen)
   const resWrap=mk("div");
@@ -646,7 +654,7 @@ function customers(){const M=new Map(),key=(e,p)=>(e||"").toLowerCase()||String(
   (SUB||[]).forEach(s=>{const k=s.email.toLowerCase();let c=M.get(k);if(!c){c={name:s.name||"",email:s.email,phone:"",res:[],news:false};M.set(k,c)}c.news=true;c.subId=s.id;c.subAt=s.created_at});
   const arr=[...M.values()];arr.forEach(c=>{c.res.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));c.last=c.res[0]?.date||""});
   return arr.sort((a,b)=>(b.last||"").localeCompare(a.last||"")||(a.name||a.email).localeCompare(b.name||b.email))}
-function vCust(m){m.append(mk("h2",{text:"Asiakkaat"}));if(sbGate(m))return;custOrders(m);m.append(mk("h3",{class:"sec",text:"Pöytävaraus- ja uutiskirjeasiakkaat"}));
+function vCust(m){m.append(mk("h2",{text:"Asiakkaat"}));if(sbGate(m))return;m.append(mk("h3",{class:"sec",text:"Pöytävaraus- ja uutiskirjeasiakkaat"}));
   const all=customers(),q=mk("input",{type:"search",placeholder:"Hae nimellä, sähköpostilla tai puhelimella…",value:cq});
   const box=mk("div",{class:"card"});
   const draw=()=>{const v=cq.toLowerCase(),arr=all.filter(c=>(!cNews||c.news)&&(!v||[c.name,c.email,c.phone].join(" ").toLowerCase().includes(v)));box.textContent="";
@@ -781,7 +789,6 @@ function ovPrint(blank){const F=ovForm();let body;
 $("#saveBtn").onclick=push;
 $("#undo").onclick=()=>{if(!confirm("Perutaanko kaikki tallentamattomat muutokset?"))return;S=JSON.parse(ORIG);mark();render()};
 if(!S.menu){S={menu:{}};}
-render();mark();
-if(TOKEN)pull().catch(e=>toast(e.message,true));
+function start(){document.body.classList.add("auth");$("#gate").hidden=true;render();mark();if(TOKEN)pull().catch(e=>toast(e.message,true))}
 })();
 </script></body></html>
