@@ -14,7 +14,7 @@ const helDay=()=>{const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Hels
 const toppings=(String((M.Pizza||{}).note||"").split("Täytteet:")[1]||"").split(",").map(t=>t.trim().replace(/\.$/,"")).filter(Boolean);
 const sauce=(cat,it)=>/Med tai Hot/i.test((cat.note||"")+" "+(it[1]||""));
 
-let CFG=null,FIRST=false,cart=ls.get("mk_cart")||[],cur=null;
+let CFG=null,FIRST=false,LOY=null,cart=ls.get("mk_cart")||[],cur=null;
 const save=()=>ls.set("mk_cart",cart);
 
 // ---------- Hinta (sama sääntö kuin palvelimella)
@@ -108,14 +108,14 @@ function add(x){const k=key(x),e=cart.find(i=>key(i)===k);if(e)e.q=Math.min(20,e
   const b=$("#odBar");b.animate&&b.animate([{transform:"scale(1)"},{transform:"scale(1.05)"},{transform:"scale(1)"}],{duration:300})}
 const sub=()=>cart.reduce((a,x)=>a+price(x)*x.q,0);
 const kind=()=>($('input[name="kind"]:checked')||{}).value||"nouto";
-function totals(){const s=sub(),fee=kind()==="kuljetus"&&CFG?CFG.fee:0,pct=FIRST&&CFG?CFG.firstPct:0,d=pct?Math.round((s+fee)*pct)/100:0;return{s,fee,d,pct,t:Math.round((s+fee-d)*100)/100}}
+function totals(){const s=sub(),fee=kind()==="kuljetus"&&CFG?CFG.fee:0,pct=FIRST&&CFG?CFG.firstPct:(LOY&&LOY.now?LOY.pct:0),d=pct?Math.round((s+fee)*pct)/100:0;return{s,fee,d,pct,t:Math.round((s+fee-d)*100)/100}}
 function draw(){
   cart=cart.filter(x=>price(x)>0&&!isOut(x.c,x.n)&&(x.c!=="Päivän pizza"||(dp&&x.n===dp.name)));save();
   const L=$("#odLines");
   L.innerHTML=cart.length?cart.map((x,i)=>`<div class="od-line"><b>${esc(x.n)}</b><em>${eur(price(x)*x.q)}</em>${optTxt(x)?`<small>${esc(optTxt(x))}</small>`:""}${x.m?`<small>Toive: ${esc(x.m)}</small>`:""}<div class="od-q"><button type="button" data-i="${i}" data-d="-1" aria-label="Vähemmän">−</button><b>${x.q}</b><button type="button" data-i="${i}" data-d="1" aria-label="Enemmän">+</button></div></div>`).join(""):'<p class="od-empty">Ostoskori on tyhjä. Lisää tuotteita listalta.</p>';
   const T=totals(),n=cart.reduce((a,x)=>a+x.q,0);
-  $("#odSum").innerHTML=`<div><span>Tuotteet</span><span>${eur(T.s)}</span></div>`+(kind()==="kuljetus"?`<div><span>Kuljetus</span><span>${eur(T.fee)}</span></div>`:"")+(T.d?`<div class="disc"><span>Uuden asiakkaan etu −${T.pct} %</span><span>−${eur(T.d)}</span></div>`:"")+`<div class="tot"><span>Yhteensä</span><span>${eur(T.t)}</span></div>`+`<div class="vat"><span>Veroton hinta</span><span>${eur(T.t-vat(T.t))}</span></div><div class="vat"><span>ALV 13,5 % (sisältyy hintaan)</span><span>${eur(vat(T.t))}</span></div>`;
-  $("#odBarN").textContent=n;$("#odBarT").textContent=eur(T.t);$("#odBar").hidden=!n;
+  $("#odSum").innerHTML=`<div><span>Tuotteet</span><span>${eur(T.s)}</span></div>`+(kind()==="kuljetus"?`<div><span>Kuljetus</span><span>${eur(T.fee)}</span></div>`:"")+(T.d?`<div class="disc"><span>${FIRST?"Uuden asiakkaan etu":"Kanta-asiakasetu"} −${T.pct} %</span><span>−${eur(T.d)}</span></div>`:"")+`<div class="tot"><span>Yhteensä</span><span>${eur(T.t)}</span></div>`+`<div class="vat"><span>Veroton hinta</span><span>${eur(T.t-vat(T.t))}</span></div><div class="vat"><span>ALV 13,5 % (sisältyy hintaan)</span><span>${eur(vat(T.t))}</span></div>`;
+  upsell();$("#odBarN").textContent=n;$("#odBarT").textContent=eur(T.t);$("#odBar").hidden=!n;
   const send=$("#odSend"),why=!CFG?"Ladataan…":!CFG.on?"Nettitilaus ei ole käytössä":!CFG.isOpen?"Olemme kiinni":!n?"Ostoskori on tyhjä":(kind()==="kuljetus"&&T.s<CFG.min?"Vähimmäistilaus kuljetukseen "+eur(CFG.min):"");
   send.disabled=!!why;send.textContent=why||"Lähetä tilaus · "+eur(T.t)}
 $("#odLines").addEventListener("click",e=>{const b=e.target.closest("button[data-i]");if(!b)return;const x=cart[+b.dataset.i];x.q+=+b.dataset.d;if(x.q<1)cart.splice(+b.dataset.i,1);save();draw()});
@@ -133,9 +133,19 @@ function kindUi(){const k=kind();$("#odAddr").hidden=k!=="kuljetus";$$("#odAddr 
   when();draw()}
 $$('input[name="kind"]').forEach(i=>i.onchange=kindUi);
 let fT=null;async function checkFirst(){const f=$("#odForm"),e=f.elements.e.value.trim(),p=f.elements.p.value.trim();
-  if(!/^\S+@\S+\.\S+$/.test(e)||p.replace(/\D/g,"").length<7){FIRST=false;draw();return}
-  try{const r=await call({action:"first",e,p});FIRST=!!r.first;if(CFG)CFG.firstPct=r.pct}catch(x){FIRST=false}
-  $("#odFirst").hidden=!FIRST;draw()}
+  if(!/^\S+@\S+\.\S+$/.test(e)||p.replace(/\D/g,"").length<7){FIRST=false;LOY=null;stamps();draw();return}
+  try{const r=await call({action:"first",e,p});FIRST=!!r.first;if(CFG)CFG.firstPct=r.pct;LOY=r.every>0&&r.loyPct>0?{n:+r.count||0,every:+r.every,pct:+r.loyPct,now:!!r.loy}:null}catch(x){FIRST=false;LOY=null}
+  $("#odFirst").hidden=!FIRST;stamps();draw()}
+function stamps(){const el=$("#odStamps");if(!el)return;if(!LOY||FIRST){el.hidden=true;return}
+  const k=LOY.now?LOY.every:LOY.n%LOY.every,left=LOY.every-k;el.hidden=false;
+  el.innerHTML=`<div class="od-st-h"><b>${LOY.now?"🎉 Tämä on "+LOY.every+". tilauksesi – saat −"+LOY.pct+" %!":"Leimakortti "+k+"/"+LOY.every}</b><span>${LOY.now?"Kanta-asiakasetu lasketaan automaattisesti.":"Jokainen tilaus = 1 leima. Joka "+LOY.every+". tilaus −"+LOY.pct+" %."}</span></div><div class="od-st-r">${Array.from({length:LOY.every},(_,i)=>`<i class="${i<k?"on":""}${i===LOY.every-1?" gift":""}">${i===LOY.every-1?"%":i<k?"✓":""}</i>`).join("")}</div>`}
+// ---------- Lisämyynti ostoskorissa
+const UPS=[["Dipit ja juomat","Dippi","Dippi","🥣"],["Dipit ja juomat","Juoma 0,33 l","Juoma 0,33 l","🥤"],["Lisukkeet","Ranskalaiset","Ranskalaiset","🍟"],["Lisukkeet","Mozzarellatikut 5 kpl","Mozzarellatikut","🧀"],["Wings","Hot Wings 10 kpl","Hot Wings 10 kpl","🍗"]];
+function upsell(){const el=$("#odUps");if(!el)return;const have=new Set(cart.map(x=>x.n));
+  const l=UPS.filter(([c,n])=>{const it=(M[c]||{}).items&&M[c].items.find(i=>i[0]===n);return it&&+it[2]>0&&!have.has(n)&&!isOut(c,n)}).slice(0,4);
+  if(!cart.length||!l.length){el.hidden=true;return}el.hidden=false;
+  el.innerHTML=`<p>Lisää tilaukseen?</p><div>${l.map(([c,n,t,ic])=>{const it=M[c].items.find(i=>i[0]===n);return`<button type="button" data-c="${esc(c)}" data-n="${esc(n)}"><span aria-hidden="true">${ic}</span>${esc(t)}<em>+${eur(+it[2])}</em></button>`}).join("")}</div>`}
+$("#odUps")&&$("#odUps").addEventListener("click",e=>{const b=e.target.closest("button[data-n]");if(b)open(b.dataset.c,b.dataset.n)});
 ["e","p"].forEach(k=>$("#odForm").elements[k].addEventListener("input",()=>{clearTimeout(fT);fT=setTimeout(checkFirst,600)}));
 
 // ---------- Palvelin
@@ -151,6 +161,7 @@ async function load(){
   if(!CFG.delivery)$('input[name="kind"][value="nouto"]').checked=true;
   const me=ls.get("mk_me")||{};["n","p","e","a","z","ci"].forEach(k=>{const i=$("#odForm [name="+k+"]");if(i&&me[k])i.value=me[k]});
   const pr=$("#odPromo");if(pr&&CFG.firstPct>0){pr.hidden=false;pr.querySelector("b").textContent="−"+CFG.firstPct+" %"}
+  const lt=$("#odLoyT");if(lt){const on=CFG.loyEvery>0&&CFG.loyPct>0;lt.textContent=on?"joka "+CFG.loyEvery+". tilaus −"+CFG.loyPct+" %":"";if(!on)lt.parentNode.innerHTML="Uusi asiakas? Ensimmäisestä nettitilauksesta alennus koko tilauksesta – lasketaan automaattisesti kassalla."}
   marks();kindUi();checkFirst()}
 $("#odForm").onsubmit=async e=>{e.preventDefault();const f=e.target,send=$("#odSend");
   if(!f.reportValidity())return;

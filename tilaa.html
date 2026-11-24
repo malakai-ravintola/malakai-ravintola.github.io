@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="fi"><head><meta charset="utf-8"><meta name="build" content="1795520580"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<html lang="fi"><head><meta charset="utf-8"><meta name="build" content="1795521308"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tilaa netistä | Malakai Ravintola Lempäälä</title><link rel="canonical" href="https://malakairavintola.fi/tilaa.html"><meta name="description" content="Tilaa pizzat, kebabit, burgerit ja siivet suoraan Malakai Ravintolasta Lempäälän Sääksjärveltä. Nouto tai kotiinkuljetus, maksu noudettaessa.">
 <meta property="og:title" content="Tilaa netistä | Malakai Ravintola"><meta property="og:description" content="Tilaa suoraan Malakai Ravintolasta: nouto tai kotiinkuljetus."><meta property="og:image" content="https://malakairavintola.fi/media/hero.jpg"><meta property="og:url" content="https://malakairavintola.fi/ruokalista.html"><meta property="og:locale" content="fi_FI">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=1795520580"><link rel="stylesheet" href="home.css?v=1795520580">
+<link rel="stylesheet" href="styles.css?v=1795521308"><link rel="stylesheet" href="home.css?v=1795521308">
 
-<link rel="stylesheet" href="tilaa.css?v=1795520580">
+<link rel="stylesheet" href="tilaa.css?v=1795521308">
 </head><body class="home menu-page order-page">
 <header class="top" id="topbar">
 <a class="ann" id="ann" href="lounas.html#isanpaiva" data-en="Father’s Day Sun 8 Nov · Pizza buffet €12.90 · Book a table →">Isänpäivä su 8.11. · Pizzabuffet 12,90 € · Varaa pöytä →</a>
@@ -16,13 +16,14 @@
 </nav><button class="burger" id="burger" aria-label="Valikko" aria-expanded="false">☰</button></div></header>
 <main id="top" class="od">
 <section class="od-hero"><div class="wrap"><p class="h-eyebrow"><span class="dotwrap" id="odState">Ladataan…</span></p><h1>Tilaa <span>netistä</span></h1>
-<p class="od-sub">Nouto tai kotiinkuljetus · maksu kortilla tai käteisellä vasta kun saat ruoan · hinnat sis. ALV 13,5 %. <a class="od-wl" href="https://order.site/malakai-ravintola" target="_blank" rel="noopener">Tilaa mieluummin Woltista →</a></p><div class="od-note" id="odNote" hidden></div><div class="od-promo" id="odPromo" hidden><b>−15 %</b><span>Uusi asiakas? Ensimmäisestä nettitilauksesta alennus koko tilauksesta – lasketaan automaattisesti kassalla.</span></div></div></section>
+<p class="od-sub">Nouto tai kotiinkuljetus · maksu kortilla tai käteisellä vasta kun saat ruoan · hinnat sis. ALV 13,5 %. <a class="od-wl" href="https://order.site/malakai-ravintola" target="_blank" rel="noopener">Tilaa mieluummin Woltista →</a></p><div class="od-note" id="odNote" hidden></div><div class="od-promo" id="odPromo" hidden><b>−15 %</b><span>Uusi asiakas? Ensimmäisestä nettitilauksesta alennus koko tilauksesta. Lisäksi leimakortti: <b id="odLoyT">joka 10. tilaus −20 %</b>. Edut lasketaan automaattisesti kassalla.</span></div></div></section>
 <section class="od-tiles" aria-label="Kategoriat"><div class="wrap"><h2 class="od-th">Mitä tänään <em>maistuisi?</em></h2><div class="od-tg" id="odTiles"></div></div></section>
 <nav class="od-cats" aria-label="Ruokalistan osiot"><div class="wrap" id="odCats"></div></nav>
 <div class="wrap od-grid"><div id="odMenu"></div>
 <aside class="od-cart" id="odCart" aria-label="Ostoskori"><div class="od-cart-in">
 <div class="od-ch"><h2>Ostoskori</h2><button class="od-x" id="odClose" aria-label="Sulje">×</button></div>
 <div id="odLines"></div>
+<div class="od-ups" id="odUps" hidden></div>
 <form id="odForm" novalidate>
 <div class="od-kind" role="radiogroup" aria-label="Toimitustapa"><label><input type="radio" name="kind" value="nouto" checked><span>Nouto</span></label><label id="odDelLab"><input type="radio" name="kind" value="kuljetus"><span>Kotiinkuljetus</span></label></div>
 <p class="od-small" id="odKindInfo"></p>
@@ -34,7 +35,7 @@
 <div class="od-2"><label>Puhelin<input name="p" type="tel" autocomplete="tel" required maxlength="30"></label><label>Sähköposti<input name="e" type="email" autocomplete="email" required maxlength="120"></label></div>
 <label>Lisätiedot (valinnainen)<textarea name="m" rows="2" maxlength="400" placeholder="Esim. allergiat, ovikoodi"></textarea></label>
 <input name="website" tabindex="-1" autocomplete="off" class="od-hp" aria-hidden="true">
-<p class="od-first" id="odFirst" hidden>🎉 Tervetuloa uutena asiakkaana! Ensimmäisestä tilauksestasi vähennetään alennus.</p><div class="od-sum" id="odSum"></div>
+<div class="od-stamps" id="odStamps" hidden></div><p class="od-first" id="odFirst" hidden>🎉 Tervetuloa uutena asiakkaana! Ensimmäisestä tilauksestasi vähennetään alennus.</p><div class="od-sum" id="odSum"></div>
 <label class="od-ck"><input type="checkbox" id="odTerms" required> Hyväksyn <a href="kayttoehdot.html#tilaukset" target="_blank" rel="noopener">tilausehdot</a></label>
 <button class="btn r od-send" id="odSend" type="submit">Lähetä tilaus</button>
 <p class="od-small">Maksat vasta, kun saat ruoan. Saat sähköpostiin vahvistuksen ja valmistumisajan.</p>
@@ -52,5 +53,5 @@
 <div class="fcopy">© <span class="cy">2026</span> Malakai Ravintola · <a href="https://www.oivahymy.fi/api/raportti/227129" target="_blank" rel="noopener">Oiva-raportti (Oivallinen)</a> · <a href="tietosuoja.html">Tietosuojaseloste</a> · <a href="kayttoehdot.html">Käyttö- ja varausehdot</a></div>
 </div></footer>
 <div class="bar"><a class="btn" href="tel:+358453537000">Soita</a><a class="btn r" href="tilaa.html">Tilaa</a><a class="btn y" href="index.html#varaa">Varaa pöytä</a></div>
-<script src="data.js?v=1795520580"></script><script src="config.js?v=1795520580"></script><script src="site.js?v=1795520580"></script><script src="tilaa.js?v=1795520580"></script>
+<script src="data.js?v=1795521308"></script><script src="config.js?v=1795521308"></script><script src="site.js?v=1795521308"></script><script src="tilaa.js?v=1795521308"></script>
 </body></html>

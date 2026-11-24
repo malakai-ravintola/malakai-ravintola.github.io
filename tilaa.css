@@ -168,3 +168,17 @@
 .od-day .od-pr{white-space:nowrap;font-size:.95rem!important}.od-day .od-tx p{font-size:.84rem}
 .od-grid section.od-sec{padding:0!important;margin:0 0 26px!important}.od-grid section.od-sec>h2{padding-top:14px!important}
 .od-day .od-tx small{color:var(--oy);font-weight:700}
+
+/* Lisämyynti */
+.od-ups{margin:12px 0 4px;padding:12px;border:1px dashed var(--ol);border-radius:14px}
+.od-ups p{margin:0 0 8px;font-weight:700;font-size:.9rem}
+.od-ups div{display:flex;flex-wrap:wrap;gap:6px}
+.od-ups button{display:inline-flex;align-items:center;gap:6px;background:#1a1a1a;border:1px solid var(--ol);color:#fff;border-radius:999px;padding:8px 12px;font:600 .85rem Inter,sans-serif;cursor:pointer}
+.od-ups button:hover{border-color:var(--oy)}.od-ups em{font-style:normal;color:var(--oy);font-weight:800}
+/* Leimakortti */
+.od-stamps{margin:14px 0 0;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(227,165,28,.16),rgba(227,165,28,.04));border:1px solid rgba(227,165,28,.45)}
+.od-st-h b{display:block;font-size:.95rem}.od-st-h span{display:block;color:var(--om);font-size:.8rem;margin-top:2px}
+.od-st-r{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.od-st-r i{width:24px;height:24px;border-radius:50%;border:1.5px dashed #555;display:grid;place-items:center;font:800 .7rem Inter,sans-serif;font-style:normal;color:#111}
+.od-st-r i.on{background:var(--oy);border:0}.od-st-r i.gift{border-color:var(--oy);color:var(--oy)}.od-st-r i.gift.on{color:#111}
+.od-promo span b{font:800 .86rem Inter,sans-serif!important;white-space:nowrap}

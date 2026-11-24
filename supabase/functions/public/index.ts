@@ -107,11 +107,18 @@ function priceLine(S: any, day: string, x: any, out: string[] = []) {
   return { c, n, q, unit: Math.round(unit * 100) / 100, opt: opt.join(" · "), m: s(x.m, 120) };
 }
 const lines = (items: any[]) => items.map((i) => `${i.q} × ${i.n}${i.opt ? " (" + i.opt + ")" : ""}  ${eur(i.unit * i.q)}${i.m ? "\n    Lisätoive: " + i.m : ""}`).join("\n");
-async function isFirst(email: string, phone: string) {
+async function orderCount(email: string, phone: string) {
   const e = email.toLowerCase().trim(), p = norm(phone);
-  if (!e && p.length < 8) return false;
+  if (!e && p.length < 8) return -1;
   const { count } = await db.from("orders").select("id", { count: "exact", head: true }).neq("status", "peruttu").or(`email.eq."${e.replace(/"/g, "")}",phone.eq."${p.replace(/"/g, "")}"`);
-  return (count ?? 0) === 0;
+  return count ?? 0;
+}
+const loyOf = (c: any) => ({ every: c.loyEvery === 0 ? 0 : Math.max(2, +c.loyEvery || 10), pct: c.loyPct === 0 ? 0 : Math.min(50, +c.loyPct || 20) });
+function discountFor(n: number, firstPct: number, L: { every: number; pct: number }) {
+  if (n < 0) return { pct: 0, note: null as string | null, loy: false };
+  if (n === 0 && firstPct > 0) return { pct: firstPct, note: `Ensitilaus -${firstPct} %`, loy: false };
+  if (n > 0 && L.every > 0 && L.pct > 0 && (n + 1) % L.every === 0) return { pct: L.pct, note: `Kanta-asiakasetu ${n + 1}. tilaus -${L.pct} %`, loy: true };
+  return { pct: 0, note: null, loy: false };
 }
 async function saveCustomer(o: any) {
   const { data: c } = await db.from("customers").select("*").eq("email", o.email).maybeSingle();
@@ -148,7 +155,7 @@ async function orderCfg() {
   const open = h && h[0] ? hm(h[0]) : null, close = h && h[1] ? hm(h[1]) : null;
   const isOpen = open !== null && close !== null && now.min >= open && now.min <= close - 15;
   return { on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
-    soldout: Array.isArray(c.soldout) ? c.soldout : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, day: now.day, now: now.min, open, close, isOpen };
+    soldout: Array.isArray(c.soldout) ? c.soldout : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, loyEvery: loyOf(c).every, loyPct: loyOf(c).pct, day: now.day, now: now.min, open, close, isOpen };
 }
 async function placeOrder(b: any) {
   const C = await orderCfg(), S = await site();
@@ -173,9 +180,9 @@ async function placeOrder(b: any) {
     if (!/^\d{2}:\d{2}$/.test(s(b.w, 5)) || w < C.now + lead - 5 || w > (C.close ?? 0)) return j({ error: "Valitse toinen aika (aikaisintaan " + clock(Math.ceil((C.now + lead) / 5) * 5) + ")" }, 400);
     want = clock(w);
   }
-  const first = C.firstPct > 0 && await isFirst(o.email, o.phone);
-  const discount = first ? Math.round((subtotal + fee) * C.firstPct) / 100 : 0;
-  o.discount = discount; o.discount_note = first ? `Ensitilaus -${C.firstPct} %` : null;
+  const D = discountFor(await orderCount(o.email, o.phone), C.firstPct, { every: C.loyEvery, pct: C.loyPct });
+  const discount = D.pct ? Math.round((subtotal + fee) * D.pct) / 100 : 0;
+  o.discount = discount; o.discount_note = D.note;
   o.want = want; o.items = items; o.subtotal = subtotal; o.fee = fee; o.total = Math.round((subtotal + fee - discount) * 100) / 100;
   if (typeof b.total === "number" && Math.abs(b.total - o.total) > 0.01) return j({ error: "Hinnat ovat muuttuneet. Tarkista ostoskori ja lähetä uudelleen.", total: o.total }, 409);
   const { data: row, error } = await db.from("orders").insert(o).select("id,no").single();
@@ -213,7 +220,10 @@ Deno.serve(async (req) => {
     }
     if (b.action === "order_cfg") return j(await orderCfg());
     if (b.action === "order") return await placeOrder(b);
-    if (b.action === "first") { const c = await cfg(); const pct = c.firstPct === 0 ? 0 : +c.firstPct || 15; return j({ first: pct > 0 && await isFirst(s(b.e, 120), s(b.p, 30)), pct }); }
+    if (b.action === "first") {
+      const c = await cfg(), pct = c.firstPct === 0 ? 0 : +c.firstPct || 15, L = loyOf(c), n = await orderCount(s(b.e, 120), s(b.p, 30)), D = discountFor(n, pct, L);
+      return j({ first: n === 0 && pct > 0, pct, count: Math.max(0, n), every: L.every, loyPct: L.pct, loy: D.loy });
+    }
     if (b.action === "reviews") {
       const { data: t } = await db.from("settings").select("value").eq("key", "cron").maybeSingle();
       if (!t?.value?.token || b.token !== t.value.token) return j({ error: "Ei oikeuksia" }, 401);
