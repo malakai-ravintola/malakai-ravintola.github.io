@@ -1,7 +1,7 @@
 // Supabase Edge Function: admin  (liitä KOKO tiedosto Supabasen editoriin, funktion nimi: admin)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 const OWNER_PHONE = Deno.env.get("OWNER_PHONE") ?? "+358456057475";
-const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") ?? "hardi7fateh@hotmail.com";
+const OWNER_EMAIL = "hardi7fateh@hotmail.com"; // ainoa ylläpitäjä
 const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? OWNER_EMAIL;
 const SITE = "https://malakairavintola.fi";
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -49,6 +49,40 @@ Deno.serve(async (req) => {
       if (b.sms && r.phone && body) { try { res.sms = await sms(r.phone, body.slice(0, 600)); } catch (e) { res.errors.push((e as Error).message); } }
       await db.from("reservations").update({ status, handled_at: new Date().toISOString() }).eq("id", b.id);
       return j({ ok: true, ...res });
+    }
+    // Nettitilauksen tila: hyväksy (valmistumisaika), valmis, luovutettu, peru. Asiakas saa sähköpostin.
+    if (b.action === "order") {
+      const st = ["hyvaksytty", "valmis", "luovutettu", "peruttu"].includes(b.status) ? b.status : null;
+      if (!st) return j({ error: "Virheellinen tila" }, 400);
+      const { data: o } = await db.from("orders").select("*").eq("id", b.id).single();
+      if (!o) return j({ error: "Tilausta ei löydy" }, 404);
+      const up: Record<string, unknown> = { status: st };
+      if (st === "hyvaksytty") { up.eta = String(b.eta ?? "").slice(0, 5); up.handled_at = new Date().toISOString(); }
+      if (st === "peruttu") { up.reason = String(b.reason ?? "").slice(0, 300); up.handled_at = new Date().toISOString(); }
+      if (st === "luovutettu" || st === "valmis") up.done_at = new Date().toISOString();
+      const { error } = await db.from("orders").update(up).eq("id", b.id);
+      if (error) throw error;
+      const fn = String(o.name || "").split(" ")[0], del = o.kind === "kuljetus", eta = String(up.eta ?? o.eta ?? "").replace(":", ".");
+      const foot = "\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000";
+      const eur = (n: number) => Number(n).toFixed(2).replace(".", ",") + " €";
+      const items = (o.items || []).map((i: any) => `${i.q} × ${i.n}${i.opt ? " (" + i.opt + ")" : ""}`).join("\n");
+      let sub = "", txt = "";
+      if (st === "hyvaksytty") {
+        sub = `Tilauksesi #${o.no} on vahvistettu – ${del ? "perillä noin" : "valmiina noin"} klo ${eta}`;
+        txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on vahvistettu ja se on työn alla.\n\n${del ? `Toimitamme sen osoitteeseen ${o.address}, ${o.zip} noin klo ${eta}.` : `Tilauksesi on noudettavissa noin klo ${eta} osoitteesta Tampereentie 414, Lempäälä.`}\n\n${items}\n\nYhteensä ${eur(o.total)}, maksu ${del ? "toimitettaessa" : "noudettaessa"}.` + foot;
+      } else if (st === "peruttu") {
+        sub = `Tilauksesi #${o.no} on valitettavasti peruttu`;
+        txt = `Hei ${fn}!\n\nEmme valitettavasti pysty toimittamaan tilaustasi #${o.no}.` + (up.reason ? `\n\nSyy: ${up.reason}` : "") + `\n\nPahoittelemme. Voit soittaa meille numeroon 045 353 7000.` + foot;
+      } else if (st === "valmis" && !del && b.notify) {
+        sub = `Tilauksesi #${o.no} on valmis noudettavaksi`;
+        txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on valmis. Tervetuloa noutamaan: Tampereentie 414, Lempäälä.` + foot;
+      } else if (st === "valmis" && del && b.notify) {
+        sub = `Tilauksesi #${o.no} on matkalla`;
+        txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on lähtenyt kuljetukseen ja on pian perillä.` + foot;
+      }
+      let sent = false, err = "";
+      if (sub && o.email) { try { sent = await mail(o.email, sub, txt); } catch (e) { err = (e as Error).message; } }
+      return j({ ok: true, mail: sent, error: err || undefined });
     }
     if (b.action === "sms") {
       if (!(await sms(String(b.to), String(b.text).slice(0, 600)))) return j({ error: "Tekstiviestit eivät ole käytössä (46elks-avaimet puuttuvat)" }, 400);

@@ -52,6 +52,19 @@ h3.sec{margin:22px 0 0;color:var(--w)}.todo{margin:0;padding-left:18px}.todo li{
 .occ.mid em{background:#E3A51C}.occ.bad em{background:var(--r,#B3121F)}.occ.bad b{color:#ff6b6b}.warnt{color:#ff6b6b;font-weight:700}
 .dtab{width:100%;border-collapse:collapse;font-size:.9rem}.dtab th{text-align:left;color:var(--g);font-weight:600;padding:6px;border-bottom:1px solid var(--line)}.dtab td{padding:8px 6px;border-bottom:1px solid var(--line)}.dtab tr.uusi td{background:rgba(227,165,28,.08)}.dtab tr.tot td{font-weight:700;color:var(--y)}
 @media print{body{background:#fff!important;color:#000!important}.noprint,.tabs,header,nav,.cats,.toast{display:none!important}.card{border:0!important;background:#fff!important;box-shadow:none!important}.dtab td,.dtab th{color:#000;border-color:#ccc}.occ i{background:#eee}}
+.oq{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.oc{background:var(--k2);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.oc.uusi{border:2px solid var(--y);box-shadow:0 0 0 4px rgba(227,165,28,.15);animation:opl 1.6s ease-in-out infinite}
+@keyframes opl{50%{box-shadow:0 0 0 10px rgba(227,165,28,.05)}}
+.oc.hyvaksytty{border-color:#2f6b3f}.oc.valmis{border-color:#3d5c8a}
+.oc h4{margin:0;font:700 1.25rem Inter,sans-serif;display:flex;justify-content:space-between;gap:8px}.oc h4 span{color:var(--y)}
+.oc .ok{display:inline-block;font-weight:800;font-size:.8rem;padding:3px 10px;border-radius:999px;background:#333}
+.oc .ok.k{background:var(--r);color:#fff}.oc .ok.n{background:#245c33;color:#fff}
+.oc ul{margin:0;padding:0;list-style:none;font-size:1.02rem}.oc li{padding:5px 0;border-bottom:1px dashed #333}.oc li small{display:block;color:var(--g)}.oc li i{display:block;color:var(--y);font-style:normal;font-size:.85rem}
+.oc .meta{font-size:.86rem;color:var(--g)}.oc .meta b{color:var(--w)}.oc .tt{font-size:1.1rem;font-weight:800}
+.etas{display:flex;flex-wrap:wrap;gap:4px}.etas button{flex:1;min-width:64px;white-space:nowrap}
+.ohd{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.osw{display:flex;gap:8px;flex-wrap:wrap}.osw button.on{background:#245c33;color:#fff}.osw button.off{background:#5c2424;color:#fff}
 .cats{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
 .cats button{background:var(--k3);color:var(--w);border:1px solid var(--line)}.cats button.on{background:var(--y);color:#111;border-color:var(--y)}
 .day{display:grid;grid-template-columns:110px 1fr 1fr 64px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
@@ -143,8 +156,8 @@ input.ovbad{border-color:var(--bad)!important;color:var(--bad);background:rgba(2
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1795357191"></script>
-<script src="config.js?v=1795357191"></script>
+<script src="data.js?v=1795512815"></script>
+<script src="config.js?v=1795512815"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -189,12 +202,13 @@ function imgPicker(cur,set){const prev=mk("img",{class:"prev",src:cur,alt:""}),i
 
 // ---------- Näkymät
 let tab="Yleiskatsaus",cat=null;
-const TABS=["Yleiskatsaus","Varaukset","Asiakkaat","Uutiskirje","Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet","Omavalvonta","Asetukset"];
-const CONTENT=new Set(TABS.slice(4,8));
-function render(){const t=$("#tabs");t.textContent="";TABS.forEach(k=>{const n=k==="Varaukset"&&RES?RES.filter(r=>r.status==="uusi"&&r.date>=hToday()).length:0;t.append(mk("button",{class:k===tab?"on":"",onclick:()=>{tab=k;render()}},k,n?mk("span",{class:"badge",text:String(n)}):null))});if(!TABS.includes(tab))tab="Yleiskatsaus";
+const TABS=["Yleiskatsaus","Tilaukset","Varaukset","Asiakkaat","Uutiskirje","Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet","Omavalvonta","Asetukset"];
+const CONTENT=new Set(["Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet"]);
+function renderTabs(){const t=$("#tabs");t.textContent="";TABS.forEach(k=>{const n=k==="Varaukset"&&RES?RES.filter(r=>r.status==="uusi"&&r.date>=hToday()).length:k==="Tilaukset"&&ORD?ORD.filter(o=>o.status==="uusi").length:0;t.append(mk("button",{class:k===tab?"on":"",onclick:()=>{tab=k;render()}},k,n?mk("span",{class:"badge",text:String(n)}):null))});}
+function render(){renderTabs();if(!TABS.includes(tab))tab="Yleiskatsaus";
   $("#saveBar").hidden=!CONTENT.has(tab);const m=$("#main");m.textContent="";
   if(CONTENT.has(tab)&&!TOKEN)m.append(mk("div",{class:"card"},mk("b",{text:"Muokkaus vaatii GitHub-avaimen. "}),"Voit katsella sisältöä, mutta tallentaminen ei onnistu ennen kuin lisäät avaimen ",mk("a",{href:"#",text:"Asetuksissa",onclick:e=>{e.preventDefault();tab="Asetukset";render()}}),"."));
-  ({"Yleiskatsaus":vOver,"Varaukset":vRes,"Asiakkaat":vCust,"Uutiskirje":vMsg,"Ruokalista":vMenu,"Päivän pizza":vDaily,"Ilmoitukset":vAnn,"Aukiolo & buffet":vHours,"Omavalvonta":vOmav,"Asetukset":vSet})[tab](m)}
+  ({"Yleiskatsaus":vOver,"Tilaukset":vOrd,"Varaukset":vRes,"Asiakkaat":vCust,"Uutiskirje":vMsg,"Ruokalista":vMenu,"Päivän pizza":vDaily,"Ilmoitukset":vAnn,"Aukiolo & buffet":vHours,"Omavalvonta":vOmav,"Asetukset":vSet})[tab](m)}
 const inp=(val,on,attrs={})=>{const e=mk("input",{value:val??"",...attrs});e.oninput=()=>{on(e.value);mark()};return e};
 const area=(val,on,attrs={})=>{const e=mk("textarea",attrs);e.value=val??"";e.oninput=()=>{on(e.value);mark()};return e};
 const chk=(val,on,txt)=>{const e=mk("input",{type:"checkbox"});e.checked=!!val;e.onchange=()=>{on(e.checked);mark()};return mk("label",{class:"ck"},e,txt)};
@@ -339,6 +353,64 @@ function reply(r,kind){const list=tplList().filter(t=>t.kind===kind),ov=mk("div"
     mk("label",{class:"ck"},sm,"Lähetä tekstiviestinä ("+r.phone+")"+(SVC?.sms?"":" – ei käytössä")),
     mk("div",{class:"mact"},mk("button",{class:"o",text:"Sulje",onclick:close}),go));
   ov.append(box);ov.onclick=e=>{if(e.target===ov)close()};document.body.append(ov);document.body.style.overflow="hidden";sl.focus()}
+
+// ---------- Nettitilaukset (keittiön tilausnäyttö)
+let ORD=null,OCFG=null,oSound=ls.get("ord_sound")==="1",oAC=null,oSeen=new Set(),oWake=null,oShowDone=false;
+const eur=n=>Number(n||0).toFixed(2).replace(".",",")+" €";
+const hm=d=>new Date(d).toLocaleTimeString("fi-FI",{timeZone:"Europe/Helsinki",hour:"2-digit",minute:"2-digit"}).replace(".",":");
+function beep(){if(!oSound)return;try{oAC=oAC||new (window.AudioContext||window.webkitAudioContext)();const t=oAC.currentTime;[0,.25,.5].forEach((d,i)=>{const o=oAC.createOscillator(),g=oAC.createGain();o.frequency.value=i===2?1175:880;o.type="square";g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.35,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.2);o.connect(g).connect(oAC.destination);o.start(t+d);o.stop(t+d+.22)})}catch(e){}}
+async function ordLoad(){if(!SB)return;const {data:{session}}=await SB.auth.getSession();if(!session)return;
+  const since=new Date(Date.now()-36*3600e3).toISOString();
+  const [a,b]=await Promise.all([SB.from("orders").select("*").or(`created_at.gte."${since}",status.in.(uusi,hyvaksytty,valmis)`).order("created_at",{ascending:false}),SB.from("settings").select("value").eq("key","orders").maybeSingle()]);
+  if(a.error){ORD=ORD||[];return}
+  const fresh=a.data.filter(o=>o.status==="uusi"&&!oSeen.has(o.id));ORD=a.data;OCFG=(b.data&&b.data.value)||OCFG||{};
+  if(oSeen.size&&fresh.length&&"Notification"in window&&Notification.permission==="granted")try{new Notification("Uusi tilaus #"+fresh[0].no,{body:(fresh[0].kind==="kuljetus"?"Kuljetus":"Nouto")+" · "+eur(fresh[0].total)})}catch(e){}
+  ORD.forEach(o=>oSeen.add(o.id));
+  const n=ORD.filter(o=>o.status==="uusi").length;document.title=(n?"("+n+") UUSI TILAUS – ":"")+"Malakai ylläpito";
+  if(tab==="Tilaukset")render();else renderTabs()}
+setInterval(()=>{ordLoad().catch(()=>{})},10000);
+setInterval(()=>{if(ORD&&ORD.some(o=>o.status==="uusi"))beep()},4000);
+async function setOrd(o,status,extra={}){const r=await api("order",{id:o.id,status,...extra});Object.assign(o,{status},extra.eta?{eta:extra.eta}:{});
+  toast((status==="hyvaksytty"?"Hyväksytty":status==="peruttu"?"Peruttu":status==="valmis"?"Merkitty valmiiksi":"Luovutettu")+(r.mail?" · asiakkaalle lähti sähköposti":""));await ordLoad();render()}
+async function saveCfg(){const {error}=await SB.from("settings").upsert({key:"orders",value:OCFG,updated_at:new Date().toISOString()});if(error)throw new Error(error.message);toast("Asetukset tallennettu");render()}
+function ordCard(o){const del=o.kind==="kuljetus",want=o.want==="heti"?"Heti":"klo "+o.want.replace(":",".");
+  const c=mk("div",{class:"oc "+o.status},
+    mk("h4",null,mk("span",{text:"#"+o.no}),mk("b",{class:"ok "+(del?"k":"n"),text:del?"KULJETUS":"NOUTO"}),mk("small",{class:"muted",text:hm(o.created_at)})),
+    mk("div",{class:"meta"},mk("b",{text:o.name}),"  ",mk("a",{href:"tel:"+o.phone,text:o.phone}),mk("br"),"Toivottu aika: ",mk("b",{text:want}),o.eta?mk("span",null," · Luvattu: ",mk("b",{text:"klo "+o.eta.replace(":",".")})):null,
+      del?mk("div",null,"Osoite: ",mk("b",{text:o.address+", "+o.zip+" "+(o.city||"")})," ",mk("a",{href:"https://maps.google.com/?q="+encodeURIComponent(o.address+", "+o.zip+" "+(o.city||"")),target:"_blank",text:"kartta"})):null),
+    mk("ul",null,(o.items||[]).map(i=>mk("li",null,mk("b",{text:i.q+" × "+i.n}),i.opt?mk("small",{text:i.opt}):null,i.m?mk("i",{text:"Toive: "+i.m}):null))),
+    o.note?mk("div",{class:"meta"},"Lisätiedot: ",mk("b",{text:o.note})):null,
+    mk("div",{class:"tt"},eur(o.total),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," · maksu "+(del?"toimitettaessa":"noudettaessa")+(o.fee>0?" · sis. kuljetus "+eur(o.fee):""))));
+  if(o.status==="uusi"){const now=new Date();
+    c.append(mk("div",{class:"muted",text:"Hyväksy ja valitse "+(del?"toimitusaika":"valmistumisaika")+":"}),
+      mk("div",{class:"etas"},(o.want==="heti"?[10,15,20,30,45,60]:[0]).map(mn=>{const t=o.want==="heti"?hm(new Date(now.getTime()+mn*60e3)):o.want;return act(o.want==="heti"?mn+" min":"klo "+t.replace(":","."),()=>setOrd(o,"hyvaksytty",{eta:t}))})),
+      mk("div",{class:"btnrow"},act("Peru tilaus",()=>{const r=prompt("Peruutuksen syy asiakkaalle (esim. tuote loppu, liian kaukana):","");if(r===null)return;return setOrd(o,"peruttu",{reason:r})},"o")))}
+  else if(o.status==="hyvaksytty")c.append(mk("div",{class:"btnrow"},act(del?"Lähti kuljetukseen":"Valmis noudettavaksi",()=>setOrd(o,"valmis",{notify:true})),act(del?"Toimitettu":"Noudettu",()=>setOrd(o,"luovutettu"),"o")));
+  else if(o.status==="valmis")c.append(mk("div",{class:"btnrow"},act(del?"Toimitettu":"Noudettu",()=>setOrd(o,"luovutettu"))));
+  else c.append(mk("div",{class:"muted",text:o.status==="peruttu"?"Peruttu"+(o.reason?": "+o.reason:""):"Luovutettu "+(o.done_at?hm(o.done_at):"")}));
+  return c}
+function vOrd(m){m.append(mk("h2",{text:"Tilaukset"}));if(sbGate(m))return;
+  if(ORD===null){m.append(mk("p",{class:"muted",text:"Ladataan tilauksia…"}));ordLoad().then(render);return}
+  const c=OCFG||{},onB=mk("button",{class:c.on?"on":"off",text:c.on?"Nettitilaus: PÄÄLLÄ":"Nettitilaus: POIS"}),dB=mk("button",{class:c.delivery?"on":"off",text:c.delivery?"Kotiinkuljetus: PÄÄLLÄ":"Kotiinkuljetus: POIS"});
+  onB.onclick=()=>{OCFG={...c,on:!c.on};saveCfg().catch(e=>toast(e.message,true))};dB.onclick=()=>{OCFG={...c,delivery:!c.delivery};saveCfg().catch(e=>toast(e.message,true))};
+  const sB=act(oSound?"🔔 Äänimerkki päällä":"🔕 Ota äänimerkki käyttöön",async()=>{oSound=!oSound;ls.set("ord_sound",oSound?"1":null);if(oSound){beep();if("Notification"in window&&Notification.permission==="default")Notification.requestPermission()}render()},oSound?"":"o");
+  const wB=act(oWake?"Näyttö pysyy päällä":"Pidä näyttö päällä",async()=>{if(oWake){await oWake.release();oWake=null}else if(navigator.wakeLock){oWake=await navigator.wakeLock.request("screen");oWake.addEventListener("release",()=>{oWake=null})}else toast("Laite ei tue tätä. Säädä näytön lukitus puhelimen asetuksista.",true);render()},"o");
+  m.append(mk("div",{class:"card ohd"},mk("div",{class:"osw"},onB,dB),mk("div",{class:"osw"},sB,wB)));
+  if(!oSound)m.append(mk("p",{class:"warnt",text:"Paina \"Ota äänimerkki käyttöön\", niin laite piippaa, kun uusi tilaus tulee."}));
+  const act1=ORD.filter(o=>["uusi","hyvaksytty","valmis"].includes(o.status)).sort((a,b)=>({uusi:0,hyvaksytty:1,valmis:2}[a.status]-{uusi:0,hyvaksytty:1,valmis:2}[b.status])||new Date(a.created_at)-new Date(b.created_at));
+  m.append(act1.length?mk("div",{class:"oq"},act1.map(ordCard)):mk("div",{class:"card"},mk("p",{class:"muted",text:c.on?"Ei avoimia tilauksia. Sivu päivittyy itsestään 10 sekunnin välein.":"Nettitilaus on pois päältä, joten asiakkaat eivät voi tilata. Laita se päälle yltä."})));
+  const done=ORD.filter(o=>["luovutettu","peruttu"].includes(o.status)&&o.created_at.slice(0,10)>=addDays(hToday(),-1));
+  const today=ORD.filter(o=>o.status!=="peruttu"&&new Date(o.created_at).toLocaleDateString("en-CA",{timeZone:"Europe/Helsinki"})===hToday());
+  m.append(mk("p",{class:"muted"},"Tänään "+today.length+" tilausta, yhteensä "+eur(today.reduce((a,o)=>a+ +o.total,0))+". ",done.length?mk("a",{href:"#",text:oShowDone?"Piilota valmiit":"Näytä valmiit ("+done.length+")",onclick:e=>{e.preventDefault();oShowDone=!oShowDone;render()}}):null));
+  if(oShowDone)m.append(mk("div",{class:"oq"},done.map(ordCard)));
+  // Asetukset
+  const f=(k,lbl,attrs={})=>{const e=mk("input",{value:c[k]??"",...attrs});e.onchange=()=>{OCFG={...OCFG,[k]:attrs.type==="number"?+String(e.value).replace(",","."):e.value}};return lab(lbl,e)};
+  m.append(mk("details",{class:"card"},mk("summary",{text:"Tilausasetukset (kuljetusmaksu, vähimmäistilaus, ajat)"}),
+    mk("div",{class:"g3",style:"margin-top:12px"},f("fee","Kuljetusmaksu €",{type:"number",step:"0.1",min:"0"}),f("min","Kuljetuksen vähimmäistilaus €",{type:"number",step:"1",min:"0"}),f("prep","Noudon valmistusaika (min)",{type:"number",min:"5"})),
+    mk("div",{class:"g3"},f("dtime","Kuljetuksen toimitusaika (min)",{type:"number",min:"10"}),f("area","Toimitusalue (näkyy asiakkaalle)"),f("note","Ilmoitus tilaussivulle (valinnainen)")),
+    act("Tallenna asetukset",()=>saveCfg())));
+  m.append(mk("p",{class:"muted"},"Tilaussivu asiakkaille: ",mk("a",{href:"tilaa.html",target:"_blank",text:"malakairavintola.fi/tilaa.html"})))}
+if(location.hash==="#tilaukset")tab="Tilaukset";
 function vOver(m){m.append(mk("h2",{text:"Yleiskatsaus"}));
   const t=hToday(),dk=wd(t),wkend=dk==="la"||dk==="su",eur=v=>(+v).toFixed(2).replace(".",",")+" €",left=d=>Math.round((new Date(d+"T12:00:00")-new Date(t+"T12:00:00"))/864e5);
   const kv=(k,v)=>mk("div",{class:"kv"},mk("span",{text:k}),typeof v==="string"?mk("b",{text:v}):v);

@@ -1,7 +1,7 @@
 // Supabase Edge Function: public  (liitä KOKO tiedosto Supabasen editoriin, funktion nimi: public)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 const OWNER_PHONE = Deno.env.get("OWNER_PHONE") ?? "+358456057475";
-const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") ?? "hardi7fateh@hotmail.com";
+const OWNER_EMAIL = "hardi7fateh@hotmail.com"; // tilaukset ja varaukset tulevat aina tähän osoitteeseen
 const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? OWNER_EMAIL;
 const SITE = "https://malakairavintola.fi";
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -49,6 +49,104 @@ function source(ref: string) {
   if (/bing\.|duckduckgo\.|yahoo\.|ecosia\./.test(h)) return "Muu hakukone";
   return h.slice(0, 60);
 }
+
+// ---------- Nettitilaukset
+const OMA: Record<string, number[]> = { n: [11.5, 12.5, 13.5, 13.9], p: [22, 24, 24, 24] };
+const MEAL = 4.9;
+const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
+let MC: { t: number; d: any } | null = null;
+async function site() {
+  if (MC && Date.now() - MC.t < 120000) return MC.d;
+  const r = await fetch(SITE + "/data.js?t=" + Date.now());
+  const m = (await r.text()).match(/\/\*BEGIN\*\/([\s\S]*)\/\*END\*\//);
+  if (!m) throw new Error("data.js");
+  MC = { t: Date.now(), d: JSON.parse(m[1]) };
+  return MC.d;
+}
+const hel = () => {
+  const p = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Helsinki", weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date());
+  const g = (t: string) => p.find((x) => x.type === t)!.value;
+  const k = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"].indexOf(g("weekday").toLowerCase());
+  return { day: ["su", "ma", "ti", "ke", "to", "pe", "la"][k], min: (+g("hour") % 24) * 60 + +g("minute") };
+};
+const hm = (t: string) => { const [a, b] = String(t || "").split(":"); return +a * 60 + (+b || 0); };
+const clock = (m: number) => String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+async function cfg() { const { data } = await db.from("settings").select("value").eq("key", "orders").maybeSingle(); return data?.value ?? { on: false }; }
+function needsSauce(cat: any, it: any[]) { return /Med tai Hot/i.test((cat.note || "") + " " + (it[1] || "")); }
+function priceLine(S: any, day: string, x: any) {
+  const q = Math.min(Math.max(Math.round(+x.q || 1), 1), 20), n = s(x.n, 80), c = s(x.c, 40);
+  if (c === "Päivän pizza") {
+    if (!S.daily?.[day]?.name || S.daily[day].name !== n) throw new Error("Päivän pizza on vaihtunut. Päivitä sivu.");
+    return { c, n, q, unit: +S.dailyPrice, opt: "Päivän pizza", m: s(x.m, 120) };
+  }
+  const cat = S.menu?.[c], it = cat?.items?.find((i: any[]) => i[0] === n);
+  if (!it) throw new Error(`Tuotetta ${n} ei löydy. Päivitä sivu.`);
+  const sz = x.s === "p" ? "p" : "n", opt: string[] = [];
+  let unit: number;
+  if (c === "Pizza" && n === "Oma valinta") {
+    const all = String(cat.note || "").split("Täytteet:")[1]?.split(",").map((t: string) => t.trim().replace(/\.$/, "")) ?? [];
+    const t = [...new Set((Array.isArray(x.t) ? x.t : []).map((v: unknown) => s(v, 40)))].filter((v) => all.includes(v as string)) as string[];
+    if (t.length < 1 || t.length > 4) throw new Error("Valitse omaan pizzaan 1–4 täytettä");
+    unit = OMA[sz][t.length - 1]; opt.push(sz === "p" ? "Perhe" : "Normaali", t.join(", "));
+  } else {
+    const has2 = +it[3] > 0;
+    unit = has2 && sz === "p" ? +it[3] : +it[2];
+    if (has2) opt.push(sz === "p" ? "Perhe" : "Normaali");
+  }
+  if (!(unit > 0)) throw new Error(`Tuotetta ${n} ei voi tilata netissä`);
+  if (n === "Dippi") { const l = String(it[1]).split(",").map((v: string) => v.trim()); if (!l.includes(s(x.o, 40))) throw new Error("Valitse dipin maku"); opt.push(s(x.o, 40)); }
+  else if (needsSauce(cat, it)) { if (!["Med", "Hot"].includes(s(x.o, 5))) throw new Error(`Valitse kastike: ${n}`); opt.push("Kastike " + s(x.o, 5)); }
+  if (c === "Burgerit" && x.meal) { unit += MEAL; opt.push("Ateria: ranskalaiset + 0,33 l juoma"); }
+  return { c, n, q, unit: Math.round(unit * 100) / 100, opt: opt.join(" · "), m: s(x.m, 120) };
+}
+const lines = (items: any[]) => items.map((i) => `${i.q} × ${i.n}${i.opt ? " (" + i.opt + ")" : ""}  ${eur(i.unit * i.q)}${i.m ? "\n    Lisätoive: " + i.m : ""}`).join("\n");
+async function orderCfg() {
+  const [S, c] = await Promise.all([site(), cfg()]), now = hel(), h = S.hours?.[now.day];
+  const open = h && h[0] ? hm(h[0]) : null, close = h && h[1] ? hm(h[1]) : null;
+  const isOpen = open !== null && close !== null && now.min >= open && now.min <= close - 15;
+  return { on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
+    day: now.day, now: now.min, open, close, isOpen };
+}
+async function placeOrder(b: any) {
+  const C = await orderCfg(), S = await site();
+  if (!C.on) return j({ error: "Nettitilaus ei ole juuri nyt käytössä. Soita 045 353 7000." }, 400);
+  if (!C.isOpen) return j({ error: "Olemme kiinni tai sulkemassa. Tilaa aukioloaikana tai soita 045 353 7000." }, 400);
+  const kind = b.kind === "kuljetus" ? "kuljetus" : "nouto";
+  if (kind === "kuljetus" && !C.delivery) return j({ error: "Kotiinkuljetus ei ole juuri nyt käytössä. Valitse nouto." }, 400);
+  const o: any = { name: s(b.n, 80), phone: s(b.p, 30), email: s(b.e, 120).toLowerCase(), kind, note: s(b.m, 400),
+    address: kind === "kuljetus" ? s(b.a, 120) : null, zip: kind === "kuljetus" ? s(b.z, 10) : null, city: kind === "kuljetus" ? s(b.ci, 40) : null };
+  if (!o.name || o.phone.replace(/\D/g, "").length < 7 || !/^\S+@\S+\.\S+$/.test(o.email)) return j({ error: "Täytä nimi, puhelin ja sähköposti" }, 400);
+  if (kind === "kuljetus" && (!o.address || !/^\d{5}$/.test(o.zip || ""))) return j({ error: "Täytä toimitusosoite ja postinumero" }, 400);
+  const raw = Array.isArray(b.items) ? b.items.slice(0, 40) : [];
+  if (!raw.length) return j({ error: "Ostoskori on tyhjä" }, 400);
+  let items;
+  try { items = raw.map((x: any) => priceLine(S, C.day, x)); } catch (e) { return j({ error: (e as Error).message }, 400); }
+  const subtotal = Math.round(items.reduce((a: number, i: any) => a + i.unit * i.q, 0) * 100) / 100;
+  const fee = kind === "kuljetus" ? C.fee : 0;
+  if (kind === "kuljetus" && subtotal < C.min) return j({ error: `Kotiinkuljetuksen vähimmäistilaus on ${eur(C.min)}` }, 400);
+  let want = "heti";
+  if (b.w && b.w !== "heti") {
+    const w = hm(s(b.w, 5)), lead = kind === "kuljetus" ? C.dtime : C.prep;
+    if (!/^\d{2}:\d{2}$/.test(s(b.w, 5)) || w < C.now + lead - 5 || w > (C.close ?? 0)) return j({ error: "Valitse toinen aika (aikaisintaan " + clock(Math.ceil((C.now + lead) / 5) * 5) + ")" }, 400);
+    want = clock(w);
+  }
+  o.want = want; o.items = items; o.subtotal = subtotal; o.fee = fee; o.total = Math.round((subtotal + fee) * 100) / 100;
+  if (typeof b.total === "number" && Math.abs(b.total - o.total) > 0.01) return j({ error: "Hinnat ovat muuttuneet. Tarkista ostoskori ja lähetä uudelleen.", total: o.total }, 409);
+  const { data: row, error } = await db.from("orders").insert(o).select("id,no").single();
+  if (error) throw error;
+  const when = want === "heti" ? "mahdollisimman pian" : "klo " + want.replace(":", ".");
+  const kindTxt = kind === "kuljetus" ? `Kotiinkuljetus: ${o.address}, ${o.zip} ${o.city || ""}` : "Nouto ravintolasta";
+  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + `\nYhteensä: ${eur(o.total)}\nMaksu: ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
+  await Promise.allSettled([
+    mail(OWNER_EMAIL, `UUSI TILAUS #${row.no}: ${kind === "kuljetus" ? "kuljetus" : "nouto"} ${when}, ${eur(o.total)}`,
+      `Uusi nettitilaus #${row.no}\n\n${kindTxt}\nAika: ${when}\nNimi: ${o.name}\nPuhelin: ${o.phone}\nSähköposti: ${o.email}` + (o.note ? `\nLisätiedot: ${o.note}` : "") +
+      `\n\n${sum}\n\nHyväksy tilaus tilausnäytöllä:\n${SITE}/admin.html#tilaukset`, o.email),
+    mail(o.email, `Tilauksesi #${row.no} on vastaanotettu – Malakai Ravintola`,
+      `Hei ${o.name.split(" ")[0]}!\n\nKiitos tilauksestasi. Olemme vastaanottaneet sen, ja saat pian toisen viestin, kun tilaus on hyväksytty ja tiedämme valmistumisajan.\n\nTilausnumero: #${row.no}\n${kindTxt}\nToivottu aika: ${when}\n\n${sum}` +
+      (o.note ? `\n\nLisätiedot: ${o.note}` : "") + `\n\nJos haluat muuttaa tilausta, soita 045 353 7000.\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000`),
+  ]);
+  return j({ ok: true, no: row.no, total: o.total });
+}
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
@@ -66,6 +164,8 @@ Deno.serve(async (req) => {
         visitor: await hash(`${ip}|${ua}|${day}|${SALT}`) });
       return j({ ok: true });
     }
+    if (b.action === "order_cfg") return j(await orderCfg());
+    if (b.action === "order") return await placeOrder(b);
     if (b.action === "reserve") {
       const r = { name: s(b.n, 80), email: s(b.e, 120).toLowerCase(), phone: s(b.p, 30), guests: Math.min(Math.max(+b.g || 2, 1), 30),
         date: s(b.d, 10), time: s(b.t, 5), note: s(b.m, 300), source: "verkko" };
