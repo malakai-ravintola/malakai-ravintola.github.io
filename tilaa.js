@@ -32,18 +32,38 @@ const orderable=(c,it)=>+it[2]>0||(c==="Pizza"&&it[0]==="Oma valinta");
 const isOut=(c,n)=>!!(CFG&&(CFG.soldout||[]).includes((c==="Päivän pizza"?"Pizza":c)+"|"+n));
 function marks(){document.querySelectorAll(".od-plus").forEach(b=>{const o=isOut(b.dataset.c,b.dataset.n);b.disabled=o;b.title=o?"Loppu":"";const row=b.closest(".od-it,.od-day");if(row){row.classList.toggle("out",o);let t=row.querySelector(".od-out");if(o&&!t){t=document.createElement("span");t.className="od-out";t.textContent="LOPPU";b.before(t)}else if(!o&&t)t.remove()}})}
 
-// ---------- Ruokalista
+// ---------- Ruokalista (kuvalliset kategoriat, välilehdet ja tuoterivit)
 const day=helDay(),dp=(S.daily||{})[day];
-function menu(){const m=$("#odMenu"),cats=$("#odCats");let h="",ch="";
-  if(dp&&dp.name&&S.dailyPrice){h+=`<div class="od-day" id="paivan-pizza"><img src="${esc(dp.img)}" alt=""><div><small>PÄIVÄN PIZZA</small><b>${esc(dp.name)}</b><em>${eur(+S.dailyPrice)}</em></div><button class="od-plus" data-c="Päivän pizza" data-n="${esc(dp.name)}" aria-label="Lisää ${esc(dp.name)}">+</button></div>`}
-  Object.entries(M).forEach(([c,cat])=>{const items=cat.items.filter(it=>orderable(c,it));if(!items.length)return;const id=slug(c);ch+=`<a href="#${id}">${esc(c)}</a>`;
-    h+=`<section class="od-sec" id="${id}"><h2>${esc(c)}</h2>${cat.note&&c!=="Pizza"?`<p>${esc(cat.note)}</p>`:""}`;
-    items.forEach(it=>{const pr=it[0]==="Oma valinta"?"alk. "+eur(OMA.n[0]):(+it[3]>0?eur(+it[2])+" / "+eur(+it[3]):eur(+it[2]));
-      const ds=it[0]==="Oma valinta"?"Valitse 1–4 täytettä":(it[0]==="Dippi"?"Valitse maku":it[1]);
-      h+=`<div class="od-it"><div><b>${esc(it[0])}</b>${ds?`<span>${esc(ds)}</span>`:""}</div><div class="od-add"><em>${pr}</em><button class="od-plus" data-c="${esc(c)}" data-n="${esc(it[0])}" aria-label="Lisää ${esc(it[0])}">+</button></div></div>`});
+const T="media/tilaa/";
+const IMG={"Tropicana":"pizza-tropicana","Kebab Pizza":"pizza-kebab","Mexicana":"pizza-mexicana","Americano":"pizza-americano","Mamma Mia":"pizza-mammamia","Julia":"pizza-julia","Opera Special":"pizza-opera","Barbeque":"pizza-bbq","Margarita Mozzarella":"pizza-margarita","Oma valinta":"pizza-parma","Kebab ranskalaisilla":"kebab-ranskalaiset","Rullakebab":"kebabrulla"};
+const CIMG={"Pizza":"pizza-margarita","Kebab":"kebab-ranskalaiset","Wings":"kat-wings","Burgerit":"kat-burgerit","Lisukkeet":"kat-lisukkeet"};
+const CNAME={"Pizza":"Pizzat","Kebab":"Kebabit","Kana":"Kana-annokset","Wings":"Hot Wings","Dipit ja juomat":"Dipit ja juomat"};
+const pic=(f,alt,cls)=>f?`<img src="${f.includes("/")?esc(f):T+f+".jpg?v=1"}" alt="${esc(alt)}" loading="lazy" class="${cls||""}">`:`<span class="od-ph ${cls||""}" aria-hidden="true"><img src="media/logo-malakai.svg" alt=""></span>`;
+function menu(){const m=$("#odMenu"),cats=$("#odCats"),tiles=$("#odTiles");let h="",ch="",th="";
+  if(dp&&dp.name&&S.dailyPrice){
+    th+=`<a class="od-tile" href="#paivan-pizza">${pic(dp.img,dp.name)}<b>Päivän pizza</b></a>`;
+    ch+=`<a href="#paivan-pizza">Päivän pizza</a>`;
+    h+=`<section class="od-sec" id="paivan-pizza"><h2>Päivän pizza</h2><div class="od-it od-day" data-c="Päivän pizza" data-n="${esc(dp.name)}"><div class="od-img">${pic(dp.img,dp.name)}</div><div class="od-tx"><b>${esc(dp.name)}</b><span class="od-pr">${eur(+S.dailyPrice)} <i>vain tänään</i></span><p>Päivän tarjouspizza – vaihtuu joka päivä.</p></div><button class="od-plus" data-c="Päivän pizza" data-n="${esc(dp.name)}" aria-label="Lisää ${esc(dp.name)}">+</button></div></section>`}
+  if(M.Pizza)th+=`<a class="od-tile" href="#" data-open="Oma valinta">${pic("pizza-parma","Oma pizza")}<b>Luo oma pizza</b></a>`;
+  Object.entries(M).forEach(([c,cat])=>{const items=cat.items.filter(it=>orderable(c,it));if(!items.length)return;const id=slug(c),nm=CNAME[c]||c;
+    th+=`<a class="od-tile" href="#${id}">${pic(CIMG[c],nm)}<b>${esc(nm)}</b></a>`;ch+=`<a href="#${id}">${esc(nm)}</a>`;
+    h+=`<section class="od-sec" id="${id}"><h2>${esc(nm)}</h2>${cat.note&&c!=="Pizza"?`<p class="od-cn">${esc(cat.note)}</p>`:""}`;
+    items.forEach(it=>{const om=it[0]==="Oma valinta",two=+it[3]>0;
+      const pr=om?`alk. ${eur(OMA.n[0])} <i>normaali</i>`:eur(+it[2])+(two?" <i>normaali</i>":"");
+      const p2=om?`alk. ${eur(OMA.p[0])} perhe`:(two?eur(+it[3])+" perhe":"");
+      const ds=om?"Valitse itse 1–4 täytettä – normaali tai perhekoko.":(it[0]==="Dippi"?"Valitse maku: "+it[1]:it[1]);
+      h+=`<div class="od-it" data-c="${esc(c)}" data-n="${esc(it[0])}" tabindex="0" role="button" aria-label="${esc(it[0])}"><div class="od-img">${pic(IMG[it[0]],it[0])}</div><div class="od-tx"><b>${esc(om?"Oma pizza":it[0])}</b><span class="od-pr">${pr}</span>${p2?`<small>${p2}</small>`:""}${ds?`<p>${esc(ds)}</p>`:""}</div><button class="od-plus" data-c="${esc(c)}" data-n="${esc(it[0])}" aria-label="Lisää ${esc(it[0])}" tabindex="-1">+</button></div>`});
     h+="</section>"});
-  m.innerHTML=h;cats.innerHTML=(dp?'<a href="#paivan-pizza">Päivän pizza</a>':"")+ch;
-  m.addEventListener("click",e=>{const b=e.target.closest(".od-plus");if(b)open(b.dataset.c,b.dataset.n)})}
+  m.innerHTML=h;cats.innerHTML=ch;tiles.innerHTML=th;
+  const go=e=>{const r=e.target.closest(".od-it");if(!r)return;const b=r.querySelector(".od-plus");if(b&&b.disabled)return;open(r.dataset.c,r.dataset.n)};
+  m.addEventListener("click",go);m.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("od-it")){e.preventDefault();go(e)}});
+  tiles.addEventListener("click",e=>{const t=e.target.closest("[data-open]");if(t){e.preventDefault();open("Pizza",t.dataset.open)}});
+  // Aktiivinen välilehti seuraa vieritystä
+  const links=[...cats.querySelectorAll("a")],secs=links.map(a=>document.getElementById(a.hash.slice(1)));
+  const spy=()=>{let i=0;secs.forEach((s,k)=>{if(s&&s.getBoundingClientRect().top<(parseInt(getComputedStyle(document.documentElement).getPropertyValue("--odTop"))||170)+20)i=k});links.forEach((a,k)=>a.classList.toggle("on",k===i));
+    const a=links[i];if(a&&spy.l!==a){spy.l=a;const w=cats;w.scrollTo({left:a.offsetLeft-w.clientWidth/2+a.clientWidth/2,behavior:"smooth"})}};
+  const pin=()=>{const tb=document.getElementById("topbar"),y=tb?Math.max(0,tb.getBoundingClientRect().bottom):64;cats.parentElement.style.top=y+"px";document.documentElement.style.setProperty("--odTop",(y+60)+"px")};
+  addEventListener("scroll",()=>{cancelAnimationFrame(spy.r);spy.r=requestAnimationFrame(()=>{pin();spy()})},{passive:true});addEventListener("resize",pin);pin();spy()}
 
 // ---------- Valintaikkuna
 function chips(name,list,type,sel){return`<div class="od-chips">${list.map(v=>`<label><input type="${type}" name="${name}" value="${esc(v[0])}"${sel(v[0])?" checked":""}><span>${esc(v[1])}</span></label>`).join("")}</div>`}
