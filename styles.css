@@ -310,3 +310,7 @@ footer .brand2 b{font-size:2.2rem}footer .brand2 small{font-size:.7rem}
 .pjb{align-self:center;padding:2px 26px 2px 0}
 @media(min-width:900px){.pjc{width:470px;grid-template-columns:160px 1fr}}
 .pjk{white-space:nowrap}@media(max-width:520px){.pjc{grid-template-columns:30vw 1fr}.pjk{font-size:.64rem;padding:3px 8px;letter-spacing:0}.pjb{padding-right:30px}}
+
+/* Koko kuva näkyviin (ei rajausta) */
+.pjc{align-items:center}
+.pjc .pji{height:auto;min-height:0;aspect-ratio:3/4;object-fit:contain;align-self:center;background:#000}
