@@ -193,12 +193,19 @@ function vRep(m){if(!repM)repM=hToday().slice(0,7);
       act("Päivittäin (CSV)",async()=>dl(`malakai-myynti-paivittain-${repM}.csv`,["pvm;tilauksia;myynti_sis_alv_eur;alv_13_5_eur;veroton_eur"].concat(Object.keys(days).sort().map(d=>{const g=sumT(days[d]),v=Math.round(days[d].reduce((x,o)=>x+vatOf(+o.total),0)*100)/100;return[fd(d),days[d].length,fe2(g),fe2(v),fe2(g-v)].join(";")})).concat([["YHTEENSA",ok.length,fe2(gross),fe2(vat),fe2(net)].join(";")]).join("\n")),"o"),
       act("Tuotteet (CSV)",async()=>dl(`malakai-tuotteet-${repM}.csv`,["tuote;kpl;myynti_eur"].concat(Object.entries(pr).map(([k,v])=>[q(k),v.q,fe2(v.s)].join(";"))).join("\n")),"o"))))}
 
-function vProd(m){const out=new Set(OCFG.soldout||[]),M=SITE.menu||{},sq=mk("input",{type:"search",placeholder:"Hae tuotetta…"}),list=mk("div");
+function vProd(m){const out=new Set(OCFG.soldout||[]),hid=new Set(OCFG.hidden||[]),M=SITE.menu||{},sq=mk("input",{type:"search",placeholder:"Hae tuotetta…"}),list=mk("div");
+  const save=async(msg)=>{OCFG={...OCFG,soldout:[...out],hidden:[...hid]};try{await saveCfg(msg)}catch(e){toast(e.message,true)}};
+  const sw=(on,lab,fn,cls)=>mk("button",{class:"psw"+(on?" on":"")+(cls?" "+cls:""),"aria-pressed":on?"true":"false",onclick:fn},mk("i"),mk("span",{text:lab}));
   const draw=()=>{const v=sq.value.trim().toLowerCase();list.textContent="";Object.entries(M).forEach(([cat,o])=>{const its=(o.items||[]).filter(i=>(+i[2]>0||i[0]==="Oma valinta")&&(!v||i[0].toLowerCase().includes(v)));if(!its.length)return;
-    list.append(mk("h3",{text:cat,style:"margin:18px 0 8px"}),mk("div",{class:"chips"},its.map(i=>{const k=cat+"|"+i[0],on=out.has(k);return mk("button",{class:"chip"+(on?" out":""),text:i[0]+(on?" · LOPPU":""),"aria-pressed":on?"true":"false",onclick:async()=>{if(on)out.delete(k);else out.add(k);OCFG={...OCFG,soldout:[...out]};try{await saveCfg(on?i[0]+" taas myynnissä":i[0]+" merkitty loppuneeksi")}catch(e){toast(e.message,true)}}})})))})};
+    list.append(mk("h3",{text:cat,style:"margin:20px 0 6px"}),mk("div",{class:"plist"},its.map(i=>{const k=cat+"|"+i[0],h=hid.has(k),so=out.has(k);
+      return mk("div",{class:"prow"+(h?" hid":"")},mk("div",{class:"pn"},mk("b",{text:i[0]}),mk("small",{text:(+i[2]>0?eur(+i[2]):"")+(h?" · piilotettu":so?" · loppu":"")})),
+        sw(!h,h?"Piilossa":"Näkyy",()=>{if(h)hid.delete(k);else hid.add(k);save(h?i[0]+" näkyy taas tilaussivulla":i[0]+" piilotettu tilaussivulta")}),
+        sw(so,so?"Loppu":"Myynnissä",()=>{if(so)out.delete(k);else out.add(k);save(so?i[0]+" taas myynnissä":i[0]+" merkitty loppuneeksi")},"red"))})))})};
   sq.oninput=draw;draw();
-  m.append(mk("section",{class:"card"},mk("h2",{text:"Loppuneet tuotteet"+(out.size?" ("+out.size+")":"")}),mk("p",{class:"mut",text:"Paina tuotetta, niin se merkitään loppuneeksi eikä sitä voi tilata netissä. Paina uudelleen, kun tuotetta taas on. Hinnat ja tuotteet muokataan sivuston ylläpidossa."}),sq,
-    out.size?mk("div",{style:"margin-top:12px"},act("Kaikki taas myynnissä",async()=>{OCFG={...OCFG,soldout:[]};await saveCfg("Kaikki tuotteet myynnissä")},"o")):null,list))}
+  m.append(mk("section",{class:"card"},mk("h2",{text:"Tuotteet tilaussivulla"}),
+    mk("p",{class:"mut",text:"Näkyy / Piilossa: piilotettu tuote poistuu kokonaan tilaussivulta, eikä sitä voi tilata. Myynnissä / Loppu: tuote näkyy, mutta siinä lukee LOPPU. Paina uudelleen, niin tuote palaa. Hinnat muokataan sivuston ylläpidossa."}),
+    mk("div",{class:"kv"},mk("span",{text:"Piilotettuja"}),mk("b",{text:String(hid.size)})),mk("div",{class:"kv"},mk("span",{text:"Loppuneita"}),mk("b",{text:String(out.size)})),
+    sq,(out.size||hid.size)?mk("div",{style:"margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"},hid.size?act("Näytä kaikki",async()=>{OCFG={...OCFG,hidden:[]};await saveCfg("Kaikki tuotteet näkyvissä")},"o"):null,out.size?act("Kaikki taas myynnissä",async()=>{OCFG={...OCFG,soldout:[]};await saveCfg("Kaikki tuotteet myynnissä")},"o"):null):null,list))}
 
 function vCamp(m){const c=OCFG,inp=mk("input",{type:"number",min:"0",max:"50",value:c.firstPct??15});
   const mo=hToday().slice(0,7),L=live().filter(o=>hDate(o.created_at).slice(0,7)===mo),fst=L.filter(o=>o.discount>0&&!/^Kanta/.test(o.discount_note||"")),loy=L.filter(o=>/^Kanta/.test(o.discount_note||""));

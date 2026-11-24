@@ -193,7 +193,7 @@ async function orderCfg() {
     return { date, open: hh && hh[0] ? hm(hh[0]) : null, close: hh && hh[1] ? hm(hh[1]) : null };
   });
   return { days, preDays: pre, on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
-    soldout: Array.isArray(c.soldout) ? c.soldout : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, loyEvery: loyOf(c).every, loyPct: loyOf(c).pct, day: now.day, now: now.min, open, close, isOpen };
+    soldout: Array.isArray(c.soldout) ? c.soldout : [], hidden: Array.isArray(c.hidden) ? c.hidden : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, loyEvery: loyOf(c).every, loyPct: loyOf(c).pct, day: now.day, now: now.min, open, close, isOpen };
 }
 async function placeOrder(b: any) {
   const C = await orderCfg(), S = await site();
@@ -208,7 +208,7 @@ async function placeOrder(b: any) {
   const raw = Array.isArray(b.items) ? b.items.slice(0, 40) : [];
   if (!raw.length) return j({ error: "Ostoskori on tyhjä" }, 400);
   let items;
-  try { items = raw.map((x: any) => priceLine(S, C.day, x, C.soldout)); } catch (e) { return j({ error: (e as Error).message }, 400); }
+  try { items = raw.map((x: any) => priceLine(S, C.day, x, C.soldout.concat(C.hidden))); } catch (e) { return j({ error: (e as Error).message }, 400); }
   const subtotal = Math.round(items.reduce((a: number, i: any) => a + i.unit * i.q, 0) * 100) / 100;
   const fee = kind === "kuljetus" ? C.fee : 0;
   if (kind === "kuljetus" && subtotal < C.min) return j({ error: `Kotiinkuljetuksen vähimmäistilaus on ${eur(C.min)}` }, 400);
