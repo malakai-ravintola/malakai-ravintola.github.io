@@ -204,3 +204,66 @@
 
 .od-addr{border:1px solid rgba(227,165,28,.5);border-radius:14px;padding:6px 14px 12px;margin:12px 0 0;background:rgba(227,165,28,.05)}
 .od-addr legend{padding:0 6px;font-weight:800;color:#E3A51C;font-size:.9rem}
+
+/* ---- Tuotekortti (avautuu tuotetta painamalla) */
+.od-sheet{padding:0!important;display:flex;flex-direction:column;overflow:hidden!important;width:min(520px,100%)!important;max-height:min(880px,calc(100vh - 32px))!important}
+.od-mtop{position:absolute;left:0;right:0;top:0;z-index:3;display:flex;align-items:center;justify-content:center;min-height:64px;padding:0 64px;background:transparent;transition:background .2s,box-shadow .2s}
+.od-mtop b{font-weight:700;opacity:0;transition:opacity .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.od-mtop.on{background:var(--ob);box-shadow:0 6px 18px rgba(0,0,0,.45)}.od-mtop.on b{opacity:1}
+.od-sheet .od-x{display:grid!important;place-items:center;position:absolute;right:12px;top:10px;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.6);font-size:1.6rem}
+.od-mscroll{overflow:auto;flex:1;overscroll-behavior:contain}
+.od-mimg{height:280px;display:grid;place-items:center;background:radial-gradient(60% 70% at 50% 50%,rgba(227,165,28,.18),transparent 70%),#1b1b1b;border-bottom:1px solid var(--ol)}
+.od-mimg[hidden]{display:none}.od-mimg img{max-width:84%;max-height:250px;object-fit:contain;filter:drop-shadow(0 18px 24px rgba(0,0,0,.55))}
+.od-mimg img.pho{width:100%;height:280px;max-width:none;max-height:none;object-fit:cover;filter:none}
+.od-mbody{padding:22px 22px 10px}
+.od-mimg[hidden]+.od-mbody{padding-top:70px}
+.od-mbody h3{font-size:1.9rem!important;margin:0 0 8px;padding:0}
+.od-mpr{font-weight:800;font-size:1.15rem;margin:0 0 10px;display:flex;justify-content:space-between;gap:10px}.od-mpr i{font-style:normal;font-weight:500;color:var(--om)}
+.od-mdesc{color:var(--om);margin:0 0 6px;line-height:1.5}.od-mdesc:empty{display:none}
+.od-sheet .od-opt{margin:0 -22px;padding:18px 22px 4px;border-top:1px solid var(--ol)}
+.od-gh{margin-bottom:6px}.od-gh b{display:block;font-size:1.15rem;color:#fff}.od-gh small{display:block;color:var(--om);font-size:.85rem;margin-top:2px}
+.od-row{display:flex!important;align-items:center;gap:14px;padding:13px 0!important;margin:0!important;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;font-size:1rem!important;color:#fff!important}
+.od-row:last-child{border-bottom:0}
+.od-row input{position:absolute;opacity:0;pointer-events:none}
+.od-row i{flex:none;width:24px;height:24px;border:2px solid #8a8a8a;border-radius:6px;display:grid;place-items:center;font-style:normal;font-size:15px;font-weight:900;color:var(--ok)}
+.od-row input[type=radio]+i{border-radius:50%}
+.od-row input:checked+i{background:var(--oy);border-color:var(--oy)}
+.od-row input[type=checkbox]:checked+i::after{content:"✓"}
+.od-row input[type=radio]:checked+i::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.od-row input:focus-visible+i{outline:2px solid #fff;outline-offset:2px}
+.od-row input:disabled~*{opacity:.4}
+.od-row span{flex:1}.od-row em{font-style:normal;color:var(--om);white-space:nowrap}
+.od-row input:checked~em{color:var(--oy)}
+.od-mnote{margin:16px 0 8px!important}
+.od-sheet .od-mf{margin:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--ol);background:var(--ob)}
+.od-qb{background:#222;border-radius:999px;padding:6px}.od-qb button{width:40px;height:40px;border-radius:50%}
+.od-sheet #odMA{border-radius:999px;padding:15px 18px;font-size:1rem;display:flex;justify-content:center;gap:12px}
+@media(max-width:640px){
+  #odModal{place-items:end center;padding:0}
+  .od-sheet{width:100%!important;max-height:94vh!important;border-radius:22px 22px 0 0!important;border-bottom:0!important;animation:odUp .25s ease-out}
+  .od-mimg{height:240px}.od-mimg img{max-height:215px}.od-mimg img.pho{height:240px}
+}
+@keyframes odUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+
+/* ---- Ravintolan yläosa */
+.od-hero2{padding:0!important}
+.od-ban{position:relative;height:clamp(250px,38vw,380px);overflow:hidden;background:#000}
+.od-ban>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.od-ban::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.45) 0%,rgba(0,0,0,.1) 35%,rgba(0,0,0,.85) 100%)}
+.od-ban-in{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:22px}
+.od-loc{position:absolute;top:18px;display:inline-flex;align-items:center;gap:10px;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);color:#fff;font-weight:700;padding:9px 16px 9px 10px;border-radius:999px;font-size:.92rem}
+.od-loc svg{width:22px;height:22px}
+.od-hero2 h1{margin:0!important;font-size:clamp(2.6rem,8vw,4.6rem)!important;line-height:1}
+.od-tag{margin:6px 0 0;font-weight:700;font-size:clamp(1rem,2.6vw,1.25rem);color:#fff}
+.od-info{padding-top:18px;padding-bottom:6px}
+.od-stat{margin:0 0 4px}
+.od-info .od-note{margin-top:8px}
+.od-rows{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:12px}
+.od-rows li{display:flex;gap:14px;align-items:center;color:#e8e8e8;font-size:1rem}
+.od-rows svg{flex:none;width:24px;height:24px;color:var(--oy)}
+.od-links{display:flex;flex-wrap:wrap;gap:8px 22px;margin:16px 0 0;font-size:.92rem}
+.od-links a{color:var(--om);text-decoration:underline;text-underline-offset:3px}.od-links a.od-wl{color:#6cc3f5}
+.od-pre{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;max-width:720px;padding:15px;border-radius:999px;background:#222;border:1px solid var(--ol);color:#fff;font-weight:700;text-decoration:none}
+.od-pre[hidden]{display:none}.od-pre svg{width:22px;height:22px;color:var(--oy)}
+.od-sheet .od-mf{gap:10px}.od-sheet #odMA{white-space:nowrap;flex:1;min-width:0}
+.od-qb{flex:none}.od-qb button{width:36px;height:36px}

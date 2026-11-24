@@ -77,6 +77,10 @@ const hm = (t: string) => { const [a, b] = String(t || "").split(":"); return +a
 const clock = (m: number) => String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
 async function cfg() { const { data } = await db.from("settings").select("value").eq("key", "orders").maybeSingle(); return data?.value ?? { on: false }; }
 function needsSauce(cat: any, it: any[]) { return /Med tai Hot/i.test((cat.note || "") + " " + (it[1] || "")); }
+const LIHA: Record<string, number> = { Tuplaliha: 5, Triplaliha: 10 };
+const POT: Record<string, number> = { "Ranskalaiset": 0, "Ristikkoperunat": 1, "Kierreperunat": 1, "Crispers-ranskanperunat": 1 }, DIP = 1.5;
+const dipList = (S: any) => String((S.menu?.["Dipit ja juomat"]?.items || []).find((i: any[]) => i[0] === "Dippi")?.[1] || "").split(",").map((v: string) => v.trim()).filter(Boolean);
+const hasDip = (S: any, cat: any, it: any[]) => it[0] !== "Dippi" && dipList(S).length > 0 && /\bdip/i.test((cat.note || "") + " " + (it[1] || ""));
 function priceLine(S: any, day: string, x: any, out: string[] = []) {
   const q = Math.min(Math.max(Math.round(+x.q || 1), 1), 20), n = s(x.n, 80), c = s(x.c, 40);
   if (out.includes((c === "Päivän pizza" ? "Pizza" : c) + "|" + n)) throw new Error(`${n} on valitettavasti loppu. Poista se ostoskorista.`);
@@ -114,7 +118,11 @@ function priceLine(S: any, day: string, x: any, out: string[] = []) {
   }
   if (!(unit > 0)) throw new Error(`Tuotetta ${n} ei voi tilata netissä`);
   if (n === "Dippi") { const l = String(it[1]).split(",").map((v: string) => v.trim()); if (!l.includes(s(x.o, 40))) throw new Error("Valitse dipin maku"); opt.push(s(x.o, 40)); }
-  else if (needsSauce(cat, it)) { if (!["Med", "Hot"].includes(s(x.o, 5))) throw new Error(`Valitse kastike: ${n}`); opt.push("Kastike " + s(x.o, 5)); }
+  else if (needsSauce(cat, it)) { const ok = c === "Sticky Fingers" ? ["Med", "Hot", "X-hot"] : ["Med", "Hot"]; if (!ok.includes(s(x.o, 5))) throw new Error(`Valitse kastike: ${n}`); opt.push("Kastike " + s(x.o, 5)); }
+  if (c === "Kebab" && x.l) { const l = s(x.l, 12); if (!(l in LIHA)) throw new Error(`Tarkista lihavalinta: ${n}`); unit += LIHA[l]; opt.push(l); }
+  if (n === "Kanakori" || c === "Sticky Fingers") { const pt = s(x.pt, 30) || "Ranskalaiset"; if (!(pt in POT)) throw new Error(`Tarkista perunat: ${n}`); unit += POT[pt]; opt.push("Perunat: " + pt); }
+  if (hasDip(S, cat, it)) { const L = dipList(S), d = [...new Set((Array.isArray(x.d) ? x.d : []).map((v: unknown) => s(v, 40)))].filter((v) => L.includes(v as string)).slice(0, 8) as string[];
+    if (!d.length) throw new Error(`Valitse dippi: ${n}`); unit += (d.length - 1) * DIP; opt.push("Dipit: " + d.join(", ")); }
   if (c === "Burgerit" && x.meal) { unit += MEAL; opt.push("Ateria: ranskalaiset + 0,33 l juoma"); }
   return { c, n, q, unit: Math.round(unit * 100) / 100, opt: opt.join(" · "), m: s(x.m, 120) };
 }
