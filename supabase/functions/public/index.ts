@@ -200,6 +200,7 @@ async function placeOrder(b: any) {
       return j({ error: "Valittu aika ei ole enää vapaana. Valitse toinen aika." }, 400);
     want = (di > 0 ? D0.date + " " : "") + clock(w);
   }
+  if (/^\d{4}-/.test(want) && items.some((i: any) => i.c === "Päivän pizza")) return j({ error: "Päivän pizza on tilattavissa vain samalle päivälle. Poista se ostoskorista tai valitse aika tälle päivälle." }, 400);
   const D = discountFor(await orderCount(o.email, o.phone), C.firstPct, { every: C.loyEvery, pct: C.loyPct });
   const discount = D.pct ? Math.round((subtotal + fee) * D.pct) / 100 : 0;
   o.discount = discount; o.discount_note = D.note;
