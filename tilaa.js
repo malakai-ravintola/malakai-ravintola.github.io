@@ -246,5 +246,7 @@ $("#odForm").onsubmit=async e=>{e.preventDefault();const f=e.target,send=$("#odS
     cart=[];save();draw();$("#odCart").classList.remove("open");$("#odDone").hidden=false}
   catch(x){if(x.j&&x.j.total){await checkFirst();alert("Hinta päivittyi: "+eur(x.j.total)+". Tarkista summa ja lähetä uudelleen.")}else alert(x.message);draw()}};
 
-menu();draw();load();setInterval(()=>{if(document.visibilityState==="visible")load()},120000);
+menu();draw();load();
+{const q=new URLSearchParams(location.search).get("tarjous");if(q&&offOf(q))setTimeout(()=>open("Tarjous",q),300)}
+setInterval(()=>{if(document.visibilityState==="visible")load()},120000);
 })();

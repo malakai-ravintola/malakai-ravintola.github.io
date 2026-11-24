@@ -51,8 +51,12 @@ if(S.dailyPrice)$$(".dp").forEach(e=>e.textContent=f(S.dailyPrice));
     show();if(L.length>1&&!matchMedia("(prefers-reduced-motion: reduce)").matches)setInterval(show,4500)}}}
 {const ev=$("#isanpaiva");if(ev&&S.event){if(until(S.event)){$("#evT").textContent=S.event.title;$("#evX").textContent=S.event.text}else ev.hidden=true}}
 {const ol=$("#offerList"),os=$("#tarjoukset");if(ol&&os){const L=(S.offers||[]).filter(o=>o.on&&(!o.until||now.date<=o.until)&&(!o.from||now.date>=o.from));
-  L.forEach(o=>{const c=document.createElement("a");c.className="h-offer";c.href=o.link||"tel:+358453537000";
-    const im=document.createElement("img");im.src=o.image||"";im.alt=(o.title||"Tarjous")+(o.text?": "+o.text:"")+(o.price?" "+o.price:"");im.loading="lazy";c.appendChild(im);ol.appendChild(c)});
+  const E=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+  L.forEach(o=>{const pz=/\d+\s*pizza/i.test(o.title+" "+(o.text||"")),img=pz?"media/tilaa/tarjous-3-pizzaa.webp?v=13":(o.image||""),u=o.until?(+o.until.slice(8))+"."+(+o.until.slice(5,7))+".":"";
+    const href=pz?"tilaa.html?tarjous="+encodeURIComponent(o.title)+"#tarjoukset":(o.link||"tel:+358453537000");
+    const c=document.createElement("div");c.className="h-off2";
+    c.innerHTML=`<a class="ho-img" href="${E(href)}" tabindex="-1" aria-hidden="true">${img?`<img src="${E(img)}" alt="" loading="lazy">`:""}</a><div class="ho-tx"><b>${E(o.title)}</b>${o.price?`<span class="ho-pr">${E(o.price)}</span>`:""}${o.was?`<s>${E(o.was)}</s>`:""}${u||/nouto/i.test(o.text||"")?`<small>${u?"Voimassa "+u+" asti":""}${u&&/nouto/i.test(o.text||"")?" · ":""}${/nouto/i.test(o.text||"")?"vain nouto":""}</small>`:""}${o.text?`<p>${E(o.text)}</p>`:""}</div><a class="ho-btn" href="${E(href)}">Tilaa <span aria-hidden="true">→</span></a>`;
+    ol.appendChild(c)});
   os.hidden=!L.length}}
 {const pi=$("#popImg");if(pi&&S.popup&&S.popup.card){pi.src=S.popup.card}}
 
