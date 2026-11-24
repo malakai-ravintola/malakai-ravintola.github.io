@@ -53,6 +53,8 @@ function source(ref: string) {
 // ---------- Nettitilaukset
 const OMA: Record<string, number[]> = { n: [11.5, 12.5, 13.5, 13.9], p: [22, 24, 24, 24] };
 const MEAL = 4.9;
+const VAT = 13.5; // ruoka ja alkoholittomat juomat, ravintola- ja ateriapalvelut 1.1.2026 alkaen
+const vat = (t: number) => Math.round(t * VAT / (100 + VAT) * 100) / 100;
 const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
 let MC: { t: number; d: any } | null = null;
 async function site() {
@@ -136,7 +138,7 @@ async function placeOrder(b: any) {
   if (error) throw error;
   const when = want === "heti" ? "mahdollisimman pian" : "klo " + want.replace(":", ".");
   const kindTxt = kind === "kuljetus" ? `Kotiinkuljetus: ${o.address}, ${o.zip} ${o.city || ""}` : "Nouto ravintolasta";
-  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + `\nYhteensä: ${eur(o.total)}\nMaksu: ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
+  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksu: ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
   await Promise.allSettled([
     mail(OWNER_EMAIL, `UUSI TILAUS #${row.no}: ${kind === "kuljetus" ? "kuljetus" : "nouto"} ${when}, ${eur(o.total)}`,
       `Uusi nettitilaus #${row.no}\n\n${kindTxt}\nAika: ${when}\nNimi: ${o.name}\nPuhelin: ${o.phone}\nSähköposti: ${o.email}` + (o.note ? `\nLisätiedot: ${o.note}` : "") +

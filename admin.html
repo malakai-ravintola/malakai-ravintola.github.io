@@ -156,8 +156,8 @@ input.ovbad{border-color:var(--bad)!important;color:var(--bad);background:rgba(2
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1795512815"></script>
-<script src="config.js?v=1795512815"></script>
+<script src="data.js?v=1795513131"></script>
+<script src="config.js?v=1795513131"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -380,7 +380,7 @@ function ordCard(o){const del=o.kind==="kuljetus",want=o.want==="heti"?"Heti":"k
       del?mk("div",null,"Osoite: ",mk("b",{text:o.address+", "+o.zip+" "+(o.city||"")})," ",mk("a",{href:"https://maps.google.com/?q="+encodeURIComponent(o.address+", "+o.zip+" "+(o.city||"")),target:"_blank",text:"kartta"})):null),
     mk("ul",null,(o.items||[]).map(i=>mk("li",null,mk("b",{text:i.q+" × "+i.n}),i.opt?mk("small",{text:i.opt}):null,i.m?mk("i",{text:"Toive: "+i.m}):null))),
     o.note?mk("div",{class:"meta"},"Lisätiedot: ",mk("b",{text:o.note})):null,
-    mk("div",{class:"tt"},eur(o.total),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," · maksu "+(del?"toimitettaessa":"noudettaessa")+(o.fee>0?" · sis. kuljetus "+eur(o.fee):""))));
+    mk("div",{class:"tt"},eur(o.total),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," (sis. ALV 13,5 % "+eur(Math.round(o.total*13.5/113.5*100)/100)+")"),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," · maksu "+(del?"toimitettaessa":"noudettaessa")+(o.fee>0?" · sis. kuljetus "+eur(o.fee):""))));
   if(o.status==="uusi"){const now=new Date();
     c.append(mk("div",{class:"muted",text:"Hyväksy ja valitse "+(del?"toimitusaika":"valmistumisaika")+":"}),
       mk("div",{class:"etas"},(o.want==="heti"?[10,15,20,30,45,60]:[0]).map(mn=>{const t=o.want==="heti"?hm(new Date(now.getTime()+mn*60e3)):o.want;return act(o.want==="heti"?mn+" min":"klo "+t.replace(":","."),()=>setOrd(o,"hyvaksytty",{eta:t}))})),
@@ -401,7 +401,7 @@ function vOrd(m){m.append(mk("h2",{text:"Tilaukset"}));if(sbGate(m))return;
   m.append(act1.length?mk("div",{class:"oq"},act1.map(ordCard)):mk("div",{class:"card"},mk("p",{class:"muted",text:c.on?"Ei avoimia tilauksia. Sivu päivittyy itsestään 10 sekunnin välein.":"Nettitilaus on pois päältä, joten asiakkaat eivät voi tilata. Laita se päälle yltä."})));
   const done=ORD.filter(o=>["luovutettu","peruttu"].includes(o.status)&&o.created_at.slice(0,10)>=addDays(hToday(),-1));
   const today=ORD.filter(o=>o.status!=="peruttu"&&new Date(o.created_at).toLocaleDateString("en-CA",{timeZone:"Europe/Helsinki"})===hToday());
-  m.append(mk("p",{class:"muted"},"Tänään "+today.length+" tilausta, yhteensä "+eur(today.reduce((a,o)=>a+ +o.total,0))+". ",done.length?mk("a",{href:"#",text:oShowDone?"Piilota valmiit":"Näytä valmiit ("+done.length+")",onclick:e=>{e.preventDefault();oShowDone=!oShowDone;render()}}):null));
+  m.append(mk("p",{class:"muted"},(()=>{const t=today.reduce((a,o)=>a+ +o.total,0),v=Math.round(t*13.5/113.5*100)/100;return "Tänään "+today.length+" tilausta, yhteensä "+eur(t)+" (josta ALV 13,5 % "+eur(v)+", veroton "+eur(t-v)+"). "})(),done.length?mk("a",{href:"#",text:oShowDone?"Piilota valmiit":"Näytä valmiit ("+done.length+")",onclick:e=>{e.preventDefault();oShowDone=!oShowDone;render()}}):null));
   if(oShowDone)m.append(mk("div",{class:"oq"},done.map(ordCard)));
   // Asetukset
   const f=(k,lbl,attrs={})=>{const e=mk("input",{value:c[k]??"",...attrs});e.onchange=()=>{OCFG={...OCFG,[k]:attrs.type==="number"?+String(e.value).replace(",","."):e.value}};return lab(lbl,e)};

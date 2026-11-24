@@ -93,3 +93,4 @@
 .od-day div b{display:block;font-size:1.15rem}.od-day div em{display:block;font-style:normal;color:var(--oy);font-weight:800}.od-day small{display:block}
 #odForm label.od-ck{justify-content:flex-start}#odForm .od-ck input{width:20px;height:20px;flex:none;accent-color:var(--oy)}
 .od-plus{line-height:40px;padding:0;text-align:center}
+.od-sum .vat{font-size:.8rem;color:var(--om)}
