@@ -17,7 +17,10 @@ const SAUCES=c=>c==="Sticky Fingers"?["Med","Hot","X-hot"]:["Med","Hot"];
 const LIHA={Tuplaliha:5,Triplaliha:10},POT={"Ranskalaiset":0,"Ristikkoperunat":1,"Kierreperunat":1,"Crispers-ranskanperunat":1},DIP=1.5;
 const DIPS=String((((M["Dipit ja juomat"]||{}).items||[]).find(i=>i[0]==="Dippi")||[])[1]||"").split(",").map(v=>v.trim()).filter(Boolean);
 const hasPot=(c,n)=>n==="Kanakori"||c==="Sticky Fingers";
-const hasDip=(cat,it)=>!!it&&it[0]!=="Dippi"&&DIPS.length>0&&/\bdip/i.test(((cat||{}).note||"")+" "+(it[1]||""));
+const WN=it=>{const m=/^Hot Wings (\d+) kpl/i.exec((it||[])[0]||"");return m?+m[1]:0};
+const freeDips=it=>{const w=WN(it);return !w?1:w<=16?1:w<=25?2:3};
+const dipTxt=(cat,it)=>/\bdip/i.test(((cat||{}).note||"")+" "+((it||[])[1]||""));
+const hasDip=(cat,it)=>!!it&&it[0]!=="Dippi"&&DIPS.length>0&&(WN(it)>0||cat===M.Lisukkeet||dipTxt(cat,it));
 const litres=n=>{const m=String(n).match(/(\d+(?:[,.]\d+)?)\s*l\b/i);return m?+m[1].replace(",","."):0};
 
 let CFG=null,FIRST=false,LOY=null,cart=ls.get("mk_cart")||[],cur=null;
@@ -42,7 +45,7 @@ function price(x){
   if(x.c==="Burgerit"&&x.meal)u+=MEAL;
   if(x.c==="Kebab")u+=LIHA[x.l]||0;
   if(hasPot(x.c,x.n))u+=POT[x.pt]||0;
-  if(hasDip(cat,it))u+=Math.max(0,(x.d||[]).length-1)*DIP;
+  if(hasDip(cat,it))u+=Math.max(0,(x.d||[]).length-freeDips(it))*DIP;
   return Math.round(u*100)/100}
 function optTxt(x){if(x.c==="Tarjous")return"Pizzat: "+(x.t||[]).join(", ")+" · 1,5 l juoma · vain nouto";const o=[];const xs=(x.x||[]).length?"Lisätäytteet: "+x.x.join(", "):"";if(x.c==="Päivän pizza")return["Päivän pizza",xs].filter(Boolean).join(" · ");
   const cat=M[x.c],it=cat&&cat.items.find(i=>i[0]===x.n);if(!it)return"";
@@ -118,7 +121,7 @@ function open(c,n){
   else if(!day&&sauce(cat,it))o+=grp("Valitse kastike","Valitse yksi","o","radio",SAUCES(c).map(v=>[v,v==="Med"?"Medium":v,""]),v=>v==="Med");
   if(c==="Kebab")o+=grp("Tuplalihalla?","Valinnainen","l","radio",[["","Normaali",""],["Tuplaliha","Tuplaliha","+"+eur(LIHA.Tuplaliha)],["Triplaliha","Triplaliha","+"+eur(LIHA.Triplaliha)]],v=>v==="");
   if(hasPot(c,n))o+=grp("Perunat","Valitse yksi","pt","radio",Object.entries(POT).map(([v,p])=>[v,v,p?"+"+eur(p):""]),v=>v==="Ranskalaiset");
-  if(!day&&hasDip(cat,it))o+=grp("Dippi?",`1. dippi sisältyy · lisädipit +${eur(DIP)} / kpl · enintään 8`,"d","checkbox",DIPS.map(v=>[v,v,""]),()=>false);
+  if(!day&&hasDip(cat,it)){const fd=freeDips(it);o+=`<div data-free="${fd}">`+grp("Dippi?",`${fd===1?"1 dippi":fd+" dippiä"} sisältyy · lisädipit +${eur(DIP)} / kpl · enintään 8`,"d","checkbox",DIPS.map(v=>[v,v,""]),()=>false)+`</div>`}
   if(c==="Burgerit")o+=grp("Ateria","Valinnainen","meal","checkbox",[["1","Ranskalaiset ja 0,33 l juoma","+"+eur(MEAL)]],()=>false);
   const L=litres(n);if(/juoma/i.test(n)){if(L)pr=`${eur(+it[2])} <i>${eur(+it[2]/L)}/l</i>`;desc=(L?Math.round(L*1000)+" ml · ":"")+"Kirjoita lisätoiveeseen, minkä juoman haluat. Muuten valitsemme puolestasi."}
   sheet(x,{title,img:IMG[c==="Sticky Fingers"?"Sticky Fingers 6 kpl":n]||(c==="Wings"?"wings":""),pr,desc,o})}
@@ -131,9 +134,9 @@ function read(){const f=$("#odMO"),x=cur,v=k=>{const e=f.querySelector(`input[na
 function valid(x){if(x.c==="Tarjous")return x.t.some(v=>!v)?"Valitse kaikki pizzat":"";if(x.c==="Päivän pizza")return"";const cat=M[x.c],it=cat.items.find(i=>i[0]===x.n);
   if(x.n==="Oma valinta"&&x.t.length<1)return"Valitse vähintään 1 täyte";
   if((x.n==="Dippi"||sauce(cat,it))&&!x.o)return x.n==="Dippi"?"Valitse maku":"Valitse kastike";
-  if(hasDip(cat,it)&&!(x.d||[]).length)return"Valitse dippi";return""}
+  if(hasDip(cat,it)&&!WN(it)&&dipTxt(cat,it)&&!(x.d||[]).length)return"Valitse dippi";return""}
 function upd(){const x=read(),btn=$("#odMA"),v=valid(x),f=$("#odMO");
-  const D=[...f.querySelectorAll('input[name="d"]')];if(D.length){const on=D.filter(i=>i.checked);D.forEach(i=>{i.disabled=!i.checked&&on.length>=8;i.parentNode.querySelector("em").textContent=i.checked?(i===on[0]?"sisältyy":"+"+eur(DIP)):(on.length?"+"+eur(DIP):"")})}
+  const D=[...f.querySelectorAll('input[name="d"]')];if(D.length){const fr=+(f.querySelector("[data-free]")||{dataset:{free:1}}).dataset.free||1,on=D.filter(i=>i.checked);D.forEach(i=>{i.disabled=!i.checked&&on.length>=8;i.parentNode.querySelector("em").textContent=i.checked?(on.indexOf(i)<fr?"sisältyy":"+"+eur(DIP)):(on.length>=fr?"+"+eur(DIP):"")})}
   f.querySelectorAll('input[name="x"]').forEach(i=>i.parentNode.querySelector("em").textContent="+"+eur(x.c==="Päivän pizza"?XT.n:(XT[x.s]||XT.n)));
   btn.innerHTML=v?esc(v):`<span>Lisää tilaukseen</span><b>${eur(price(x)*x.q)}</b>`;btn.disabled=!!v}
 const $$=s=>[...document.querySelectorAll(s)];

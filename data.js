@@ -510,11 +510,6 @@ window.SITE=/*BEGIN*/{
      9
     ],
     [
-     "Kukkakaaliwings 12 kpl",
-     "Ranskalaisilla, dippi, porkkana ja siipikastike (Med tai Hot)",
-     12.9
-    ],
-    [
      "Kanakori",
      "8 kpl nugetit, 2 kpl sipulirenkaat, 2 kpl mozzarellatikut, ranskalaiset ja dippi",
      13.5
