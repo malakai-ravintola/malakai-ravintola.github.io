@@ -35,16 +35,18 @@ function marks(){document.querySelectorAll(".od-plus").forEach(b=>{const o=isOut
 // ---------- Ruokalista (kuvalliset kategoriat, välilehdet ja tuoterivit)
 const day=helDay(),dp=(S.daily||{})[day];
 const T="media/tilaa/";
-const IMG={"Tropicana":"pizza-tropicana","Kebab Pizza":"pizza-kebab","Mexicana":"pizza-mexicana","Americano":"pizza-americano","Mamma Mia":"pizza-mammamia","Julia":"pizza-julia","Opera Special":"pizza-opera","Barbeque":"pizza-bbq","Margarita Mozzarella":"pizza-margarita","Oma valinta":"pizza-parma","Kebab ranskalaisilla":"kebab-ranskalaiset","Rullakebab":"kebabrulla","Kana ranskalaisilla":"kana-ranskalaiset"};
-const CIMG={"Pizza":"pizza-margarita","Kebab":"kebab-ranskalaiset","Kana":"kana-ranskalaiset","Wings":"kat-wings","Burgerit":"kat-burgerit","Lisukkeet":"kat-lisukkeet"};
+const IMG={"Tropicana":"tropicana","Kebab Pizza":"kebab","Mexicana":"mexicana","Americano":"americano","Mamma Mia":"mammamia","Julia":"julia","Opera Special":"opera","Barbeque":"bbq","Margarita Mozzarella":"margarita","Oma valinta":"oma","Kebab ranskalaisilla":"kebab-ranskalaiset","Rullakebab":"kebabrulla","Kana ranskalaisilla":"kana-ranskalaiset"};
+const CIMG={"Pizza":"opera","Kebab":"kebab-ranskalaiset","Kana":"kana-ranskalaiset","Wings":"kat-wings.jpg","Burgerit":"kat-burgerit.jpg","Lisukkeet":"kat-lisukkeet.jpg"};
 const CNAME={"Pizza":"Pizzat","Kebab":"Kebabit","Kana":"Kana-annokset","Wings":"Hot Wings","Dipit ja juomat":"Dipit ja juomat"};
-const pic=(f,alt,cls)=>f?`<img src="${f.includes("/")?esc(f):T+f+".jpg?v=3"}" alt="${esc(alt)}" loading="lazy" class="${cls||""}">`:`<span class="od-ph ${cls||""}" aria-hidden="true"><img src="media/logo-malakai.svg" alt=""></span>`;
+const pic=(f,alt,cls)=>{if(!f)return`<span class="od-ph ${cls||""}" aria-hidden="true"><img src="media/logo-malakai.svg" alt=""></span>`;
+  if(f.includes("/"))return`<img src="${esc(f)}" alt="${esc(alt)}" loading="lazy" class="pho ${cls||""}">`;
+  const cut=!f.includes(".");return`<img src="${T}${cut?f+".webp":f}?v=4" alt="${esc(alt)}" loading="lazy" class="${cut?"cut":"pho"} ${cls||""}">`};
 function menu(){const m=$("#odMenu"),cats=$("#odCats"),tiles=$("#odTiles");let h="",ch="",th="";
   if(dp&&dp.name&&S.dailyPrice){
-    th+=`<a class="od-tile" href="#paivan-pizza">${pic(dp.img,dp.name)}<b>Päivän pizza</b></a>`;
+    th+=`<a class="od-tile" href="#paivan-pizza">${pic(IMG[dp.name]||dp.img,dp.name)}<b>Päivän pizza</b></a>`;
     ch+=`<a href="#paivan-pizza">Päivän pizza</a>`;
-    h+=`<section class="od-sec" id="paivan-pizza"><h2>Päivän pizza</h2><div class="od-it od-day" data-c="Päivän pizza" data-n="${esc(dp.name)}"><div class="od-img">${pic(dp.img,dp.name)}</div><div class="od-tx"><b>${esc(dp.name)}</b><span class="od-pr">${eur(+S.dailyPrice)} <i>vain tänään</i></span><p>Päivän tarjouspizza – vaihtuu joka päivä.</p></div><button class="od-plus" data-c="Päivän pizza" data-n="${esc(dp.name)}" aria-label="Lisää ${esc(dp.name)}">+</button></div></section>`}
-  if(M.Pizza)th+=`<a class="od-tile" href="#" data-open="Oma valinta">${pic("pizza-parma","Oma pizza")}<b>Luo oma pizza</b></a>`;
+    h+=`<section class="od-sec" id="paivan-pizza"><h2>Päivän pizza</h2><div class="od-it od-day" data-c="Päivän pizza" data-n="${esc(dp.name)}"><div class="od-img">${pic(IMG[dp.name]||dp.img,dp.name)}</div><div class="od-tx"><b>${esc(dp.name)}</b><span class="od-pr">${eur(+S.dailyPrice)} <i>vain tänään</i></span><p>Päivän tarjouspizza – vaihtuu joka päivä.</p></div><button class="od-plus" data-c="Päivän pizza" data-n="${esc(dp.name)}" aria-label="Lisää ${esc(dp.name)}">+</button></div></section>`}
+  if(M.Pizza)th+=`<a class="od-tile" href="#" data-open="Oma valinta">${pic("oma","Oma pizza")}<b>Luo oma pizza</b></a>`;
   Object.entries(M).forEach(([c,cat])=>{const items=cat.items.filter(it=>orderable(c,it));if(!items.length)return;const id=slug(c),nm=CNAME[c]||c;
     th+=`<a class="od-tile" href="#${id}">${pic(CIMG[c],nm)}<b>${esc(nm)}</b></a>`;ch+=`<a href="#${id}">${esc(nm)}</a>`;
     h+=`<section class="od-sec" id="${id}"><h2>${esc(nm)}</h2>${cat.note&&c!=="Pizza"?`<p class="od-cn">${esc(cat.note)}</p>`:""}`;

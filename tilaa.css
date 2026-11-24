@@ -147,3 +147,11 @@
 .od-promo{padding:10px 14px!important;gap:12px!important;margin-top:12px!important}.od-promo b{font-size:1.8rem!important}.od-promo span{font-size:.86rem!important;line-height:1.35}
 .od-hero h1{margin:.1em 0 .15em!important}
 @media(max-width:560px){.od-hero h1{font-size:2.5rem}}
+
+/* Taustattomat tuotekuvat */
+.od-img img.cut{background:none!important;border-radius:0!important;object-fit:contain!important;filter:drop-shadow(0 8px 14px rgba(0,0,0,.55))}
+.od-day .od-img img.cut{border-radius:0}
+.od-tile img.cut{object-fit:contain!important;padding:8%;background:radial-gradient(circle at 50% 45%,#2a2a2a,#121212 72%)!important;border:1px solid #232323}
+.od-tile img.cut{filter:none}
+.od-tile:hover img.cut{box-shadow:0 0 0 2px var(--oy)}
+.od-img img.cut{padding:4%}.od-tile img.cut{padding:5%!important}
