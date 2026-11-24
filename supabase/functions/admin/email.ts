@@ -8,7 +8,7 @@ const MAP: Record<string, string> = { "Tropicana": "tropicana", "Kebab Pizza": "
   "Opera Special": "opera", "Barbeque": "bbq", "Margarita Mozzarella": "margarita", "Oma valinta": "oma", "Kebab ranskalaisilla": "kebab-ranskalaiset", "Rullakebab": "kebabrulla",
   "Kana ranskalaisilla": "kana-ranskalaiset", "Kebabsalaatti": "kebabsalaatti", "Iskender": "iskender", "Kanasalaatti": "kanasalaatti", "Kana riisillä": "kana-riisi", "Malakai Special": "malakai-special" };
 export function imgFor(n: string, c = "") {
-  const k = MAP[n] || (/rulla$/i.test(n) ? "rulla" : /^Sticky Fingers/.test(n) ? "sticky" : /^Hot ?wings/i.test(n) ? "wings" : /burgeri$/i.test(n) ? "burgeri"
+  const k = c === "Tarjous" ? "tarjous" : MAP[n] || (/rulla$/i.test(n) ? "rulla" : /^Sticky Fingers/.test(n) ? "sticky" : /^Hot ?wings/i.test(n) ? "wings" : /burgeri$/i.test(n) ? "burgeri"
     : c === "Lisukkeet" ? "kat-lisukkeet" : "tuote");
   return IMG + k + ".jpg";
 }

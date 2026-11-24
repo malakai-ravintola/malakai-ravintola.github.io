@@ -87,6 +87,17 @@ function priceLine(S: any, day: string, x: any, out: string[] = []) {
     if (!S.daily?.[day]?.name || S.daily[day].name !== n) throw new Error("Päivän pizza on vaihtunut. Päivitä sivu.");
     return { c, n, q, unit: Math.round((+S.dailyPrice + ex.length * XT.n) * 100) / 100, opt: ["Päivän pizza", ex.length ? "Lisätäytteet: " + ex.join(", ") : ""].filter(Boolean).join(" · "), m: s(x.m, 120) };
   }
+  if (c === "Tarjous") {
+    const t0 = today(), of = (S.offers || []).find((o: any) => o.on && o.title === n && (!o.from || o.from <= t0) && (!o.until || o.until >= t0));
+    if (!of) throw new Error("Tarjous ei ole enää voimassa. Poista se ostoskorista.");
+    const mm = String(of.title + " " + (of.text || "")).match(/(\d+)\s*pizza/i), k = mm ? Math.min(+mm[1], 6) : 0;
+    const P = (S.menu?.Pizza?.items || []).filter((i: any[]) => +i[2] > 0 && i[0] !== "Oma valinta").map((i: any[]) => i[0]);
+    const t = (Array.isArray(x.t) ? x.t : []).map((v: unknown) => s(v, 80));
+    if (t.length !== k || t.some((v: string) => !P.includes(v))) throw new Error(`Valitse tarjoukseen ${k} pizzaa`);
+    const pr = +String(of.price).replace(/[^\d,.]/g, "").replace(",", ".");
+    if (!(pr > 0)) throw new Error("Tarjousta ei voi tilata netissä");
+    return { c, n, q, unit: pr, opt: ["Pizzat: " + t.join(", "), /juoma/i.test(of.text || "") ? "1,5 l juoma" : "", "vain nouto"].filter(Boolean).join(" · "), m: s(x.m, 120), until: of.until || "" };
+  }
   const cat = S.menu?.[c], it = cat?.items?.find((i: any[]) => i[0] === n);
   if (!it) throw new Error(`Tuotetta ${n} ei löydy. Päivitä sivu.`);
   const sz = x.s === "p" ? "p" : "n", opt: string[] = [];
@@ -200,6 +211,12 @@ async function placeOrder(b: any) {
       return j({ error: "Valittu aika ei ole enää vapaana. Valitse toinen aika." }, 400);
     want = (di > 0 ? D0.date + " " : "") + clock(w);
   }
+  if (items.some((i: any) => i.c === "Tarjous")) {
+    if (kind === "kuljetus") return j({ error: "Tarjous on voimassa vain noutona. Valitse Nouto." }, 400);
+    const wd = /^\d{4}-/.test(want) ? want.slice(0, 10) : today();
+    if (items.some((i: any) => i.c === "Tarjous" && i.until && wd > i.until)) return j({ error: "Tarjous ei ole voimassa valitsemanasi päivänä. Valitse aikaisempi päivä." }, 400);
+  }
+  items.forEach((i: any) => delete i.until);
   if (/^\d{4}-/.test(want) && items.some((i: any) => i.c === "Päivän pizza")) return j({ error: "Päivän pizza on tilattavissa vain samalle päivälle. Poista se ostoskorista tai valitse aika tälle päivälle." }, 400);
   const D = discountFor(await orderCount(o.email, o.phone), C.firstPct, { every: C.loyEvery, pct: C.loyPct });
   const discount = D.pct ? Math.round((subtotal + fee) * D.pct) / 100 : 0;

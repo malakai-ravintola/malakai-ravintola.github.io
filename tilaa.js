@@ -18,7 +18,15 @@ let CFG=null,FIRST=false,LOY=null,cart=ls.get("mk_cart")||[],cur=null;
 const save=()=>ls.set("mk_cart",cart);
 
 // ---------- Hinta (sama sääntö kuin palvelimella)
+// ---------- Tarjoukset (data.js: offers)
+const TODAY=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki"}).format(new Date());
+const OFF=(S.offers||[]).filter(o=>o.on&&o.title&&o.price&&(!o.from||o.from<=TODAY)&&(!o.until||o.until>=TODAY));
+const offOf=n=>OFF.find(o=>o.title===n),offN=o=>{const m=String(o.title+" "+(o.text||"")).match(/(\d+)\s*pizza/i);return m?Math.min(+m[1],6):0};
+const offPrice=o=>+String(o.price).replace(/[^\d,.]/g,"").replace(",",".")||0;
+const PIZZAS=()=>((M.Pizza||{}).items||[]).filter(i=>+i[2]>0&&i[0]!=="Oma valinta").map(i=>i[0]);
+const offUntil=o=>o.until?(+o.until.slice(8))+"."+(+o.until.slice(5,7))+".":"";
 function price(x){
+  if(x.c==="Tarjous"){const o=offOf(x.n);return o?offPrice(o):0}
   const ex=(x.x||[]).length*(x.c==="Päivän pizza"?XT.n:(XT[x.s]||XT.n));
   if(x.c==="Päivän pizza")return Math.round((+S.dailyPrice+ex)*100)/100;
   const cat=M[x.c],it=cat&&cat.items.find(i=>i[0]===x.n);if(!it)return 0;
@@ -26,7 +34,7 @@ function price(x){
   else u=+it[3]>0&&x.s==="p"?+it[3]:+it[2];
   if(x.c==="Pizza"&&x.n!=="Oma valinta")u+=ex;
   if(x.c==="Burgerit"&&x.meal)u+=MEAL;return Math.round(u*100)/100}
-function optTxt(x){const o=[];const xs=(x.x||[]).length?"Lisätäytteet: "+x.x.join(", "):"";if(x.c==="Päivän pizza")return["Päivän pizza",xs].filter(Boolean).join(" · ");
+function optTxt(x){if(x.c==="Tarjous")return"Pizzat: "+(x.t||[]).join(", ")+" · 1,5 l juoma · vain nouto";const o=[];const xs=(x.x||[]).length?"Lisätäytteet: "+x.x.join(", "):"";if(x.c==="Päivän pizza")return["Päivän pizza",xs].filter(Boolean).join(" · ");
   const cat=M[x.c],it=cat&&cat.items.find(i=>i[0]===x.n);if(!it)return"";
   if(x.n==="Oma valinta")o.push(x.s==="p"?"Perhe":"Normaali",(x.t||[]).join(", "));else if(+it[3]>0)o.push(x.s==="p"?"Perhe":"Normaali");
   if(x.o)o.push(x.n==="Dippi"?x.o:"Kastike "+x.o);if(x.meal)o.push("Ateria");if(xs)o.push(xs);return o.join(" · ")}
@@ -43,12 +51,14 @@ const CIMG={"Pizza":"opera","Kebab":"kebab-ranskalaiset","Kana":"kana-ranskalais
 const CNAME={"Pizza":"Pizzat","Kebab":"Kebabit","Kana":"Kana-annokset","Wings":"Hot Wings","Dipit ja juomat":"Dipit ja juomat"};
 const pic=(f,alt,cls)=>{if(!f)return`<span class="od-ph ${cls||""}" aria-hidden="true"><img src="media/logo-malakai.svg" alt=""></span>`;
   if(f.includes("/"))return`<img src="${esc(f)}" alt="${esc(alt)}" loading="lazy" class="pho ${cls||""}">`;
-  const cut=!f.includes(".");return`<img src="${T}${cut?f+".webp":f}?v=8" alt="${esc(alt)}" loading="lazy" class="${cut?"cut":"pho"} ${cls||""}">`};
+  const cut=!f.includes(".");return`<img src="${T}${cut?f+".webp":f}?v=9" alt="${esc(alt)}" loading="lazy" class="${cut?"cut":"pho"} ${cls||""}">`};
 function menu(){const m=$("#odMenu"),cats=$("#odCats"),tiles=$("#odTiles");let h="",ch="",th="";
   if(dp&&dp.name&&S.dailyPrice){
     th+=`<a class="od-tile" href="#paivan-pizza">${pic(IMG[dp.name]||dp.img,dp.name)}<b>Päivän pizza</b></a>`;
     ch+=`<a href="#paivan-pizza">Päivän pizza</a>`;
     h+=`<section class="od-sec" id="paivan-pizza"><h2>Päivän pizza</h2><div class="od-it od-day" data-c="Päivän pizza" data-n="${esc(dp.name)}"><div class="od-img">${pic(IMG[dp.name]||dp.img,dp.name)}</div><div class="od-tx"><b>${esc(dp.name)}</b><span class="od-pr">${eur(+S.dailyPrice)}</span><small>Vain tänään</small><p>Päivän tarjouspizza – vaihtuu joka päivä.</p></div><button class="od-plus" data-c="Päivän pizza" data-n="${esc(dp.name)}" aria-label="Lisää ${esc(dp.name)}">+</button></div></section>`}
+  if(OFF.length){th=`<a class="od-tile od-tile-off" href="#tarjoukset">${pic("tarjous-3-pizzaa.jpg","Tarjous")}<b>Tarjoukset</b></a>`+th;ch=`<a href="#tarjoukset">Tarjoukset</a>`+ch;
+    h=`<section class="od-sec" id="tarjoukset"><h2>Tarjoukset</h2>`+OFF.map(o=>{const n=offN(o);return`<div class="od-it od-day od-off" data-c="Tarjous" data-n="${esc(o.title)}"><div class="od-img">${pic("tarjous-3-pizzaa.jpg",o.title)}</div><div class="od-tx"><b>${esc(o.title)}</b><span class="od-pr">${esc(o.price)}</span>${o.was?`<s class="od-was">${esc(o.was)}</s>`:""}<small>Voimassa ${offUntil(o)} asti · vain nouto</small><p>${esc(o.text||"")}</p></div><button class="od-plus" data-c="Tarjous" data-n="${esc(o.title)}" aria-label="Lisää ${esc(o.title)}">+</button></div>`}).join("")+`</section>`+h}
   if(M.Pizza)th+=`<a class="od-tile" href="#" data-open="Oma valinta">${pic("oma","Oma pizza")}<b>Luo oma pizza</b></a>`;
   Object.entries(M).forEach(([c,cat])=>{const items=cat.items.filter(it=>orderable(c,it));if(!items.length)return;const id=slug(c),nm=CNAME[c]||c;
     th+=`<a class="od-tile" href="#${id}">${pic(CIMG[c],nm)}<b>${esc(nm)}</b></a>`;ch+=`<a href="#${id}">${esc(nm)}</a>`;
@@ -73,6 +83,11 @@ function menu(){const m=$("#odMenu"),cats=$("#odCats"),tiles=$("#odTiles");let h
 // ---------- Valintaikkuna
 function chips(name,list,type,sel){return`<div class="od-chips">${list.map(v=>`<label><input type="${type}" name="${name}" value="${esc(v[0])}"${sel(v[0])?" checked":""}><span>${esc(v[1])}</span></label>`).join("")}</div>`}
 function open(c,n){
+  if(c==="Tarjous"){const of=offOf(n);if(!of)return;const k=offN(of),P=PIZZAS(),x={c,n,q:1,t:[]};
+    let o=`<div class="od-opt"><b>Valitse ${k} pizzaa (normaalikoko)</b>`+Array.from({length:k},(_,i)=>`<label class="od-sel">Pizza ${i+1}<select name="op${i}"><option value="">Valitse…</option>${P.map(p=>`<option>${esc(p)}</option>`).join("")}</select></label>`).join("")+`</div>`;
+    if(/juoma/i.test(of.text||""))o+=`<p class="od-small">+ 1,5 l juoma sisältyy. Kirjoita juomatoive alle lisätoiveeseen.</p>`;
+    o+=`<p class="od-small">🛍️ Tarjous koskee vain noutoa. Voimassa ${offUntil(of)} asti.</p>`;
+    cur=x;$("#odMT").textContent=n;$("#odMD").textContent=of.text||"";$("#odMO").innerHTML=o;$("#odMN").value="";$("#odMq").textContent="1";$("#odModal").hidden=false;upd();setTimeout(()=>$("#odMX").focus(),30);return}
   const xtra=`<div class="od-opt"><b>Lisätäytteet (valinnainen) · +${eur(XT.n)} / perhe +${eur(XT.p)} kpl</b>${chips("x",toppings.map(t=>[t,t]),"checkbox",()=>false)}</div>`;
   const cat=c==="Päivän pizza"?{}:M[c],it=c==="Päivän pizza"?[n,"",+S.dailyPrice]:cat.items.find(i=>i[0]===n),x={c,n,q:1,s:"n"};let o="";
   if(c==="Päivän pizza")o+=`<div class="od-opt"><b>Lisätäytteet (valinnainen) · +${eur(XT.n)} kpl</b>${chips("x",toppings.map(t=>[t,t]),"checkbox",()=>false)}</div>`;
@@ -85,10 +100,10 @@ function open(c,n){
   if(/juoma/i.test(n))o+=`<p class="od-small">Kirjoita lisätoiveeseen, minkä juoman haluat. Muuten valitsemme puolestasi.</p>`;
   cur=x;$("#odMT").textContent=n;$("#odMD").textContent=n==="Oma valinta"?"Valitse koko ja täytteet":(c==="Päivän pizza"?"Päivän pizza "+eur(+S.dailyPrice):(n==="Dippi"?"":it[1]||""));$("#odMO").innerHTML=o;$("#odMN").value="";$("#odMq").textContent="1";
   $("#odModal").hidden=false;upd();setTimeout(()=>$("#odMX").focus(),30)}
-function read(){const f=$("#odMO"),x=cur;const s=f.querySelector('input[name="s"]:checked');x.s=s?s.value:"n";
+function read(){const f=$("#odMO"),x=cur;if(x.c==="Tarjous"){x.t=[...f.querySelectorAll("select[name^=op]")].map(s=>s.value);x.m=$("#odMN").value.trim();x.q=+$("#odMq").textContent;return x}const s=f.querySelector('input[name="s"]:checked');x.s=s?s.value:"n";
   const o=f.querySelector('input[name="o"]:checked');x.o=o?o.value:"";x.t=[...f.querySelectorAll('input[name="t"]:checked')].map(i=>i.value);x.x=[...f.querySelectorAll('input[name="x"]:checked')].map(i=>i.value);
   x.meal=!!f.querySelector('input[name="meal"]:checked');x.m=$("#odMN").value.trim();x.q=+$("#odMq").textContent;return x}
-function valid(x){if(x.c==="Päivän pizza")return"";const cat=M[x.c],it=cat.items.find(i=>i[0]===x.n);
+function valid(x){if(x.c==="Tarjous")return x.t.some(v=>!v)?"Valitse kaikki pizzat":"";if(x.c==="Päivän pizza")return"";const cat=M[x.c],it=cat.items.find(i=>i[0]===x.n);
   if(x.n==="Oma valinta"&&x.t.length<1)return"Valitse vähintään 1 täyte";
   if((x.n==="Dippi"||sauce(cat,it))&&!x.o)return x.n==="Dippi"?"Valitse maku":"Valitse kastike";return""}
 function upd(){const x=read(),btn=$("#odMA"),v=valid(x);btn.textContent=v||"Lisää · "+eur(price(x)*x.q);btn.disabled=!!v;
@@ -116,7 +131,7 @@ function draw(){
   const T=totals(),n=cart.reduce((a,x)=>a+x.q,0);
   $("#odSum").innerHTML=`<div><span>Tuotteet</span><span>${eur(T.s)}</span></div>`+(kind()==="kuljetus"?`<div><span>Kuljetus</span><span>${eur(T.fee)}</span></div>`:"")+(T.d?`<div class="disc"><span>${FIRST?"Uuden asiakkaan etu":"Kanta-asiakasetu"} −${T.pct} %</span><span>−${eur(T.d)}</span></div>`:"")+`<div class="tot"><span>Yhteensä</span><span>${eur(T.t)}</span></div>`+`<div class="vat"><span>Veroton hinta</span><span>${eur(T.t-vat(T.t))}</span></div><div class="vat"><span>ALV 13,5 % (sisältyy hintaan)</span><span>${eur(vat(T.t))}</span></div>`;
   upsell();$("#odBarN").textContent=n;$("#odBarT").textContent=eur(T.t);$("#odBar").hidden=!n;
-  const send=$("#odSend"),why=!CFG?"Ladataan…":!CFG.on?"Nettitilaus ei ole käytössä":!$("#odWhen").value?"Ei vapaita aikoja":!n?"Ostoskori on tyhjä":(kind()==="kuljetus"&&T.s<CFG.min?"Vähimmäistilaus kuljetukseen "+eur(CFG.min):"");
+  const send=$("#odSend"),why=!CFG?"Ladataan…":!CFG.on?"Nettitilaus ei ole käytössä":!$("#odWhen").value?"Ei vapaita aikoja":(kind()==="kuljetus"&&cart.some(x=>x.c==="Tarjous"))?"Tarjous on vain noutona – valitse Nouto":!n?"Ostoskori on tyhjä":(kind()==="kuljetus"&&T.s<CFG.min?"Vähimmäistilaus kuljetukseen "+eur(CFG.min):"");
   send.disabled=!!why;send.textContent=why||"Lähetä tilaus · "+eur(T.t)}
 $("#odLines").addEventListener("click",e=>{const b=e.target.closest("button[data-i]");if(!b)return;const x=cart[+b.dataset.i];x.q+=+b.dataset.d;if(x.q<1)cart.splice(+b.dataset.i,1);save();draw()});
 $("#odBar").onclick=()=>{$("#odCart").classList.add("open");setTimeout(()=>$("#odClose").focus(),30)};
