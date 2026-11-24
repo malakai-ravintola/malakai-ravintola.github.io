@@ -269,3 +269,5 @@
 .od-qb{flex:none}.od-qb button{width:36px;height:36px}
 .od-it[hidden],section.od-sec[hidden],#odCats a[hidden],#odTiles a[hidden]{display:none!important}
 .od-drow img{width:34px;height:48px;object-fit:contain;flex:none}
+.od-mnote[hidden]{display:none!important}
+.od-rph{width:34px;height:34px;flex:none;border-radius:50%;background:radial-gradient(circle at 40% 35%,#3a3a3a,#222);border:1px solid #333}
