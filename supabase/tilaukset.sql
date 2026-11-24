@@ -25,3 +25,13 @@ create policy admin_orders on orders for all to authenticated
   using ((auth.jwt()->>'email')='hardi7fateh@hotmail.com') with check ((auth.jwt()->>'email')='hardi7fateh@hotmail.com');
 create policy admin_settings on settings for all to authenticated
   using ((auth.jwt()->>'email')='hardi7fateh@hotmail.com') with check ((auth.jwt()->>'email')='hardi7fateh@hotmail.com');
+
+-- Uuden asiakkaan alennus, asiakasrekisteri ja palautepyynnöt (ajettu 24.11.2026)
+alter table orders add column if not exists discount numeric(8,2) not null default 0;
+alter table orders add column if not exists discount_note text;
+alter table orders add column if not exists review_sent_at timestamptz;
+create table if not exists customers(id uuid primary key default gen_random_uuid(), created_at timestamptz default now(),
+  email text unique not null, name text, phone text, address text, zip text, city text, orders int not null default 0,
+  spent numeric(10,2) not null default 0, first_order timestamptz, last_order timestamptz, review_mail boolean not null default true);
+alter table customers enable row level security;
+-- Palautepyynnöt: pg_cron ajaa public.run_review_mails() 5 min välein (työn nimi: palautepyynnot).

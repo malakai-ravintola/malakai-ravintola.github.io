@@ -4,6 +4,7 @@ const OWNER_PHONE = Deno.env.get("OWNER_PHONE") ?? "+358456057475";
 const OWNER_EMAIL = "hardi7fateh@hotmail.com"; // tilaukset ja varaukset tulevat aina tähän osoitteeseen
 const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? OWNER_EMAIL;
 const SITE = "https://malakairavintola.fi";
+const REVIEW = "https://search.google.com/local/writereview?placeid=ChIJ-5aOe3_fjkYRQ_Anq7PATkc";
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, authorization, apikey, x-client-info" };
 const j = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
@@ -102,12 +103,48 @@ function priceLine(S: any, day: string, x: any) {
   return { c, n, q, unit: Math.round(unit * 100) / 100, opt: opt.join(" · "), m: s(x.m, 120) };
 }
 const lines = (items: any[]) => items.map((i) => `${i.q} × ${i.n}${i.opt ? " (" + i.opt + ")" : ""}  ${eur(i.unit * i.q)}${i.m ? "\n    Lisätoive: " + i.m : ""}`).join("\n");
+async function isFirst(email: string, phone: string) {
+  const e = email.toLowerCase().trim(), p = norm(phone);
+  if (!e && p.length < 8) return false;
+  const { count } = await db.from("orders").select("id", { count: "exact", head: true }).neq("status", "peruttu").or(`email.eq."${e.replace(/"/g, "")}",phone.eq."${p.replace(/"/g, "")}"`);
+  return (count ?? 0) === 0;
+}
+async function saveCustomer(o: any) {
+  const { data: c } = await db.from("customers").select("*").eq("email", o.email).maybeSingle();
+  const now = new Date().toISOString();
+  const row: any = { email: o.email, name: o.name, phone: o.phone, last_order: now, orders: (c?.orders ?? 0) + 1, spent: Math.round(((+c?.spent || 0) + o.total) * 100) / 100 };
+  if (o.address) { row.address = o.address; row.zip = o.zip; row.city = o.city; }
+  if (!c) row.first_order = now;
+  await db.from("customers").upsert(row, { onConflict: "email" });
+}
+async function sendReviews() {
+  const since = new Date(Date.now() - 30 * 60e3).toISOString(), old = new Date(Date.now() - 24 * 3600e3).toISOString();
+  const { data } = await db.from("orders").select("id,no,name,email,kind").eq("status", "luovutettu").is("review_sent_at", null).lte("done_at", since).gte("done_at", old).limit(20);
+  let n = 0;
+  for (const o of data ?? []) {
+    await db.from("orders").update({ review_sent_at: new Date().toISOString() }).eq("id", o.id);
+    const { data: c } = await db.from("customers").select("review_mail").eq("email", o.email).maybeSingle();
+    if (c && c.review_mail === false) continue;
+    const fn = String(o.name || "").split(" ")[0];
+    try {
+      await mail(o.email, `Miten onnistuimme, ${fn}? ⭐`,
+        `Hei ${fn}!\n\nKiitos, että tilasit Malakaista! Toivottavasti ${o.kind === "kuljetus" ? "ruoka saapui lämpimänä ja" : "ruoka"} maistui.\n\n` +
+        `Olemme pieni paikallinen ravintola Sääksjärvellä, ja jokainen arvio auttaa meitä todella paljon. Kertoisitko kokemuksestasi Googlessa? Se vie alle minuutin:\n\n` +
+        `👉 Anna arvio: ${REVIEW}\n\n` +
+        `Jos jokin ei mennyt niin kuin piti, vastaa suoraan tähän viestiin. Luemme jokaisen palautteen itse ja korjaamme asian.\n\n` +
+        `Tervetuloa uudelleen – nähdään pian!\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000\n${SITE}\n\n` +
+        `(Tilaus #${o.no}. Et halua palautepyyntöjä jatkossa? Vastaa tähän viestiin sanalla "ei kiitos".)`);
+      n++;
+    } catch (_e) { /* yritetään seuraavaa */ }
+  }
+  return n;
+}
 async function orderCfg() {
   const [S, c] = await Promise.all([site(), cfg()]), now = hel(), h = S.hours?.[now.day];
   const open = h && h[0] ? hm(h[0]) : null, close = h && h[1] ? hm(h[1]) : null;
   const isOpen = open !== null && close !== null && now.min >= open && now.min <= close - 15;
   return { on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
-    day: now.day, now: now.min, open, close, isOpen };
+    firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, day: now.day, now: now.min, open, close, isOpen };
 }
 async function placeOrder(b: any) {
   const C = await orderCfg(), S = await site();
@@ -115,7 +152,7 @@ async function placeOrder(b: any) {
   if (!C.isOpen) return j({ error: "Olemme kiinni tai sulkemassa. Tilaa aukioloaikana tai soita 045 353 7000." }, 400);
   const kind = b.kind === "kuljetus" ? "kuljetus" : "nouto";
   if (kind === "kuljetus" && !C.delivery) return j({ error: "Kotiinkuljetus ei ole juuri nyt käytössä. Valitse nouto." }, 400);
-  const o: any = { name: s(b.n, 80), phone: s(b.p, 30), email: s(b.e, 120).toLowerCase(), kind, note: s(b.m, 400),
+  const o: any = { name: s(b.n, 80), phone: norm(s(b.p, 30)), email: s(b.e, 120).toLowerCase(), kind, note: s(b.m, 400),
     address: kind === "kuljetus" ? s(b.a, 120) : null, zip: kind === "kuljetus" ? s(b.z, 10) : null, city: kind === "kuljetus" ? s(b.ci, 40) : null };
   if (!o.name || o.phone.replace(/\D/g, "").length < 7 || !/^\S+@\S+\.\S+$/.test(o.email)) return j({ error: "Täytä nimi, puhelin ja sähköposti" }, 400);
   if (kind === "kuljetus" && (!o.address || !/^\d{5}$/.test(o.zip || ""))) return j({ error: "Täytä toimitusosoite ja postinumero" }, 400);
@@ -132,13 +169,17 @@ async function placeOrder(b: any) {
     if (!/^\d{2}:\d{2}$/.test(s(b.w, 5)) || w < C.now + lead - 5 || w > (C.close ?? 0)) return j({ error: "Valitse toinen aika (aikaisintaan " + clock(Math.ceil((C.now + lead) / 5) * 5) + ")" }, 400);
     want = clock(w);
   }
-  o.want = want; o.items = items; o.subtotal = subtotal; o.fee = fee; o.total = Math.round((subtotal + fee) * 100) / 100;
+  const first = C.firstPct > 0 && await isFirst(o.email, o.phone);
+  const discount = first ? Math.round((subtotal + fee) * C.firstPct) / 100 : 0;
+  o.discount = discount; o.discount_note = first ? `Ensitilaus -${C.firstPct} %` : null;
+  o.want = want; o.items = items; o.subtotal = subtotal; o.fee = fee; o.total = Math.round((subtotal + fee - discount) * 100) / 100;
   if (typeof b.total === "number" && Math.abs(b.total - o.total) > 0.01) return j({ error: "Hinnat ovat muuttuneet. Tarkista ostoskori ja lähetä uudelleen.", total: o.total }, 409);
   const { data: row, error } = await db.from("orders").insert(o).select("id,no").single();
   if (error) throw error;
   const when = want === "heti" ? "mahdollisimman pian" : "klo " + want.replace(":", ".");
   const kindTxt = kind === "kuljetus" ? `Kotiinkuljetus: ${o.address}, ${o.zip} ${o.city || ""}` : "Nouto ravintolasta";
-  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksu: ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
+  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + (discount ? `\n${o.discount_note}: -${eur(discount)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksu: ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
+  await saveCustomer(o).catch(() => {});
   await Promise.allSettled([
     mail(OWNER_EMAIL, `UUSI TILAUS #${row.no}: ${kind === "kuljetus" ? "kuljetus" : "nouto"} ${when}, ${eur(o.total)}`,
       `Uusi nettitilaus #${row.no}\n\n${kindTxt}\nAika: ${when}\nNimi: ${o.name}\nPuhelin: ${o.phone}\nSähköposti: ${o.email}` + (o.note ? `\nLisätiedot: ${o.note}` : "") +
@@ -147,7 +188,7 @@ async function placeOrder(b: any) {
       `Hei ${o.name.split(" ")[0]}!\n\nKiitos tilauksestasi. Olemme vastaanottaneet sen, ja saat pian toisen viestin, kun tilaus on hyväksytty ja tiedämme valmistumisajan.\n\nTilausnumero: #${row.no}\n${kindTxt}\nToivottu aika: ${when}\n\n${sum}` +
       (o.note ? `\n\nLisätiedot: ${o.note}` : "") + `\n\nJos haluat muuttaa tilausta, soita 045 353 7000.\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000`),
   ]);
-  return j({ ok: true, no: row.no, total: o.total });
+  return j({ ok: true, no: row.no, total: o.total, discount });
 }
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -168,6 +209,12 @@ Deno.serve(async (req) => {
     }
     if (b.action === "order_cfg") return j(await orderCfg());
     if (b.action === "order") return await placeOrder(b);
+    if (b.action === "first") { const c = await cfg(); const pct = c.firstPct === 0 ? 0 : +c.firstPct || 15; return j({ first: pct > 0 && await isFirst(s(b.e, 120), s(b.p, 30)), pct }); }
+    if (b.action === "reviews") {
+      const { data: t } = await db.from("settings").select("value").eq("key", "cron").maybeSingle();
+      if (!t?.value?.token || b.token !== t.value.token) return j({ error: "Ei oikeuksia" }, 401);
+      return j({ sent: await sendReviews() });
+    }
     if (b.action === "reserve") {
       const r = { name: s(b.n, 80), email: s(b.e, 120).toLowerCase(), phone: s(b.p, 30), guests: Math.min(Math.max(+b.g || 2, 1), 30),
         date: s(b.d, 10), time: s(b.t, 5), note: s(b.m, 300), source: "verkko" };

@@ -50,7 +50,7 @@ h3.sec{margin:22px 0 0;color:var(--w)}.todo{margin:0;padding-left:18px}.todo li{
 .dtiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 14px}@media(max-width:760px){.dtiles{grid-template-columns:1fr 1fr}}
 .occ{display:grid;grid-template-columns:52px 1fr 110px;gap:10px;align-items:center;padding:3px 0;font-size:.85rem}.occ i{height:14px;background:var(--k3);border-radius:7px;overflow:hidden}.occ em{display:block;height:100%;background:var(--y)}
 .occ.mid em{background:#E3A51C}.occ.bad em{background:var(--r,#B3121F)}.occ.bad b{color:#ff6b6b}.warnt{color:#ff6b6b;font-weight:700}
-.dtab{width:100%;border-collapse:collapse;font-size:.9rem}.dtab th{text-align:left;color:var(--g);font-weight:600;padding:6px;border-bottom:1px solid var(--line)}.dtab td{padding:8px 6px;border-bottom:1px solid var(--line)}.dtab tr.uusi td{background:rgba(227,165,28,.08)}.dtab tr.tot td{font-weight:700;color:var(--y)}
+.dtab{width:100%;border-collapse:collapse;font-size:.9rem}.dtab th{text-align:left;color:var(--g);font-weight:600;padding:6px;border-bottom:1px solid var(--line)}.dtab td{padding:8px 6px;border-bottom:1px solid var(--line)}.dtab tr.peruttu td{color:#777;text-decoration:line-through}.dtab tr.uusi td{background:rgba(227,165,28,.08)}.dtab tr.tot td{font-weight:700;color:var(--y)}
 @media print{body{background:#fff!important;color:#000!important}.noprint,.tabs,header,nav,.cats,.toast{display:none!important}.card{border:0!important;background:#fff!important;box-shadow:none!important}.dtab td,.dtab th{color:#000;border-color:#ccc}.occ i{background:#eee}}
 .oq{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .oc{background:var(--k2);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
@@ -156,8 +156,8 @@ input.ovbad{border-color:var(--bad)!important;color:var(--bad);background:rgba(2
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1795513131"></script>
-<script src="config.js?v=1795513131"></script>
+<script src="data.js?v=1795514172"></script>
+<script src="config.js?v=1795514172"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -202,13 +202,13 @@ function imgPicker(cur,set){const prev=mk("img",{class:"prev",src:cur,alt:""}),i
 
 // ---------- Näkymät
 let tab="Yleiskatsaus",cat=null;
-const TABS=["Yleiskatsaus","Tilaukset","Varaukset","Asiakkaat","Uutiskirje","Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet","Omavalvonta","Asetukset"];
+const TABS=["Yleiskatsaus","Tilaukset","Raportit","Varaukset","Asiakkaat","Uutiskirje","Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet","Omavalvonta","Asetukset"];
 const CONTENT=new Set(["Ruokalista","Päivän pizza","Ilmoitukset","Aukiolo & buffet"]);
 function renderTabs(){const t=$("#tabs");t.textContent="";TABS.forEach(k=>{const n=k==="Varaukset"&&RES?RES.filter(r=>r.status==="uusi"&&r.date>=hToday()).length:k==="Tilaukset"&&ORD?ORD.filter(o=>o.status==="uusi").length:0;t.append(mk("button",{class:k===tab?"on":"",onclick:()=>{tab=k;render()}},k,n?mk("span",{class:"badge",text:String(n)}):null))});}
 function render(){renderTabs();if(!TABS.includes(tab))tab="Yleiskatsaus";
   $("#saveBar").hidden=!CONTENT.has(tab);const m=$("#main");m.textContent="";
   if(CONTENT.has(tab)&&!TOKEN)m.append(mk("div",{class:"card"},mk("b",{text:"Muokkaus vaatii GitHub-avaimen. "}),"Voit katsella sisältöä, mutta tallentaminen ei onnistu ennen kuin lisäät avaimen ",mk("a",{href:"#",text:"Asetuksissa",onclick:e=>{e.preventDefault();tab="Asetukset";render()}}),"."));
-  ({"Yleiskatsaus":vOver,"Tilaukset":vOrd,"Varaukset":vRes,"Asiakkaat":vCust,"Uutiskirje":vMsg,"Ruokalista":vMenu,"Päivän pizza":vDaily,"Ilmoitukset":vAnn,"Aukiolo & buffet":vHours,"Omavalvonta":vOmav,"Asetukset":vSet})[tab](m)}
+  ({"Yleiskatsaus":vOver,"Tilaukset":vOrd,"Raportit":vRep,"Varaukset":vRes,"Asiakkaat":vCust,"Uutiskirje":vMsg,"Ruokalista":vMenu,"Päivän pizza":vDaily,"Ilmoitukset":vAnn,"Aukiolo & buffet":vHours,"Omavalvonta":vOmav,"Asetukset":vSet})[tab](m)}
 const inp=(val,on,attrs={})=>{const e=mk("input",{value:val??"",...attrs});e.oninput=()=>{on(e.value);mark()};return e};
 const area=(val,on,attrs={})=>{const e=mk("textarea",attrs);e.value=val??"";e.oninput=()=>{on(e.value);mark()};return e};
 const chk=(val,on,txt)=>{const e=mk("input",{type:"checkbox"});e.checked=!!val;e.onchange=()=>{on(e.checked);mark()};return mk("label",{class:"ck"},e,txt)};
@@ -380,7 +380,7 @@ function ordCard(o){const del=o.kind==="kuljetus",want=o.want==="heti"?"Heti":"k
       del?mk("div",null,"Osoite: ",mk("b",{text:o.address+", "+o.zip+" "+(o.city||"")})," ",mk("a",{href:"https://maps.google.com/?q="+encodeURIComponent(o.address+", "+o.zip+" "+(o.city||"")),target:"_blank",text:"kartta"})):null),
     mk("ul",null,(o.items||[]).map(i=>mk("li",null,mk("b",{text:i.q+" × "+i.n}),i.opt?mk("small",{text:i.opt}):null,i.m?mk("i",{text:"Toive: "+i.m}):null))),
     o.note?mk("div",{class:"meta"},"Lisätiedot: ",mk("b",{text:o.note})):null,
-    mk("div",{class:"tt"},eur(o.total),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," (sis. ALV 13,5 % "+eur(Math.round(o.total*13.5/113.5*100)/100)+")"),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," · maksu "+(del?"toimitettaessa":"noudettaessa")+(o.fee>0?" · sis. kuljetus "+eur(o.fee):""))));
+    mk("div",{class:"tt"},eur(o.total),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," (sis. ALV 13,5 % "+eur(Math.round(o.total*13.5/113.5*100)/100)+")"),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," · maksu "+(del?"toimitettaessa":"noudettaessa")+(o.fee>0?" · sis. kuljetus "+eur(o.fee):"")+(o.discount>0?" · "+(o.discount_note||"alennus")+" −"+eur(o.discount):""))));
   if(o.status==="uusi"){const now=new Date();
     c.append(mk("div",{class:"muted",text:"Hyväksy ja valitse "+(del?"toimitusaika":"valmistumisaika")+":"}),
       mk("div",{class:"etas"},(o.want==="heti"?[10,15,20,30,45,60]:[0]).map(mn=>{const t=o.want==="heti"?hm(new Date(now.getTime()+mn*60e3)):o.want;return act(o.want==="heti"?mn+" min":"klo "+t.replace(":","."),()=>setOrd(o,"hyvaksytty",{eta:t}))})),
@@ -408,9 +408,75 @@ function vOrd(m){m.append(mk("h2",{text:"Tilaukset"}));if(sbGate(m))return;
   m.append(mk("details",{class:"card"},mk("summary",{text:"Tilausasetukset (kuljetusmaksu, vähimmäistilaus, ajat)"}),
     mk("div",{class:"g3",style:"margin-top:12px"},f("fee","Kuljetusmaksu €",{type:"number",step:"0.1",min:"0"}),f("min","Kuljetuksen vähimmäistilaus €",{type:"number",step:"1",min:"0"}),f("prep","Noudon valmistusaika (min)",{type:"number",min:"5"})),
     mk("div",{class:"g3"},f("dtime","Kuljetuksen toimitusaika (min)",{type:"number",min:"10"}),f("area","Toimitusalue (näkyy asiakkaalle)"),f("note","Ilmoitus tilaussivulle (valinnainen)")),
+    mk("div",{class:"g3"},f("firstPct","Uuden asiakkaan alennus % (0 = pois)",{type:"number",min:"0",max:"50"})),
     act("Tallenna asetukset",()=>saveCfg())));
   m.append(mk("p",{class:"muted"},"Tilaussivu asiakkaille: ",mk("a",{href:"tilaa.html",target:"_blank",text:"malakairavintola.fi/tilaa.html"})))}
 if(location.hash==="#tilaukset")tab="Tilaukset";
+
+// ---------- Tilausasiakkaat
+let CUS=null;
+async function cusLoad(){const {data,error}=await SB.from("customers").select("*").order("last_order",{ascending:false});CUS=error?[]:data}
+function custOrders(m){if(CUS===null){cusLoad().then(()=>{if(tab==="Asiakkaat")render()});return}
+  const box=mk("div",{class:"card"},mk("h3",{text:"Nettitilausasiakkaat ("+CUS.length+")"}));
+  if(!CUS.length){box.append(mk("p",{class:"muted",text:"Asiakkaat tallentuvat tähän automaattisesti ensimmäisestä nettitilauksesta lähtien."}));m.append(box);return}
+  const tb=mk("table",{class:"dtab"},mk("tr",null,...["Nimi","Puhelin","Sähköposti","Osoite","Tilauksia","Ostot","Viimeisin","Palautepyyntö"].map(h=>mk("th",{text:h}))));
+  CUS.forEach(c=>{const cb=mk("input",{type:"checkbox"});cb.checked=c.review_mail!==false;cb.onchange=async()=>{const {error}=await SB.from("customers").update({review_mail:cb.checked}).eq("id",c.id);if(error){toast(error.message,true);cb.checked=!cb.checked}else{c.review_mail=cb.checked;toast(cb.checked?"Palautepyynnöt päällä":"Palautepyynnöt pois tältä asiakkaalta")}};
+    tb.append(mk("tr",null,mk("td",{text:c.name||""}),mk("td",null,c.phone?mk("a",{href:"tel:"+c.phone,text:c.phone}):""),mk("td",null,mk("a",{href:"mailto:"+c.email,text:c.email})),mk("td",{text:[c.address,c.zip,c.city].filter(Boolean).join(" ")}),mk("td",{text:c.orders}),mk("td",{text:eur(c.spent)}),mk("td",{text:c.last_order?fd(c.last_order.slice(0,10)):""}),mk("td",null,cb)))});
+  box.append(mk("div",{style:"overflow-x:auto"},tb),mk("div",{class:"btnrow"},act("Lataa tilausasiakkaat (CSV)",()=>{const q=x=>'"'+String(x??"").replace(/"/g,'""')+'"';
+    dl("tilausasiakkaat.csv",["nimi;puhelin;sahkoposti;osoite;postinumero;paikkakunta;tilauksia;ostot_eur;ensimmainen;viimeisin"].concat(CUS.map(c=>[q(c.name),q(c.phone),q(c.email),q(c.address),q(c.zip),q(c.city),c.orders,fe2(c.spent),q(c.first_order?fd(c.first_order.slice(0,10)):""),q(c.last_order?fd(c.last_order.slice(0,10)):"")].join(";"))).join("\n"))},"o")));
+  m.append(box)}
+const fe2=n=>Number(n||0).toFixed(2).replace(".",",");
+const dl=(name,txt)=>{const u=URL.createObjectURL(new Blob(["﻿"+txt],{type:"text/csv;charset=utf-8"}));const a=mk("a",{href:u,download:name});document.body.append(a);a.click();a.remove()};
+
+// ---------- Kuukausiraportti (kirjanpito)
+let repM=null,REP=null,repKey="";
+const VATP=13.5,vatOf=t=>Math.round(t*VATP/(100+VATP)*100)/100;
+const hDate=d=>new Date(d).toLocaleDateString("en-CA",{timeZone:"Europe/Helsinki"});
+const hTime=d=>hm(d);
+async function repLoad(ym){const [y,mo]=ym.split("-").map(Number),a=new Date(y,mo-1,1),b=new Date(y,mo,1);
+  const {data,error}=await SB.from("orders").select("*").gte("created_at",new Date(a.getTime()-864e5).toISOString()).lt("created_at",new Date(b.getTime()+864e5).toISOString()).order("created_at");
+  if(error)throw new Error(error.message);REP=(data||[]).filter(o=>hDate(o.created_at).slice(0,7)===ym);repKey=ym}
+function vRep(m){m.append(mk("h2",{text:"Kuukausiraportti"}));if(sbGate(m))return;
+  if(!repM)repM=hToday().slice(0,7);
+  const mi=mk("input",{type:"month",value:repM,max:hToday().slice(0,7)});mi.onchange=()=>{repM=mi.value;REP=null;render()};
+  m.append(mk("div",{class:"card noprint g3",style:"align-items:end"},lab("Kuukausi",mi),mk("div"),mk("div",{class:"btnrow",style:"margin:0"},act("Tulosta / PDF",()=>print(),"o"))));
+  if(REP===null||repKey!==repM){m.append(mk("p",{class:"muted",text:"Ladataan…"}));repLoad(repM).then(render).catch(e=>toast(e.message,true));return}
+  const ok=REP.filter(o=>o.status!=="peruttu"),canc=REP.filter(o=>o.status==="peruttu");
+  const sum=(a,k)=>Math.round(a.reduce((x,o)=>x+ +(o[k]||0),0)*100)/100;
+  const gross=sum(ok,"total"),vat=Math.round(ok.reduce((x,o)=>x+vatOf(+o.total),0)*100)/100,net=Math.round((gross-vat)*100)/100;
+  const goods=sum(ok,"subtotal"),fees=sum(ok,"fee"),disc=sum(ok,"discount");
+  const nou=ok.filter(o=>o.kind!=="kuljetus"),kul=ok.filter(o=>o.kind==="kuljetus");
+  const [y,mo]=repM.split("-"),MN=["tammikuu","helmikuu","maaliskuu","huhtikuu","toukokuu","kesäkuu","heinäkuu","elokuu","syyskuu","lokakuu","marraskuu","joulukuu"][+mo-1];
+  const card=(l,v,sb)=>mk("div",{class:"card",style:"margin:0"},mk("small",{class:"muted",text:l}),mk("div",{style:"font:700 1.7rem 'Playfair Display',serif;color:var(--y)",text:v}),sb?mk("small",{class:"muted",text:sb}):null);
+  m.append(mk("h3",{text:"Malakai Ravintola – nettitilaukset "+MN+" "+y}),
+    mk("p",{class:"muted",text:"Tampereentie 414, 33880 Lempäälä · Raportti luotu "+fd(hToday())+" · Summat sisältävät ALV:n 13,5 %."}),
+    mk("div",{class:"dtiles"},card("Myynti yhteensä (sis. ALV)",eur(gross),ok.length+" tilausta"),card("ALV 13,5 %",eur(vat)),card("Veroton myynti",eur(net)),card("Keskiostos",ok.length?eur(gross/ok.length):"–")));
+  const kv=(k,v)=>mk("div",{class:"kv"},mk("span",{text:k}),mk("b",{text:v}));
+  m.append(mk("div",{class:"ovcols"},
+    mk("div",{class:"card"},mk("h3",{text:"Erittely"}),kv("Tuotemyynti",eur(goods)),kv("Kuljetusmaksut",eur(fees)),kv("Alennukset (uuden asiakkaan etu)","−"+eur(disc)),kv("Myynti yhteensä (sis. ALV)",eur(gross)),kv("josta ALV 13,5 %",eur(vat)),kv("Veroton",eur(net))),
+    mk("div",{class:"card"},mk("h3",{text:"Tilaukset"}),kv("Nouto",nou.length+" kpl · "+eur(sum(nou,"total"))),kv("Kotiinkuljetus",kul.length+" kpl · "+eur(sum(kul,"total"))),kv("Uudet asiakkaat (alennus)",ok.filter(o=>o.discount>0).length+" kpl"),kv("Peruttu",canc.length+" kpl · "+eur(sum(canc,"total"))+" (ei myyntiä)"),kv("Maksutapa","Maksettu noudettaessa/toimitettaessa kassalla"))));
+  // päivittäin
+  const days={};ok.forEach(o=>{const d=hDate(o.created_at);(days[d]=days[d]||[]).push(o)});
+  const dt=mk("table",{class:"dtab"},mk("tr",null,...["Päivä","Tilauksia","Myynti (sis. ALV)","ALV 13,5 %","Veroton"].map(h=>mk("th",{text:h}))));
+  Object.keys(days).sort().forEach(d=>{const a=days[d],g=sum(a,"total"),v=Math.round(a.reduce((x,o)=>x+vatOf(+o.total),0)*100)/100;dt.append(mk("tr",null,mk("td",{text:wd(d)+" "+fd(d)}),mk("td",{text:a.length}),mk("td",{text:eur(g)}),mk("td",{text:eur(v)}),mk("td",{text:eur(g-v)})))});
+  dt.append(mk("tr",{class:"tot"},mk("td",{text:"Yhteensä"}),mk("td",{text:ok.length}),mk("td",{text:eur(gross)}),mk("td",{text:eur(vat)}),mk("td",{text:eur(net)})));
+  // tuotteet
+  const pr={};ok.forEach(o=>(o.items||[]).forEach(i=>{const k=i.n+(i.opt&&/Perhe|Normaali/.test(i.opt)?" ("+i.opt.split(" · ")[0]+")":"");pr[k]=pr[k]||{q:0,s:0};pr[k].q+=+i.q;pr[k].s+=i.unit*i.q}));
+  const pt=mk("table",{class:"dtab"},mk("tr",null,...["Tuote","Kpl","Myynti (ennen alennuksia)"].map(h=>mk("th",{text:h}))));
+  Object.entries(pr).sort((a,b)=>b[1].s-a[1].s).forEach(([k,v])=>pt.append(mk("tr",null,mk("td",{text:k}),mk("td",{text:v.q}),mk("td",{text:eur(v.s)}))));
+  // tilauslista
+  const ot=mk("table",{class:"dtab"},mk("tr",null,...["Nro","Pvm","Klo","Asiakas","Tapa","Tuotteet","Kuljetus","Alennus","Yhteensä","ALV","Tila"].map(h=>mk("th",{text:h}))));
+  REP.forEach(o=>ot.append(mk("tr",{class:o.status==="peruttu"?"peruttu":""},mk("td",{text:"#"+o.no}),mk("td",{text:fd(hDate(o.created_at))}),mk("td",{text:hTime(o.created_at)}),mk("td",{text:o.name}),mk("td",{text:o.kind==="kuljetus"?"Kuljetus":"Nouto"}),mk("td",{text:eur(o.subtotal)}),mk("td",{text:eur(o.fee)}),mk("td",{text:o.discount>0?"−"+eur(o.discount):""}),mk("td",{text:eur(o.total)}),mk("td",{text:eur(vatOf(+o.total))}),mk("td",{text:o.status==="peruttu"?"Peruttu":"Myyty"}))));
+  m.append(mk("div",{class:"card"},mk("h3",{text:"Myynti päivittäin"}),mk("div",{style:"overflow-x:auto"},dt)),
+    mk("div",{class:"card"},mk("h3",{text:"Myydyt tuotteet"}),Object.keys(pr).length?mk("div",{style:"overflow-x:auto"},pt):mk("p",{class:"muted",text:"Ei myyntiä."})),
+    mk("div",{class:"card"},mk("h3",{text:"Kaikki tilaukset"}),REP.length?mk("div",{style:"overflow-x:auto"},ot):mk("p",{class:"muted",text:"Ei tilauksia tässä kuussa."})));
+  const q=x=>'"'+String(x??"").replace(/"/g,'""')+'"';
+  m.append(mk("div",{class:"card noprint"},mk("h3",{text:"Lataa kirjanpitoon"}),mk("p",{class:"muted",text:"CSV-tiedostot avautuvat Excelissä. Lähetä ne tilitoimistolle tai eTaskuun kuukauden raportin kanssa."}),
+    mk("div",{class:"btnrow"},
+      act("Tilaukset (CSV)",()=>dl(`malakai-tilaukset-${repM}.csv`,["tilausnro;pvm;klo;asiakas;puhelin;sahkoposti;tapa;tuotteet_eur;kuljetus_eur;alennus_eur;yhteensa_eur;alv_13_5_eur;veroton_eur;tila;maksutapa"].concat(REP.map(o=>["#"+o.no,fd(hDate(o.created_at)),hTime(o.created_at),q(o.name),q(o.phone),q(o.email),o.kind,fe2(o.subtotal),fe2(o.fee),fe2(o.discount),fe2(o.total),fe2(vatOf(+o.total)),fe2(+o.total-vatOf(+o.total)),o.status==="peruttu"?"peruttu":"myyty","kassalla"].join(";"))).join("\n"))),
+      act("Päivittäin (CSV)",()=>dl(`malakai-myynti-paivittain-${repM}.csv`,["pvm;tilauksia;myynti_sis_alv_eur;alv_13_5_eur;veroton_eur"].concat(Object.keys(days).sort().map(d=>{const a=days[d],g=sum(a,"total"),v=Math.round(a.reduce((x,o)=>x+vatOf(+o.total),0)*100)/100;return[fd(d),a.length,fe2(g),fe2(v),fe2(g-v)].join(";")})).concat([["YHTEENSA",ok.length,fe2(gross),fe2(vat),fe2(net)].join(";")]).join("\n"))),
+      act("Tuotteet (CSV)",()=>dl(`malakai-tuotteet-${repM}.csv`,["tuote;kpl;myynti_eur"].concat(Object.entries(pr).map(([k,v])=>[q(k),v.q,fe2(v.s)].join(";"))).join("\n")))),
+    mk("p",{class:"warnt",style:"font-weight:400;font-size:.85rem",text:"Huom: nettitilaukset maksetaan kassalla, joten ne näkyvät myös kassajärjestelmän myynnissä. Tämä raportti on erittely – älä kirjaa samaa myyntiä kahteen kertaan."})));}
 function vOver(m){m.append(mk("h2",{text:"Yleiskatsaus"}));
   const t=hToday(),dk=wd(t),wkend=dk==="la"||dk==="su",eur=v=>(+v).toFixed(2).replace(".",",")+" €",left=d=>Math.round((new Date(d+"T12:00:00")-new Date(t+"T12:00:00"))/864e5);
   const kv=(k,v)=>mk("div",{class:"kv"},mk("span",{text:k}),typeof v==="string"?mk("b",{text:v}):v);
@@ -573,7 +639,7 @@ function customers(){const M=new Map(),key=(e,p)=>(e||"").toLowerCase()||String(
   (SUB||[]).forEach(s=>{const k=s.email.toLowerCase();let c=M.get(k);if(!c){c={name:s.name||"",email:s.email,phone:"",res:[],news:false};M.set(k,c)}c.news=true;c.subId=s.id;c.subAt=s.created_at});
   const arr=[...M.values()];arr.forEach(c=>{c.res.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));c.last=c.res[0]?.date||""});
   return arr.sort((a,b)=>(b.last||"").localeCompare(a.last||"")||(a.name||a.email).localeCompare(b.name||b.email))}
-function vCust(m){m.append(mk("h2",{text:"Asiakkaat"}));if(sbGate(m))return;
+function vCust(m){m.append(mk("h2",{text:"Asiakkaat"}));if(sbGate(m))return;custOrders(m);m.append(mk("h3",{class:"sec",text:"Pöytävaraus- ja uutiskirjeasiakkaat"}));
   const all=customers(),q=mk("input",{type:"search",placeholder:"Hae nimellä, sähköpostilla tai puhelimella…",value:cq});
   const box=mk("div",{class:"card"});
   const draw=()=>{const v=cq.toLowerCase(),arr=all.filter(c=>(!cNews||c.news)&&(!v||[c.name,c.email,c.phone].join(" ").toLowerCase().includes(v)));box.textContent="";
