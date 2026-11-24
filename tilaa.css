@@ -268,3 +268,4 @@
 .od-sheet .od-mf{gap:10px}.od-sheet #odMA{white-space:nowrap;flex:1;min-width:0}
 .od-qb{flex:none}.od-qb button{width:36px;height:36px}
 .od-it[hidden],section.od-sec[hidden],#odCats a[hidden],#odTiles a[hidden]{display:none!important}
+.od-drow img{width:34px;height:48px;object-fit:contain;flex:none}

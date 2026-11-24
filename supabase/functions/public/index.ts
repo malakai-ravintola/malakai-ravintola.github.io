@@ -122,6 +122,7 @@ function priceLine(S: any, day: string, x: any, out: string[] = []) {
   if (!(unit > 0)) throw new Error(`Tuotetta ${n} ei voi tilata netissä`);
   if (n === "Dippi") { const l = String(it[1]).split(",").map((v: string) => v.trim()); if (!l.includes(s(x.o, 40))) throw new Error("Valitse dipin maku"); opt.push(s(x.o, 40)); }
   else if (needsSauce(cat, it)) { const ok = c === "Sticky Fingers" ? ["Med", "Hot", "X-hot"] : ["Med", "Hot"]; if (!ok.includes(s(x.o, 5))) throw new Error(`Valitse kastike: ${n}`); opt.push("Kastike " + s(x.o, 5)); }
+  if (c === "Dipit ja juomat" && /^Juoma/i.test(n) && String(it[1] || "").trim()) { const L = String(it[1]).split(",").map((v: string) => v.trim()), dr = s(x.dr, 40); if (!L.includes(dr)) throw new Error(`Valitse juoma: ${n}`); opt.push(dr); }
   if (c === "Kebab" && x.l) { const l = s(x.l, 12); if (!(l in LIHA)) throw new Error(`Tarkista lihavalinta: ${n}`); unit += LIHA[l]; opt.push(l); }
   if (n === "Kanakori" || c === "Sticky Fingers") { const pt = s(x.pt, 30) || "Ranskalaiset"; if (!(pt in POT)) throw new Error(`Tarkista perunat: ${n}`); unit += POT[pt]; opt.push("Perunat: " + pt); }
   if (hasDip(S, cat, it)) { const L = dipList(S), d = [...new Set((Array.isArray(x.d) ? x.d : []).map((v: unknown) => s(v, 40)))].filter((v) => L.includes(v as string)).slice(0, 8) as string[];

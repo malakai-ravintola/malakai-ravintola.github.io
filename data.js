@@ -527,23 +527,18 @@ window.SITE=/*BEGIN*/{
     ],
     [
      "Juoma 0,33 l",
-     "",
+     "Pepsi Max, Coca-Cola, Coca-Cola Zero, Fanta Zero, Sprite Zero",
      2.5
     ],
     [
      "Juoma 0,5 l",
-     "",
+     "Pepsi, Pepsi Max, Coca-Cola",
      3.5
     ],
     [
      "Juoma 1,5 l",
-     "",
+     "Pepsi Max, Coca-Cola, Coca-Cola Zero",
      5
-    ],
-    [
-     "Kahvi",
-     "",
-     2
     ]
    ]
   }
