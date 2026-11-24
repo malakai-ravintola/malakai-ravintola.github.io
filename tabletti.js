@@ -54,11 +54,17 @@ let VOL=+(LS.get("tab_vol")??80),SND=LS.get("tab_snd")||"kello",alarmOn=false,al
 const SOUNDS={kello:"Kello (ding-dong)",soitto:"Puhelinsoitto",melodia:"Melodia"};
 function tone(dst,f,t,len,type,peak,partials){(partials||[[1,1]]).forEach(([m,a])=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type||"sine";o.frequency.value=f*m;
   g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(peak*a,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+len);o.connect(g).connect(dst);o.start(t);o.stop(t+len+.05)})}
-function play(kind,vol){if(!AC)return 0;const out=AC.createGain();out.gain.value=Math.pow((vol??VOL)/100,1.6);out.connect(AC.destination);const t=AC.currentTime+.05;
-  if(kind==="soitto"){for(let r=0;r<2;r++)for(let i=0;i<12;i++){const s=t+r*1.4+i*.05;tone(out,i%2?1000:800,s,.05,"sine",.5)}return 2.9}
-  if(kind==="melodia"){[[659,0],[784,.16],[988,.32],[1319,.48],[988,.8],[1319,.96]].forEach(([f,d])=>tone(out,f,t+d,.5,"sine",.45,[[1,1],[4,.12]]));return 1.7}
-  // kello: kaksi ding-dong-sarjaa
-  [[880,0],[698,.55],[880,1.3],[698,1.85]].forEach(([f,d])=>tone(out,f,t+d,1.2,"sine",.55,[[1,1],[2,.35],[3,.12]]));return 3.2}
+function play(kind,vol){if(!AC)return 0;
+  // kompressori nostaa äänen kuuluvuutta säröttä
+  const cp=AC.createDynamicsCompressor();cp.threshold.value=-24;cp.knee.value=6;cp.ratio.value=8;cp.attack.value=.003;cp.release.value=.2;
+  const out=AC.createGain();out.gain.value=1.8*Math.pow((vol??VOL)/100,1.4);out.connect(cp).connect(AC.destination);const t=AC.currentTime+.05;
+  if(kind==="soitto"){ // klassinen puhelinsoitto, 3 soittoa
+    for(let r=0;r<3;r++)for(let i=0;i<20;i++){const s=t+r*2+i*.05;tone(out,i%2?1046:830,s,.06,"triangle",.9,[[1,1],[2,.25]])}return 5.8}
+  if(kind==="melodia"){ // nouseva tilausmelodia kahdesti
+    const N=[[784,0],[988,.18],[1175,.36],[1568,.54],[1175,.9],[1568,1.08],[1976,1.26]];
+    [0,1.9].forEach(o=>N.forEach(([f,d])=>tone(out,f,t+o+d,.6,"triangle",.8,[[1,1],[2,.3],[4,.1]])));return 3.9}
+  // kello: kirkas ding-dong, kolme kertaa
+  [0,1.7,3.4].forEach(o=>[[1047,0],[784,.55]].forEach(([f,d])=>tone(out,f,t+o+d,1.4,"sine",1,[[1,1],[2,.5],[3,.25],[4.2,.12]])));return 5.2}
 function beep(){if(soundOk)play(SND)}
 function alarm(){const want=soundOk&&NEW().length>0;if(!want){alarmOn=false;clearTimeout(alarmT);return}if(alarmOn)return;alarmOn=true;
   const loop=()=>{if(!soundOk||!NEW().length){alarmOn=false;return}const d=play(SND);alarmT=setTimeout(loop,(d+5)*1000)};loop()}
