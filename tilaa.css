@@ -155,3 +155,10 @@
 .od-tile img.cut{filter:none}
 .od-tile:hover img.cut{box-shadow:0 0 0 2px var(--oy)}
 .od-img img.cut{padding:4%}.od-tile img.cut{padding:5%!important}
+
+/* Päivän pizza isommin */
+.od-it.od-day{grid-template-columns:clamp(160px,44vw,240px) 1fr auto!important;background:linear-gradient(135deg,rgba(227,165,28,.14),rgba(227,165,28,.02))!important;border:1.5px solid rgba(227,165,28,.5)!important;border-radius:22px!important;padding:16px!important;margin:4px 0 8px!important}
+.od-day .od-tx b{font-size:clamp(1.35rem,5.2vw,1.75rem)!important}
+.od-day .od-pr{font-size:1.05rem!important;padding:6px 14px}
+@media(max-width:560px){.od-it.od-day{grid-template-columns:1fr auto!important;grid-template-areas:"img img" "tx plus"}.od-day .od-img{grid-area:img;max-width:300px;margin:0 auto 4px;width:100%}.od-day .od-tx{grid-area:tx}.od-day .od-plus{grid-area:plus}}
+.od-day .od-img img,.od-day .od-img .od-ph{width:100%!important;height:auto!important;aspect-ratio:1/1!important;object-fit:contain}

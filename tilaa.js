@@ -35,12 +35,13 @@ function marks(){document.querySelectorAll(".od-plus").forEach(b=>{const o=isOut
 // ---------- Ruokalista (kuvalliset kategoriat, välilehdet ja tuoterivit)
 const day=helDay(),dp=(S.daily||{})[day];
 const T="media/tilaa/";
-const IMG={"Tropicana":"tropicana","Kebab Pizza":"kebab","Mexicana":"mexicana","Americano":"americano","Mamma Mia":"mammamia","Julia":"julia","Opera Special":"opera","Barbeque":"bbq","Margarita Mozzarella":"margarita","Oma valinta":"oma","Kebab ranskalaisilla":"kebab-ranskalaiset","Rullakebab":"kebabrulla","Kana ranskalaisilla":"kana-ranskalaiset"};
-const CIMG={"Pizza":"opera","Kebab":"kebab-ranskalaiset","Kana":"kana-ranskalaiset","Wings":"kat-wings.jpg","Burgerit":"kat-burgerit.jpg","Lisukkeet":"kat-lisukkeet.jpg"};
+const IMG0={"Tropicana":"tropicana","Kebab Pizza":"kebab","Mexicana":"mexicana","Americano":"americano","Mamma Mia":"mammamia","Julia":"julia","Opera Special":"opera","Barbeque":"bbq","Margarita Mozzarella":"margarita","Oma valinta":"oma","Kebab ranskalaisilla":"kebab-ranskalaiset","Rullakebab":"kebabrulla","Kana ranskalaisilla":"kana-ranskalaiset","Kebabsalaatti":"kebabsalaatti","Iskender":"iskender","Kanasalaatti":"kanasalaatti","Kana riisillä":"kana-riisi"};
+const IMG=new Proxy(IMG0,{get:(o,n)=>o[n]||(/rulla$/i.test(n)?"rulla":/^Sticky Fingers/.test(n)?"sticky":/^Hot ?wings/i.test(n)?"wings":/burgeri$/i.test(n)?"burgeri":undefined)});
+const CIMG={"Pizza":"opera","Kebab":"kebab-ranskalaiset","Kana":"kana-ranskalaiset","Sticky Fingers":"sticky","Wings":"wings","Burgerit":"burgeri","Lisukkeet":"kat-lisukkeet.jpg"};
 const CNAME={"Pizza":"Pizzat","Kebab":"Kebabit","Kana":"Kana-annokset","Wings":"Hot Wings","Dipit ja juomat":"Dipit ja juomat"};
 const pic=(f,alt,cls)=>{if(!f)return`<span class="od-ph ${cls||""}" aria-hidden="true"><img src="media/logo-malakai.svg" alt=""></span>`;
   if(f.includes("/"))return`<img src="${esc(f)}" alt="${esc(alt)}" loading="lazy" class="pho ${cls||""}">`;
-  const cut=!f.includes(".");return`<img src="${T}${cut?f+".webp":f}?v=4" alt="${esc(alt)}" loading="lazy" class="${cut?"cut":"pho"} ${cls||""}">`};
+  const cut=!f.includes(".");return`<img src="${T}${cut?f+".webp":f}?v=6" alt="${esc(alt)}" loading="lazy" class="${cut?"cut":"pho"} ${cls||""}">`};
 function menu(){const m=$("#odMenu"),cats=$("#odCats"),tiles=$("#odTiles");let h="",ch="",th="";
   if(dp&&dp.name&&S.dailyPrice){
     th+=`<a class="od-tile" href="#paivan-pizza">${pic(IMG[dp.name]||dp.img,dp.name)}<b>Päivän pizza</b></a>`;
