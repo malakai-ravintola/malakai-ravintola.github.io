@@ -54,7 +54,7 @@ if(S.dailyPrice)$$(".dp").forEach(e=>e.textContent=f(S.dailyPrice));
   L.forEach(o=>{const c=document.createElement("a");c.className="h-offer";c.href=o.link||"tel:+358453537000";
     const im=document.createElement("img");im.src=o.image||"";im.alt=(o.title||"Tarjous")+(o.text?": "+o.text:"")+(o.price?" "+o.price:"");im.loading="lazy";c.appendChild(im);ol.appendChild(c)});
   os.hidden=!L.length}}
-{const pi=$("#popImg");if(pi&&S.popup){pi.src=S.popup.image;pi.alt=S.popup.alt||""}}
+{const pi=$("#popImg");if(pi&&S.popup&&S.popup.card){pi.src=S.popup.card}}
 
 // --- Yläpalkki, valikko
 const tb=$("#topbar");if(tb){const sc=()=>tb.classList.toggle("solid",scrollY>40||document.body.dataset.solid);addEventListener("scroll",sc,{passive:true});sc()}
@@ -75,11 +75,11 @@ try{if(localStorage.getItem("lang")==="en")setLang(true)}catch(x){}
 // --- Ponnahdusikkuna (asetukset data.js:ssä)
 const pop=$("#pop");
 let popSeen=false;try{popSeen=sessionStorage.getItem("popSeen")==="1";sessionStorage.setItem("popSeen","1")}catch(e){}
-if(pop&&until(S.popup)&&!popSeen){const close=()=>{pop.hidden=true;document.body.style.overflow=""};
-  // Näytetään vasta 8 s jälkeen tai kun sivua on vieritetty, ei heti latauksessa (Google ei suosi heti peittäviä ikkunoita).
-  let shown=false;const show=()=>{if(shown)return;shown=true;removeEventListener("scroll",onSc);pop.hidden=false;document.body.style.overflow="hidden";$("#popX").focus()};
-  const onSc=()=>{if(scrollY>innerHeight*1.2)show()};addEventListener("scroll",onSc,{passive:true});setTimeout(show,8000);
-  $("#popX").onclick=close;$("#popB").onclick=close;pop.addEventListener("click",e=>{if(e.target===pop)close()});
+if(pop&&until(S.popup)&&!popSeen){const close=()=>{pop.hidden=true};
+  // Kortti nousee alakulmaan 6 s jälkeen tai kun sivua vieritetään. Se ei peitä sivua eikä estä vierittämistä.
+  let shown=false;const show=()=>{if(shown)return;shown=true;removeEventListener("scroll",onSc);pop.hidden=false};
+  const onSc=()=>{if(scrollY>innerHeight*.9)show()};addEventListener("scroll",onSc,{passive:true});setTimeout(show,6000);
+  $("#popX").onclick=close;$("#popB").addEventListener("click",close);
   addEventListener("keydown",e=>{if(e.key==="Escape"&&!pop.hidden)close()})}
 
 // --- Ruokalista

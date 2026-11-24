@@ -152,8 +152,8 @@ body:not(.auth) .top,body:not(.auth) .hero,body:not(.auth) .dr,body:not(.auth) m
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1795516669"></script>
-<script src="config.js?v=1795516669"></script>
+<script src="data.js?v=1795516858"></script>
+<script src="config.js?v=1795516858"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -259,9 +259,8 @@ function vAnn(m){S.ann=S.ann||{on:false};S.event=S.event||{on:false};S.popup=S.p
     imgPicker(o.image,p=>{o.image=p;mark()}),
     mk("button",{class:"x del",text:"Poista tarjous",onclick:()=>{if(confirm("Poistetaanko tarjous?")){S.offers.splice(i,1);mark();render()}}})))});
   oc.append(mk("p",null,mk("button",{class:"o",text:"+ Lisää tarjous",onclick:()=>{S.offers.push({on:true,title:"",text:"",price:"",was:"",image:"",from:"",until:"",cta:"Tilaa 045 353 7000",link:"tel:+358453537000"});mark();render()}})));m.append(oc);
-  const P=S.popup;m.append(mk("div",{class:"card"},mk("h3",{text:"Ponnahdusikkuna (etusivu)"}),chk(P.on,v=>P.on=v,"Näytä ponnahdusikkuna"),
-    mk("p",{class:"muted",text:"Ikkuna näyttää kuvan sekä Soita- ja Varaa-painikkeet. Pystykuva (esim. 1080 × 1350) toimii parhaiten."}),
-    imgPicker(P.image,p=>{P.image=p;mark()}),lab("Kuvan kuvaus (näkövammaisille ja hakukoneille)",area(P.alt,v=>P.alt=v)),lab("Näytä asti",inp(P.until,v=>P.until=v,{type:"date",style:"max-width:220px"}))))}
+  const P=S.popup;m.append(mk("div",{class:"card"},mk("h3",{text:"Pikkujoulu-kortti (etusivu)"}),chk(P.on,v=>P.on=v,"Näytä pikkujoulu-kortti"),
+    mk("p",{class:"muted",text:"Kortti nousee etusivun alakulmaan (kuva vasemmalla, teksti ja Kysy tarjous -linkki oikealla). Se ei peitä sivua, ja asiakas voi sulkea sen ruksista."}),lab("Näytä asti",inp(P.until,v=>P.until=v,{type:"date",style:"max-width:220px"}))))}
 
 function vHours(m){S.hours=S.hours||{};const B=S.buffet;
   const c=mk("div",{class:"card"},mk("h3",{text:"Aukioloajat"}),mk("p",{class:"muted",text:"Päivitys näkyy kaikilla sivuilla, avoinna/suljettu-merkinnässä ja pöytävarauksen kellonajoissa."}));
