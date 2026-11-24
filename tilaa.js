@@ -13,7 +13,7 @@ const DK=["su","ma","ti","ke","to","pe","la"];
 const helDay=()=>{const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Helsinki",weekday:"short"}).format(new Date()).toLowerCase();return DK[["sun","mon","tue","wed","thu","fri","sat"].indexOf(p)]};
 const toppings=(String((M.Pizza||{}).note||"").split("Täytteet:")[1]||"").split(",").map(t=>t.trim().replace(/\.$/,"")).filter(Boolean);
 const sauce=(cat,it)=>/Med tai Hot/i.test((cat.note||"")+" "+(it[1]||""));
-const SAUCES=c=>c==="Sticky Fingers"?["Med","Hot","X-hot"]:["Med","Hot"];
+const SAUCES=c=>["Med","Hot"];const SPICE=["Tuore valkosipuli","Oregano"];
 const LIHA={Tuplaliha:5,Triplaliha:10},POT={"Ranskalaiset":0,"Ristikkoperunat":1,"Kierreperunat":1,"Crispers-ranskanperunat":1},DIP=1.5;
 const DIPS=String((((M["Dipit ja juomat"]||{}).items||[]).find(i=>i[0]==="Dippi")||[])[1]||"").split(",").map(v=>v.trim()).filter(Boolean);
 const DIMG={"paprikamajoneesi":"dip-paprika","valkosipulimajoneesi":"dip-valkosipuli","remoulade":"dip-remoulade","bbq-kastike":"dip-bbq","currymajoneesi":"dip-curry"},dImgOf=v=>DIMG[String(v).toLowerCase()]||"";
@@ -50,10 +50,10 @@ function price(x){
   if(hasPot(x.c,x.n))u+=POT[x.pt]||0;
   if(hasDip(cat,it))u+=Math.max(0,(x.d||[]).length-freeDips(it))*DIP;
   return Math.round(u*100)/100}
-function optTxt(x){if(x.c==="Tarjous")return"Pizzat: "+(x.t||[]).join(", ")+" · 1,5 l juoma · vain nouto";const o=[];const xs=(x.x||[]).length?"Lisätäytteet: "+x.x.join(", "):"";if(x.c==="Päivän pizza")return["Päivän pizza",xs].filter(Boolean).join(" · ");
+function optTxt(x){if(x.c==="Tarjous")return"Pizzat: "+(x.t||[]).join(", ")+" · 1,5 l juoma · vain nouto";const o=[];const xs=(x.x||[]).length?"Lisätäytteet: "+x.x.join(", "):"";if(x.c==="Päivän pizza")return["Päivän pizza",(x.sp||[]).length?"Mausteet: "+x.sp.join(", "):"",xs].filter(Boolean).join(" · ");
   const cat=M[x.c],it=cat&&cat.items.find(i=>i[0]===x.n);if(!it)return"";
   if(x.n==="Oma valinta")o.push(x.s==="p"?"Perhe":"Normaali",(x.t||[]).join(", "));else if(+it[3]>0)o.push(x.s==="p"?"Perhe":"Normaali");
-  if(x.o)o.push(x.n==="Dippi"?x.o:"Kastike "+x.o);if(x.dr)o.push(x.dr);if(x.l)o.push(x.l);if(x.pt)o.push("Perunat: "+x.pt);if((x.d||[]).length)o.push("Dipit: "+x.d.join(", "));if(x.meal)o.push("Ateria");if(xs)o.push(xs);return o.join(" · ")}
+  if(x.o)o.push(x.n==="Dippi"?x.o:"Kastike "+x.o);if(x.dr)o.push(x.dr);if(x.hot)o.push("Tulinen");if((x.sp||[]).length)o.push("Mausteet: "+x.sp.join(", "));if(x.l)o.push(x.l);if(x.pt)o.push("Perunat: "+x.pt);if((x.d||[]).length)o.push("Dipit: "+x.d.join(", "));if(x.meal)o.push("Ateria");if(xs)o.push(xs);return o.join(" · ")}
 const orderable=(c,it)=>+it[2]>0||(c==="Pizza"&&it[0]==="Oma valinta");
 const isHid=(c,n)=>!!(CFG&&(CFG.hidden||[]).includes((c==="Päivän pizza"?"Pizza":c)+"|"+n));
 const isOut=(c,n)=>isHid(c,n)||!!(CFG&&(CFG.soldout||[]).includes((c==="Päivän pizza"?"Pizza":c)+"|"+n));
@@ -115,16 +115,17 @@ function open(c,n){
     o+=`<p class="od-small">🛍️ Tarjous koskee vain noutoa. Voimassa ${offUntil(of)} asti.</p>`;
     return sheet(x,{title:n,img:"tarjous-3-pizzaa",pr:esc(of.price),desc:of.text||"",o})}
   const day=c==="Päivän pizza",cat=day?{}:M[c],it=day?[n,"",+S.dailyPrice]:cat.items.find(i=>i[0]===n),x={c,n,q:1,s:"n"};let o="",title=n,pr=eur(+it[2]),desc=it[1]||"";
-  const xrows=()=>toppings.map(t=>[t,t,"+"+eur(XT.n)]);
+  const xrows=()=>toppings.map(t=>[t,t,"+"+eur(XT.n)]);const spg=()=>grp("Mausteet","Valinnainen · ilmainen","sp","checkbox",SPICE.map(v=>[v,v,""]),()=>false);
   if(c==="Sticky Fingers"){const L=cat.items.filter(i=>+i[2]>0&&!isOut(c,i[0])),b=Math.min(...L.map(i=>+i[2]));title="Sticky Fingers";pr=eur(b);desc=String(cat.note||"").replace(/\s*Kastike:.*$/,"");
     o+=grp("Valitse määrä","Valitse yksi","sz","radio",L.map(i=>[i[0],i[0].replace(/^Sticky Fingers\s*/,""),+i[2]>b?"+"+eur(+i[2]-b):""]),v=>v===n)}
-  if(day){pr=eur(+S.dailyPrice)+" <i>Vain tänään</i>";desc="Päivän tarjouspizza – vaihtuu joka päivä.";o+=grp("Lisätäytteet","Valinnainen · +"+eur(XT.n)+" / täyte","x","checkbox",xrows(),()=>false)}
+  if(day){pr=eur(+S.dailyPrice)+" <i>Vain tänään</i>";desc="Päivän tarjouspizza – vaihtuu joka päivä.";o+=spg()+grp("Lisätäytteet","Valinnainen · +"+eur(XT.n)+" / täyte","x","checkbox",xrows(),()=>false)}
   else if(n==="Oma valinta"){x.t=[];title="Oma pizza";pr=`alk. ${eur(OMA.n[0])} <i>perhe alk. ${eur(OMA.p[0])}</i>`;desc="Valitse koko ja täytteet – niin monta kuin haluat.";
-    o+=grp("Koko","Valitse yksi","s","radio",[["n","Normaali",""],["p","Perhe",""]],v=>v==="n")+grp("Täytteet",`1 täyte ${eur(OMA.n[0])} / ${eur(OMA.p[0])} · 4 täytettä ${eur(OMA.n[3])} / ${eur(OMA.p[3])} · jokainen seuraava +${eur(XT.n)} / perhe +${eur(XT.p)}`,"t","checkbox",toppings.map(t=>[t,t,""]),()=>false)}
+    o+=grp("Koko","Valitse yksi","s","radio",[["n","Normaali",""],["p","Perhe",""]],v=>v==="n")+spg()+grp("Täytteet",`1 täyte ${eur(OMA.n[0])} / ${eur(OMA.p[0])} · 4 täytettä ${eur(OMA.n[3])} / ${eur(OMA.p[3])} · jokainen seuraava +${eur(XT.n)} / perhe +${eur(XT.p)}`,"t","checkbox",toppings.map(t=>[t,t,""]),()=>false)}
   else{if(+it[3]>0){pr=`${eur(+it[2])} <i>perhe ${eur(+it[3])}</i>`;o+=grp("Koko","Valitse yksi","s","radio",[["n","Normaali",eur(+it[2])],["p","Perhe",eur(+it[3])]],v=>v==="n")}
-    if(c==="Pizza")o+=grp("Lisätäytteet",`Valinnainen · +${eur(XT.n)} / perhe +${eur(XT.p)} täyte`,"x","checkbox",xrows(),()=>false)}
+    if(c==="Pizza")o+=spg()+grp("Lisätäytteet",`Valinnainen · +${eur(XT.n)} / perhe +${eur(XT.p)} täyte`,"x","checkbox",xrows(),()=>false)}
   if(n==="Dippi"){desc="";o+=grp("Valitse maku","Valitse yksi","o","radio",String(it[1]).split(",").map(v=>[v.trim(),v.trim(),"",dImgOf(v.trim())]),(v,i)=>i===0)}
   else if(!day&&sauce(cat,it))o+=grp("Valitse kastike","Valitse yksi","o","radio",SAUCES(c).map(v=>[v,v==="Med"?"Medium":v,""]),v=>v==="Med");
+  if(c==="Kebab"||c==="Kana")o+=grp("Tulisuus","Valinnainen · ilmainen","hot","checkbox",[["1","Tulinen","🌶️"]],()=>false);
   if(c==="Kebab")o+=grp("Tuplalihalla?","Valinnainen","l","radio",[["","Normaali",""],["Tuplaliha","Tuplaliha","+"+eur(LIHA.Tuplaliha)],["Triplaliha","Triplaliha","+"+eur(LIHA.Triplaliha)]],v=>v==="");
   if(hasPot(c,n))o+=grp("Perunat","Valitse yksi","pt","radio",Object.entries(POT).map(([v,p])=>[v,v,p?"+"+eur(p):""]),v=>v==="Ranskalaiset");
   if(!day&&hasDip(cat,it)){const fd=freeDips(it);o+=`<div data-free="${fd}">`+grp("Dippi?",`${fd===1?"1 dippi":fd+" dippiä"} sisältyy · lisädipit +${eur(DIP)} / kpl · enintään 8`,"d","checkbox",DIPS.map(v=>[v,v,"",dImgOf(v)]),()=>false)+`</div>`}
@@ -136,7 +137,7 @@ function read(){const f=$("#odMO"),x=cur,v=k=>{const e=f.querySelector(`input[na
   x.m=$("#odMN").value.trim();x.q=+$("#odMq").textContent;
   if(x.c==="Tarjous"){x.t=[...f.querySelectorAll("select[name^=op]")].map(s=>s.value);return x}
   if(x.c==="Sticky Fingers"&&v("sz"))x.n=v("sz");
-  x.s=v("s")||"n";x.o=v("o");x.t=vs("t");x.x=vs("x");x.meal=!!v("meal");x.l=v("l");x.pt=v("pt");x.d=vs("d");x.dr=v("dr");
+  x.s=v("s")||"n";x.o=v("o");x.t=vs("t");x.x=vs("x");x.meal=!!v("meal");x.l=v("l");x.pt=v("pt");x.d=vs("d");x.dr=v("dr");x.hot=!!v("hot");x.sp=vs("sp");if(!x.sp.length)delete x.sp;if(!x.hot)delete x.hot;
   ["o","l","pt","dr"].forEach(k=>{if(!x[k])delete x[k]});if(!x.d.length)delete x.d;return x}
 function valid(x){if(x.c==="Tarjous")return x.t.some(v=>!v)?"Valitse kaikki pizzat":"";if(x.c==="Päivän pizza")return"";const cat=M[x.c],it=cat.items.find(i=>i[0]===x.n);
   if(x.n==="Oma valinta"&&x.t.length<1)return"Valitse vähintään 1 täyte";
@@ -157,7 +158,7 @@ $("#odMX").onclick=close;$("#odModal").addEventListener("click",e=>{if(e.target.
 addEventListener("keydown",e=>{if(e.key==="Escape"){close();$("#odCart").classList.remove("open")}});
 
 // ---------- Ostoskori
-const key=x=>JSON.stringify([x.c,x.n,x.s||"",x.o||"",(x.t||[]).slice().sort(),(x.x||[]).slice().sort(),!!x.meal,x.dr||"",x.l||"",x.pt||"",(x.d||[]).slice().sort(),x.m||""]);
+const key=x=>JSON.stringify([x.c,x.n,x.s||"",x.o||"",(x.t||[]).slice().sort(),(x.x||[]).slice().sort(),!!x.meal,x.dr||"",!!x.hot,(x.sp||[]).slice().sort(),x.l||"",x.pt||"",(x.d||[]).slice().sort(),x.m||""]);
 function add(x){const k=key(x),e=cart.find(i=>key(i)===k);if(e)e.q=Math.min(20,e.q+x.q);else cart.push(x);save();draw();
   const b=$("#odBar");b.animate&&b.animate([{transform:"scale(1)"},{transform:"scale(1.05)"},{transform:"scale(1)"}],{duration:300})}
 const sub=()=>cart.reduce((a,x)=>a+price(x)*x.q,0);
@@ -240,7 +241,7 @@ $("#odForm").onsubmit=async e=>{e.preventDefault();const f=e.target,send=$("#odS
   ls.set("mk_me",{n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),z:v("z"),ci:v("ci")});
   send.disabled=true;send.textContent="Lähetetään…";clearTimeout(fT);await checkFirst();send.disabled=true;send.textContent="Lähetetään…";
   try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),dn:v("dn"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,pay:($('input[name="pay"]:checked')||{}).value||"kortti",total:totals().t,
-      items:cart.map(x=>({c:x.c,n:x.n,s:x.s,o:x.o,t:x.t,x:x.x,meal:x.meal,l:x.l,pt:x.pt,d:x.d,dr:x.dr,q:x.q,m:x.m}))});
+      items:cart.map(x=>({c:x.c,n:x.n,s:x.s,o:x.o,t:x.t,x:x.x,meal:x.meal,l:x.l,pt:x.pt,d:x.d,dr:x.dr,hot:x.hot,sp:x.sp,q:x.q,m:x.m}))});
     $("#odDoneT").innerHTML=`Tilausnumerosi on <b>#${r.no}</b>.${r.discount?" Sait uuden asiakkaan alennuksen "+eur(r.discount)+".":""} Lähetimme vahvistuksen osoitteeseen ${esc(v("e"))}.<br><br>Saat toisen viestin, kun olemme hyväksyneet tilauksen ja ${k==="kuljetus"?"arvioineet toimitusajan":"tiedämme valmistumisajan"}. Kiireellisissä asioissa soita 045 353 7000.`;
     try{const im=x=>{const f=IMG[x.c==="Päivän pizza"?x.n:x.n]||(x.c==="Wings"?"wings":"");return f?T+(f.includes(".")?f:f+".webp"):""};ls.set("mk_last",{no:r.no,date:new Date().toISOString(),total:r.total,name:v("n").split(" ")[0],items:cart.filter(x=>x.c!=="Päivän pizza").map(x=>({...x,img:im(x)}))})}catch(e){}
     cart=[];save();draw();$("#odCart").classList.remove("open");$("#odDone").hidden=false}

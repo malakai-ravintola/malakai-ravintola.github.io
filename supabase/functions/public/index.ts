@@ -90,9 +90,10 @@ function priceLine(S: any, day: string, x: any, out: string[] = []) {
   const ALL = String(S.menu?.Pizza?.note || "").split("Täytteet:")[1]?.split(",").map((t: string) => t.trim().replace(/\.$/, "")) ?? [];
   const pick = (v: unknown) => [...new Set((Array.isArray(v) ? v : []).map((t: unknown) => s(t, 40)))].filter((t) => ALL.includes(t as string)).slice(0, 30) as string[];
   const ex = pick(x.x);
+  const SPICE = ["Tuore valkosipuli", "Oregano"], sp = [...new Set((Array.isArray(x.sp) ? x.sp : []).map((v: unknown) => s(v, 30)))].filter((v) => SPICE.includes(v as string)) as string[];
   if (c === "Päivän pizza") {
     if (!S.daily?.[day]?.name || S.daily[day].name !== n) throw new Error("Päivän pizza on vaihtunut. Päivitä sivu.");
-    return { c, n, q, unit: Math.round((+S.dailyPrice + ex.length * XT.n) * 100) / 100, opt: ["Päivän pizza", ex.length ? "Lisätäytteet: " + ex.join(", ") : ""].filter(Boolean).join(" · "), m: s(x.m, 120) };
+    return { c, n, q, unit: Math.round((+S.dailyPrice + ex.length * XT.n) * 100) / 100, opt: ["Päivän pizza", sp.length ? "Mausteet: " + sp.join(", ") : "", ex.length ? "Lisätäytteet: " + ex.join(", ") : ""].filter(Boolean).join(" · "), m: s(x.m, 120) };
   }
   if (c === "Tarjous") {
     const t0 = today(), of = (S.offers || []).find((o: any) => o.on && o.title === n && (!o.from || o.from <= t0) && (!o.until || o.until >= t0));
@@ -120,8 +121,10 @@ function priceLine(S: any, day: string, x: any, out: string[] = []) {
     if (c === "Pizza" && ex.length) { unit += ex.length * XT[has2 ? sz : "n"]; opt.push("Lisätäytteet: " + ex.join(", ")); }
   }
   if (!(unit > 0)) throw new Error(`Tuotetta ${n} ei voi tilata netissä`);
+  if (c === "Pizza" && sp.length) opt.push("Mausteet: " + sp.join(", "));
+  if ((c === "Kebab" || c === "Kana") && x.hot) opt.push("Tulinen");
   if (n === "Dippi") { const l = String(it[1]).split(",").map((v: string) => v.trim()); if (!l.includes(s(x.o, 40))) throw new Error("Valitse dipin maku"); opt.push(s(x.o, 40)); }
-  else if (needsSauce(cat, it)) { const ok = c === "Sticky Fingers" ? ["Med", "Hot", "X-hot"] : ["Med", "Hot"]; if (!ok.includes(s(x.o, 5))) throw new Error(`Valitse kastike: ${n}`); opt.push("Kastike " + s(x.o, 5)); }
+  else if (needsSauce(cat, it)) { const ok = ["Med", "Hot"]; if (!ok.includes(s(x.o, 5))) throw new Error(`Valitse kastike: ${n}`); opt.push("Kastike " + s(x.o, 5)); }
   if (c === "Dipit ja juomat" && /^Juoma/i.test(n) && String(it[1] || "").trim()) { const L = String(it[1]).split(",").map((v: string) => v.trim()), dr = s(x.dr, 40); if (!L.includes(dr)) throw new Error(`Valitse juoma: ${n}`); opt.push(dr); }
   if (c === "Kebab" && x.l) { const l = s(x.l, 12); if (!(l in LIHA)) throw new Error(`Tarkista lihavalinta: ${n}`); unit += LIHA[l]; opt.push(l); }
   if (n === "Kanakori" || c === "Sticky Fingers") { const pt = s(x.pt, 30) || "Ranskalaiset"; if (!(pt in POT)) throw new Error(`Tarkista perunat: ${n}`); unit += POT[pt]; opt.push("Perunat: " + pt); }

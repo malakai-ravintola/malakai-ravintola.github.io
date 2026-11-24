@@ -104,7 +104,7 @@ const IMGM={"Tropicana":"tropicana","Kebab Pizza":"kebab","Mexicana":"mexicana",
 const IMGF=(n,c)=>{const k=IMGM[n]||(/rulla$/i.test(n)?"rulla":/^Sticky Fingers/.test(n)?"sticky":/^Hot ?wings/i.test(n)?"wings":/burgeri$/i.test(n)?"burgeri":"");return k?"media/tilaa/"+k+".webp":""};
 // Tilaa uudelleen: muunnetaan tallennettu rivi takaisin ostoskorimuotoon
 function toCart(i){const parts=String(i.opt||"").split(" · "),x={c:i.c,n:i.n,q:+i.q||1,s:"n",m:i.m||""};
-  parts.forEach(p=>{if(p==="Perhe")x.s="p";else if(/^Kastike /.test(p))x.o=p.slice(8);else if(/^Lisätäytteet: /.test(p))x.x=p.slice(14).split(", ");else if(/^Ateria/.test(p))x.meal=true;else if(/^(Tupla|Tripla)liha$/.test(p))x.l=p;else if(/^Perunat: /.test(p))x.pt=p.slice(9);else if(/^Dipit: /.test(p))x.d=p.slice(7).split(", ")});
+  parts.forEach(p=>{if(p==="Perhe")x.s="p";else if(/^Kastike /.test(p))x.o=p.slice(8);else if(/^Lisätäytteet: /.test(p))x.x=p.slice(14).split(", ");else if(/^Ateria/.test(p))x.meal=true;else if(/^(Tupla|Tripla)liha$/.test(p))x.l=p;else if(/^Perunat: /.test(p))x.pt=p.slice(9);else if(/^Dipit: /.test(p))x.d=p.slice(7).split(", ");else if(p==="Tulinen")x.hot=true;else if(/^Mausteet: /.test(p))x.sp=p.slice(10).split(", ")});
   if(i.c==="Tarjous"){x.t=String(parts[0]||"").replace(/^Pizzat: /,"").split(", ").filter(Boolean);return x}
   if(i.n==="Dippi")x.o=parts[0];if(i.c==="Dipit ja juomat"&&/^Juoma/.test(i.n)&&parts[0])x.dr=parts[0];if(i.n==="Oma valinta"){const t=parts.find(p=>p&&!/^(Perhe|Normaali|Lisätäytteet)/.test(p));x.t=t?t.split(", "):[]}
   return x}
