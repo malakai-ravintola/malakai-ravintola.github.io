@@ -542,3 +542,6 @@
 .x-price p{margin:6px 0 0;font-size:1.15rem;color:#ddd}.x-price b{font-size:1.5rem;color:#fff}
 .x-price .x-pnote{font-size:.92rem;color:#bbb}
 .x-alt{margin-top:16px}.x-addr{color:#999;font-size:.9rem;margin-top:12px}
+/* Wolt-nappi */
+.home .btn.wolt,.btn.wolt{background:#009DE0;border-color:#009DE0;color:#fff}.home .btn.wolt:hover,.btn.wolt:hover{background:#0086C0;border-color:#0086C0;color:#fff}
+.top .rt{display:flex;gap:8px;align-items:center}
