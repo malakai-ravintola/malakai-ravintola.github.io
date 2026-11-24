@@ -101,7 +101,7 @@ function when(){const sel=$("#odWhen"),k=kind(),c=CFG;if(!c||c.open==null){sel.i
   for(let m=Math.max(first,c.open+lead);m<=c.close;m+=15)h+=`<option value="${clock(m)}">Tänään klo ${clock(m).replace(":",".")}</option>`;
   sel.innerHTML=h;if([...sel.options].some(o=>o.value===cur))sel.value=cur}
 function kindUi(){const k=kind();$("#odAddr").hidden=k!=="kuljetus";$$("#odAddr input").forEach(i=>i.required=k==="kuljetus");
-  $("#odKindInfo").textContent=!CFG?"":k==="kuljetus"?`Kuljetus ${eur(CFG.fee)} · vähimmäistilaus ${eur(CFG.min)}${CFG.area?" · Toimitusalue: "+CFG.area:""} · Maksu toimitettaessa.`:"Nouto: Tampereentie 414, Lempäälä. Maksu noudettaessa.";
+  $("#odPayInfo").textContent=k==="kuljetus"?"Maksat kuljettajalle, kun ruoka tuodaan.":"Maksat kassalla, kun noudat tilauksen.";$("#odKindInfo").textContent=!CFG?"":k==="kuljetus"?`Kuljetus ${eur(CFG.fee)} · vähimmäistilaus ${eur(CFG.min)}${CFG.area?" · Toimitusalue: "+CFG.area:""} · Maksu toimitettaessa.`:"Nouto: Tampereentie 414, Lempäälä. Maksu noudettaessa.";
   when();draw()}
 $$('input[name="kind"]').forEach(i=>i.onchange=kindUi);
 let fT=null;async function checkFirst(){const f=$("#odForm"),e=f.elements.e.value.trim(),p=f.elements.p.value.trim();
@@ -129,7 +129,7 @@ $("#odForm").onsubmit=async e=>{e.preventDefault();const f=e.target,send=$("#odS
   const v=k=>f.elements[k].value.trim(),k=kind();
   ls.set("mk_me",{n:v("n"),p:v("p"),e:v("e"),a:v("a"),z:v("z"),ci:v("ci")});
   send.disabled=true;send.textContent="Lähetetään…";clearTimeout(fT);await checkFirst();send.disabled=true;send.textContent="Lähetetään…";
-  try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,total:totals().t,
+  try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,pay:($('input[name="pay"]:checked')||{}).value||"kortti",total:totals().t,
       items:cart.map(x=>({c:x.c,n:x.n,s:x.s,o:x.o,t:x.t,meal:x.meal,q:x.q,m:x.m}))});
     $("#odDoneT").innerHTML=`Tilausnumerosi on <b>#${r.no}</b>.${r.discount?" Sait uuden asiakkaan alennuksen "+eur(r.discount)+".":""} Lähetimme vahvistuksen osoitteeseen ${esc(v("e"))}.<br><br>Saat toisen viestin, kun olemme hyväksyneet tilauksen ja ${k==="kuljetus"?"arvioineet toimitusajan":"tiedämme valmistumisajan"}. Kiireellisissä asioissa soita 045 353 7000.`;
     cart=[];save();draw();$("#odCart").classList.remove("open");$("#odDone").hidden=false}

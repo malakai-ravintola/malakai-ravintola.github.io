@@ -35,3 +35,4 @@ create table if not exists customers(id uuid primary key default gen_random_uuid
   spent numeric(10,2) not null default 0, first_order timestamptz, last_order timestamptz, review_mail boolean not null default true);
 alter table customers enable row level security;
 -- Palautepyynnöt: pg_cron ajaa public.run_review_mails() 5 min välein (työn nimi: palautepyynnot).
+alter table orders add column if not exists pay text not null default 'kortti'; -- kortti | kateinen

@@ -152,7 +152,7 @@ async function placeOrder(b: any) {
   if (!C.isOpen) return j({ error: "Olemme kiinni tai sulkemassa. Tilaa aukioloaikana tai soita 045 353 7000." }, 400);
   const kind = b.kind === "kuljetus" ? "kuljetus" : "nouto";
   if (kind === "kuljetus" && !C.delivery) return j({ error: "Kotiinkuljetus ei ole juuri nyt käytössä. Valitse nouto." }, 400);
-  const o: any = { name: s(b.n, 80), phone: norm(s(b.p, 30)), email: s(b.e, 120).toLowerCase(), kind, note: s(b.m, 400),
+  const o: any = { name: s(b.n, 80), phone: norm(s(b.p, 30)), email: s(b.e, 120).toLowerCase(), kind, note: s(b.m, 400), pay: b.pay === "kateinen" ? "kateinen" : "kortti",
     address: kind === "kuljetus" ? s(b.a, 120) : null, zip: kind === "kuljetus" ? s(b.z, 10) : null, city: kind === "kuljetus" ? s(b.ci, 40) : null };
   if (!o.name || o.phone.replace(/\D/g, "").length < 7 || !/^\S+@\S+\.\S+$/.test(o.email)) return j({ error: "Täytä nimi, puhelin ja sähköposti" }, 400);
   if (kind === "kuljetus" && (!o.address || !/^\d{5}$/.test(o.zip || ""))) return j({ error: "Täytä toimitusosoite ja postinumero" }, 400);
@@ -178,7 +178,7 @@ async function placeOrder(b: any) {
   if (error) throw error;
   const when = want === "heti" ? "mahdollisimman pian" : "klo " + want.replace(":", ".");
   const kindTxt = kind === "kuljetus" ? `Kotiinkuljetus: ${o.address}, ${o.zip} ${o.city || ""}` : "Nouto ravintolasta";
-  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + (discount ? `\n${o.discount_note}: -${eur(discount)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksu: ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
+  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + (discount ? `\n${o.discount_note}: -${eur(discount)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksutapa: ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
   await saveCustomer(o).catch(() => {});
   await Promise.allSettled([
     mail(OWNER_EMAIL, `UUSI TILAUS #${row.no}: ${kind === "kuljetus" ? "kuljetus" : "nouto"} ${when}, ${eur(o.total)}`,

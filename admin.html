@@ -156,8 +156,8 @@ input.ovbad{border-color:var(--bad)!important;color:var(--bad);background:rgba(2
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1795514555"></script>
-<script src="config.js?v=1795514555"></script>
+<script src="data.js?v=1795515010"></script>
+<script src="config.js?v=1795515010"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -380,7 +380,7 @@ function ordCard(o){const del=o.kind==="kuljetus",want=o.want==="heti"?"Heti":"k
       del?mk("div",null,"Osoite: ",mk("b",{text:o.address+", "+o.zip+" "+(o.city||"")})," ",mk("a",{href:"https://maps.google.com/?q="+encodeURIComponent(o.address+", "+o.zip+" "+(o.city||"")),target:"_blank",text:"kartta"})):null),
     mk("ul",null,(o.items||[]).map(i=>mk("li",null,mk("b",{text:i.q+" × "+i.n}),i.opt?mk("small",{text:i.opt}):null,i.m?mk("i",{text:"Toive: "+i.m}):null))),
     o.note?mk("div",{class:"meta"},"Lisätiedot: ",mk("b",{text:o.note})):null,
-    mk("div",{class:"tt"},eur(o.total),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," (sis. ALV 13,5 % "+eur(Math.round(o.total*13.5/113.5*100)/100)+")"),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," · maksu "+(del?"toimitettaessa":"noudettaessa")+(o.fee>0?" · sis. kuljetus "+eur(o.fee):"")+(o.discount>0?" · "+(o.discount_note||"alennus")+" −"+eur(o.discount):""))));
+    mk("div",{class:"tt"},eur(o.total),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," (sis. ALV 13,5 % "+eur(Math.round(o.total*13.5/113.5*100)/100)+")"),mk("span",{class:"muted",style:"font-size:.8rem;font-weight:400"}," · "+(o.pay==="kateinen"?"KÄTEINEN":"KORTTI")+" "+(del?"toimitettaessa":"noudettaessa")+(o.fee>0?" · sis. kuljetus "+eur(o.fee):"")+(o.discount>0?" · "+(o.discount_note||"alennus")+" −"+eur(o.discount):""))));
   if(o.status==="uusi"){const now=new Date();
     c.append(mk("div",{class:"muted",text:"Hyväksy ja valitse "+(del?"toimitusaika":"valmistumisaika")+":"}),
       mk("div",{class:"etas"},(o.want==="heti"?[10,15,20,30,45,60]:[0]).map(mn=>{const t=o.want==="heti"?hm(new Date(now.getTime()+mn*60e3)):o.want;return act(o.want==="heti"?mn+" min":"klo "+t.replace(":","."),()=>setOrd(o,"hyvaksytty",{eta:t}))})),
@@ -454,7 +454,7 @@ function vRep(m){m.append(mk("h2",{text:"Kuukausiraportti"}));if(sbGate(m))retur
   const kv=(k,v)=>mk("div",{class:"kv"},mk("span",{text:k}),mk("b",{text:v}));
   m.append(mk("div",{class:"ovcols"},
     mk("div",{class:"card"},mk("h3",{text:"Erittely"}),kv("Tuotemyynti",eur(goods)),kv("Kuljetusmaksut",eur(fees)),kv("Alennukset (uuden asiakkaan etu)","−"+eur(disc)),kv("Myynti yhteensä (sis. ALV)",eur(gross)),kv("josta ALV 13,5 %",eur(vat)),kv("Veroton",eur(net))),
-    mk("div",{class:"card"},mk("h3",{text:"Tilaukset"}),kv("Nouto",nou.length+" kpl · "+eur(sum(nou,"total"))),kv("Kotiinkuljetus",kul.length+" kpl · "+eur(sum(kul,"total"))),kv("Uudet asiakkaat (alennus)",ok.filter(o=>o.discount>0).length+" kpl"),kv("Peruttu",canc.length+" kpl · "+eur(sum(canc,"total"))+" (ei myyntiä)"),kv("Maksutapa","Maksettu noudettaessa/toimitettaessa kassalla"))));
+    mk("div",{class:"card"},mk("h3",{text:"Tilaukset"}),kv("Nouto",nou.length+" kpl · "+eur(sum(nou,"total"))),kv("Kotiinkuljetus",kul.length+" kpl · "+eur(sum(kul,"total"))),kv("Uudet asiakkaat (alennus)",ok.filter(o=>o.discount>0).length+" kpl"),kv("Peruttu",canc.length+" kpl · "+eur(sum(canc,"total"))+" (ei myyntiä)"),kv("Kortilla",ok.filter(o=>o.pay!=="kateinen").length+" kpl · "+eur(sum(ok.filter(o=>o.pay!=="kateinen"),"total"))),kv("Käteisellä",ok.filter(o=>o.pay==="kateinen").length+" kpl · "+eur(sum(ok.filter(o=>o.pay==="kateinen"),"total"))))));
   // päivittäin
   const days={};ok.forEach(o=>{const d=hDate(o.created_at);(days[d]=days[d]||[]).push(o)});
   const dt=mk("table",{class:"dtab"},mk("tr",null,...["Päivä","Tilauksia","Myynti (sis. ALV)","ALV 13,5 %","Veroton"].map(h=>mk("th",{text:h}))));
@@ -473,7 +473,7 @@ function vRep(m){m.append(mk("h2",{text:"Kuukausiraportti"}));if(sbGate(m))retur
   const q=x=>'"'+String(x??"").replace(/"/g,'""')+'"';
   m.append(mk("div",{class:"card noprint"},mk("h3",{text:"Lataa kirjanpitoon"}),mk("p",{class:"muted",text:"CSV-tiedostot avautuvat Excelissä. Lähetä ne tilitoimistolle tai eTaskuun kuukauden raportin kanssa."}),
     mk("div",{class:"btnrow"},
-      act("Tilaukset (CSV)",()=>dl(`malakai-tilaukset-${repM}.csv`,["tilausnro;pvm;klo;asiakas;puhelin;sahkoposti;tapa;tuotteet_eur;kuljetus_eur;alennus_eur;yhteensa_eur;alv_13_5_eur;veroton_eur;tila;maksutapa"].concat(REP.map(o=>["#"+o.no,fd(hDate(o.created_at)),hTime(o.created_at),q(o.name),q(o.phone),q(o.email),o.kind,fe2(o.subtotal),fe2(o.fee),fe2(o.discount),fe2(o.total),fe2(vatOf(+o.total)),fe2(+o.total-vatOf(+o.total)),o.status==="peruttu"?"peruttu":"myyty","kassalla"].join(";"))).join("\n"))),
+      act("Tilaukset (CSV)",()=>dl(`malakai-tilaukset-${repM}.csv`,["tilausnro;pvm;klo;asiakas;puhelin;sahkoposti;tapa;tuotteet_eur;kuljetus_eur;alennus_eur;yhteensa_eur;alv_13_5_eur;veroton_eur;tila;maksutapa"].concat(REP.map(o=>["#"+o.no,fd(hDate(o.created_at)),hTime(o.created_at),q(o.name),q(o.phone),q(o.email),o.kind,fe2(o.subtotal),fe2(o.fee),fe2(o.discount),fe2(o.total),fe2(vatOf(+o.total)),fe2(+o.total-vatOf(+o.total)),o.status==="peruttu"?"peruttu":"myyty",o.pay==="kateinen"?"kateinen":"kortti"].join(";"))).join("\n"))),
       act("Päivittäin (CSV)",()=>dl(`malakai-myynti-paivittain-${repM}.csv`,["pvm;tilauksia;myynti_sis_alv_eur;alv_13_5_eur;veroton_eur"].concat(Object.keys(days).sort().map(d=>{const a=days[d],g=sum(a,"total"),v=Math.round(a.reduce((x,o)=>x+vatOf(+o.total),0)*100)/100;return[fd(d),a.length,fe2(g),fe2(v),fe2(g-v)].join(";")})).concat([["YHTEENSA",ok.length,fe2(gross),fe2(vat),fe2(net)].join(";")]).join("\n"))),
       act("Tuotteet (CSV)",()=>dl(`malakai-tuotteet-${repM}.csv`,["tuote;kpl;myynti_eur"].concat(Object.entries(pr).map(([k,v])=>[q(k),v.q,fe2(v.s)].join(";"))).join("\n")))),
     mk("p",{class:"warnt",style:"font-weight:400;font-size:.85rem",text:"Huom: nettitilaukset maksetaan kassalla, joten ne näkyvät myös kassajärjestelmän myynnissä. Tämä raportti on erittely – älä kirjaa samaa myyntiä kahteen kertaan."})));}
@@ -520,7 +520,7 @@ function vOver(m){m.append(mk("h2",{text:"Yleiskatsaus"}));
   const links=mk("div",{class:"card"},mk("h3",{text:"Pikalinkit"}),mk("div",{class:"qls"},
     L("Avaa sivusto","index.html"),L("Ruokalista","ruokalista.html"),
     L("Google-arvostelut","https://www.google.com/search?q=Malakai+Ravintola+Lemp%C3%A4%C3%A4l%C3%A4"),L("Oiva-raportti","https://www.oivahymy.fi/api/raportti/227129"),
-    L("Tilaussivu","https://order.site/malakai-ravintola"),L("Käyttöehdot","kayttoehdot.html"),L("Tietosuoja","tietosuoja.html"),
+    L("Tilaussivu","tilaa.html"),L("Käyttöehdot","kayttoehdot.html"),L("Tietosuoja","tietosuoja.html"),
     L("Supabase","https://supabase.com/dashboard/project/vyqrlzdwdwswsjyhszji"),L("Brevo (sähköpostit)","https://app.brevo.com/"),L("GitHub","https://github.com/"+REPO)));
   // --- Varaukset (vaatii kirjautumisen)
   const resWrap=mk("div");
