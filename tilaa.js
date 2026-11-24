@@ -149,7 +149,7 @@ function when(){const sel=$("#odWhen"),k=kind(),c=CFG;if(!c||!c.days){sel.innerH
     if(opts)h+=`<optgroup label="${i===0?"Tänään":(i===1?"Huomenna – ennakkotilaus":dLabel(d.date,i)+" – ennakkotilaus")}">${opts}</optgroup>`});
   sel.innerHTML=h||'<option value="">Ei vapaita aikoja</option>';if([...sel.options].some(o=>o.value===cur))sel.value=cur;
   const pre=/^\d{4}-/.test(sel.value);$("#odPre").hidden=!pre;if(pre)$("#odPre").textContent="📅 Ennakkotilaus: "+sel.options[sel.selectedIndex].text+". Saat vahvistuksen sähköpostiin.";}
-function kindUi(){const k=kind();$("#odAddr").hidden=k!=="kuljetus";$$("#odAddr input").forEach(i=>i.required=k==="kuljetus");
+function kindUi(){const k=kind();$("#odAddr").hidden=k!=="kuljetus";$$("#odAddr [data-req]").forEach(i=>i.required=k==="kuljetus");
   $("#odPayInfo").textContent=k==="kuljetus"?"Maksat kuljettajalle, kun ruoka tuodaan.":"Maksat kassalla, kun noudat tilauksen.";$("#odKindInfo").textContent=!CFG?"":k==="kuljetus"?`Kuljetus ${eur(CFG.fee)} · vähimmäistilaus ${eur(CFG.min)}${CFG.area?" · Toimitusalue: "+CFG.area:""} · Maksu toimitettaessa.`:"Nouto: Tampereentie 414, Lempäälä. Maksu noudettaessa.";
   when();draw()}
 $$('input[name="kind"]').forEach(i=>i.onchange=kindUi);
@@ -181,16 +181,17 @@ async function load(){
   else{st.textContent=CFG.delivery?"Nouto ja kotiinkuljetus":"Nouto";if(CFG.note){note.hidden=false;note.className="od-note";note.textContent=CFG.note}}
   const d=$('input[name="kind"][value="kuljetus"]');d.disabled=!CFG.delivery;$("#odDelLab").title=CFG.delivery?"":"Kotiinkuljetus ei ole juuri nyt käytössä";
   if(!CFG.delivery)$('input[name="kind"][value="nouto"]').checked=true;
-  const me=ls.get("mk_me")||{};["n","p","e","a","z","ci"].forEach(k=>{const i=$("#odForm [name="+k+"]");if(i&&me[k])i.value=me[k]});
+  const me=ls.get("mk_me")||{};["n","p","e","a","apt","door","z","ci"].forEach(k=>{const i=$("#odForm [name="+k+"]");if(i&&me[k])i.value=me[k]});
   const pr=$("#odPromo");if(pr&&CFG.firstPct>0){pr.hidden=false;pr.querySelector("b").textContent="−"+CFG.firstPct+" %"}
   const lt=$("#odLoyT");if(lt){const on=CFG.loyEvery>0&&CFG.loyPct>0;lt.textContent=on?"joka "+CFG.loyEvery+". tilaus −"+CFG.loyPct+" %":"";if(!on)lt.parentNode.innerHTML="Uusi asiakas? Ensimmäisestä nettitilauksesta alennus koko tilauksesta – lasketaan automaattisesti kassalla."}
   marks();kindUi();checkFirst()}
 $("#odForm").onsubmit=async e=>{e.preventDefault();const f=e.target,send=$("#odSend");
   if(!f.reportValidity())return;
   const v=k=>f.elements[k].value.trim(),k=kind();
-  ls.set("mk_me",{n:v("n"),p:v("p"),e:v("e"),a:v("a"),z:v("z"),ci:v("ci")});
+  if(k==="kuljetus"){if(!/\d/.test(v("a"))){alert("Lisää katuosoitteeseen talon numero.");f.elements.a.focus();return}if(!/^\d{5}$/.test(v("z"))){alert("Tarkista postinumero (5 numeroa).");f.elements.z.focus();return}}
+  ls.set("mk_me",{n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),z:v("z"),ci:v("ci")});
   send.disabled=true;send.textContent="Lähetetään…";clearTimeout(fT);await checkFirst();send.disabled=true;send.textContent="Lähetetään…";
-  try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,pay:($('input[name="pay"]:checked')||{}).value||"kortti",total:totals().t,
+  try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),dn:v("dn"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,pay:($('input[name="pay"]:checked')||{}).value||"kortti",total:totals().t,
       items:cart.map(x=>({c:x.c,n:x.n,s:x.s,o:x.o,t:x.t,x:x.x,meal:x.meal,q:x.q,m:x.m}))});
     $("#odDoneT").innerHTML=`Tilausnumerosi on <b>#${r.no}</b>.${r.discount?" Sait uuden asiakkaan alennuksen "+eur(r.discount)+".":""} Lähetimme vahvistuksen osoitteeseen ${esc(v("e"))}.<br><br>Saat toisen viestin, kun olemme hyväksyneet tilauksen ja ${k==="kuljetus"?"arvioineet toimitusajan":"tiedämme valmistumisajan"}. Kiireellisissä asioissa soita 045 353 7000.`;
     try{const im=x=>{const f=IMG[x.c==="Päivän pizza"?x.n:x.n]||(x.c==="Wings"?"wings":"");return f?T+(f.includes(".")?f:f+".webp"):""};ls.set("mk_last",{no:r.no,date:new Date().toISOString(),total:r.total,name:v("n").split(" ")[0],items:cart.filter(x=>x.c!=="Päivän pizza").map(x=>({...x,img:im(x)}))})}catch(e){}

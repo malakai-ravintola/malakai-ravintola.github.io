@@ -72,10 +72,10 @@ Deno.serve(async (req) => {
       const H = (pre: string, tag: string, title: string, body: string) => E.shell({ pre, tag, title, body, foot: E.btn(`${E.SITE}/tili.html`, "Seuraa tilausta") + E.btn("tel:+358453537000", "Soita meille", true) });
       if (st === "hyvaksytty") {
         sub = `Tilauksesi #${o.no} on vahvistettu – ${del ? "perillä noin" : "valmiina noin"} ${eta}`;
-        txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on vahvistettu ja se on työn alla.\n\n${del ? `Toimitamme sen osoitteeseen ${o.address}, ${o.zip} noin ${eta}.` : `Tilauksesi on noudettavissa noin ${eta} osoitteesta Tampereentie 414, Lempäälä.`}\n\n${items}\n\nYhteensä ${eur(o.total)} (sis. ALV 13,5 % ${eur(Math.round(o.total * 13.5 / 113.5 * 100) / 100)}), maksu ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${del ? "toimitettaessa" : "noudettaessa"}.` + foot;
+        txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on vahvistettu ja se on työn alla.\n\n${del ? `Toimitamme sen osoitteeseen ${o.address}${o.apt ? " " + o.apt : ""}, ${o.zip} noin ${eta}.` : `Tilauksesi on noudettavissa noin ${eta} osoitteesta Tampereentie 414, Lempäälä.`}\n\n${items}\n\nYhteensä ${eur(o.total)} (sis. ALV 13,5 % ${eur(Math.round(o.total * 13.5 / 113.5 * 100) / 100)}), maksu ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${del ? "toimitettaessa" : "noudettaessa"}.` + foot;
         html = H(`${del ? "Perillä" : "Valmiina"} noin ${eta}`, "Tilaus vahvistettu", `Tilauksesi #${o.no} on työn alla, ${E.esc(fn)}!`,
           E.p(del ? "Valmistamme tilaustasi, ja kuljettaja tuo sen sinulle." : "Valmistamme tilaustasi. Tervetuloa noutamaan!") + E.big(eta, del ? "Arvioitu toimitus" : "Valmiina noudettavaksi") + E.steps(1, del) +
-          E.infoBox([["Tilausnumero", "#" + o.no], [del ? "Toimitusosoite" : "Nouto", del ? `${o.address}, ${o.zip} ${o.city || ""}` : "Tampereentie 414, Lempäälä"]]) + E.orderSummary(o));
+          E.infoBox([["Tilausnumero", "#" + o.no], [del ? "Toimitusosoite" : "Nouto", del ? `${o.address}${o.apt ? " " + o.apt : ""}, ${o.zip} ${o.city || ""}` : "Tampereentie 414, Lempäälä"]]) + E.orderSummary(o));
       } else if (st === "peruttu") {
         sub = `Tilauksesi #${o.no} on valitettavasti peruttu`;
         txt = `Hei ${fn}!\n\nEmme valitettavasti pysty toimittamaan tilaustasi #${o.no}.` + (up.reason ? `\n\nSyy: ${up.reason}` : "") + `\n\nPahoittelemme. Voit soittaa meille numeroon 045 353 7000.` + foot;

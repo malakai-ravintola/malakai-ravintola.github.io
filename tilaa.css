@@ -201,3 +201,6 @@
 .od-it.od-off{grid-template-columns:clamp(150px,42vw,240px) 1fr auto!important}
 @media(max-width:560px){.od-it.od-off{grid-template-columns:1fr auto!important}.od-off .od-img{grid-column:1/-1}}
 .od-off .od-img img{aspect-ratio:2/1!important;height:auto!important}
+
+.od-addr{border:1px solid rgba(227,165,28,.5);border-radius:14px;padding:6px 14px 12px;margin:12px 0 0;background:rgba(227,165,28,.05)}
+.od-addr legend{padding:0 6px;font-weight:800;color:#E3A51C;font-size:.9rem}

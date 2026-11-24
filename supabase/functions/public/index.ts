@@ -139,7 +139,7 @@ async function saveCustomer(o: any) {
   const { data: c } = await db.from("customers").select("*").eq("email", o.email).maybeSingle();
   const now = new Date().toISOString();
   const row: any = { email: o.email, name: o.name, phone: o.phone, last_order: now, orders: (c?.orders ?? 0) + 1, spent: Math.round(((+c?.spent || 0) + o.total) * 100) / 100 };
-  if (o.address) { row.address = o.address; row.zip = o.zip; row.city = o.city; }
+  if (o.address) { row.address = o.address; row.zip = o.zip; row.city = o.city; row.apt = o.apt; row.door = o.door; }
   if (!c) row.first_order = now;
   await db.from("customers").upsert(row, { onConflict: "email" });
 }
@@ -190,9 +190,10 @@ async function placeOrder(b: any) {
   const kind = b.kind === "kuljetus" ? "kuljetus" : "nouto";
   if (kind === "kuljetus" && !C.delivery) return j({ error: "Kotiinkuljetus ei ole juuri nyt käytössä. Valitse nouto." }, 400);
   const o: any = { name: s(b.n, 80), phone: norm(s(b.p, 30)), email: s(b.e, 120).toLowerCase(), kind, note: s(b.m, 400), pay: b.pay === "kateinen" ? "kateinen" : "kortti",
-    address: kind === "kuljetus" ? s(b.a, 120) : null, zip: kind === "kuljetus" ? s(b.z, 10) : null, city: kind === "kuljetus" ? s(b.ci, 40) : null };
+    address: kind === "kuljetus" ? s(b.a, 120) : null, zip: kind === "kuljetus" ? s(b.z, 10) : null, city: kind === "kuljetus" ? s(b.ci, 40) : null,
+    apt: kind === "kuljetus" ? s(b.apt, 30) || null : null, door: kind === "kuljetus" ? s(b.door, 30) || null : null, dnote: kind === "kuljetus" ? s(b.dn, 300) || null : null };
   if (!o.name || o.phone.replace(/\D/g, "").length < 7 || !/^\S+@\S+\.\S+$/.test(o.email)) return j({ error: "Täytä nimi, puhelin ja sähköposti" }, 400);
-  if (kind === "kuljetus" && (!o.address || !/^\d{5}$/.test(o.zip || ""))) return j({ error: "Täytä toimitusosoite ja postinumero" }, 400);
+  if (kind === "kuljetus" && (!o.address || !/\d/.test(o.address) || !/^\d{5}$/.test(o.zip || "") || !o.city)) return j({ error: "Täytä toimitusosoite talon numeron kanssa, postinumero ja paikkakunta" }, 400);
   const raw = Array.isArray(b.items) ? b.items.slice(0, 40) : [];
   if (!raw.length) return j({ error: "Ostoskori on tyhjä" }, 400);
   let items;
@@ -226,7 +227,9 @@ async function placeOrder(b: any) {
   const { data: row, error } = await db.from("orders").insert(o).select("id,no").single();
   if (error) throw error;
   const when = whenTxt(want);
-  const kindTxt = kind === "kuljetus" ? `Kotiinkuljetus: ${o.address}, ${o.zip} ${o.city || ""}` : "Nouto ravintolasta";
+  const fullAddr = kind === "kuljetus" ? `${o.address}${o.apt ? " " + o.apt : ""}, ${o.zip} ${o.city || ""}` : "";
+  const kindTxt = kind === "kuljetus" ? `Kotiinkuljetus: ${fullAddr}` + (o.door ? `\nOvikoodi: ${o.door}` : "") + (o.dnote ? `\nOhjeet kuljettajalle: ${o.dnote}` : "") : "Nouto ravintolasta";
+  const addrRows: [string, string][] = kind === "kuljetus" ? ([["Osoite", fullAddr]] as [string, string][]).concat(o.door ? [["Ovikoodi", o.door]] : [], o.dnote ? [["Ohjeet kuljettajalle", o.dnote]] : []) : [];
   const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + (discount ? `\n${o.discount_note}: -${eur(discount)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksutapa: ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
   await saveCustomer(o).catch(() => {});
   await Promise.allSettled([
@@ -234,14 +237,14 @@ async function placeOrder(b: any) {
       `Uusi nettitilaus #${row.no}\n\n${kindTxt}\nAika: ${when}\nNimi: ${o.name}\nPuhelin: ${o.phone}\nSähköposti: ${o.email}` + (o.note ? `\nLisätiedot: ${o.note}` : "") +
       `\n\n${sum}\n\nHyväksy tilaus kauppiasportaalissa:\n${SITE}/kauppias.html#tilaukset`, o.email,
       E.shell({ pre: `${o.name} · ${when} · ${eur(o.total)}`, tag: "Uusi tilaus", title: `Tilaus #${row.no} odottaa hyväksyntää`,
-        body: E.btn(`${SITE}/kauppias.html#tilaukset`, "Avaa kauppiasportaali →") + E.infoBox([["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto"], ["Aika", when], ["Asiakas", o.name], ["Puhelin", o.phone], ["Sähköposti", o.email]].concat(kind === "kuljetus" ? [["Osoite", `${o.address}, ${o.zip} ${o.city || ""}`]] : []).concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
+        body: E.btn(`${SITE}/kauppias.html#tilaukset`, "Avaa kauppiasportaali →") + E.infoBox([["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto"], ["Aika", when], ["Asiakas", o.name], ["Puhelin", o.phone], ["Sähköposti", o.email]].concat(addrRows).concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
           E.orderSummary({ ...o, no: row.no }) })),
     mail(o.email, `Tilauksesi #${row.no} on vastaanotettu – Malakai Ravintola`,
       `Hei ${o.name.split(" ")[0]}!\n\nKiitos tilauksestasi. Olemme vastaanottaneet sen, ja saat pian toisen viestin, kun tilaus on hyväksytty ja tiedämme valmistumisajan.\n\nTilausnumero: #${row.no}\n${kindTxt}\nToivottu aika: ${when}\n\n${sum}` +
       (o.note ? `\n\nLisätiedot: ${o.note}` : "") + `\n\nJos haluat muuttaa tilausta, soita 045 353 7000.\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000`, undefined,
       E.shell({ pre: `Tilaus #${row.no} vastaanotettu – saat pian valmistumisajan.`, tag: "Tilaus vastaanotettu", title: `Kiitos tilauksesta, ${E.esc(o.name.split(" ")[0])}!`,
         body: E.p("Olemme vastaanottaneet tilauksesi. Saat pian toisen viestin, kun ravintola on hyväksynyt sen ja tiedämme valmistumisajan.") + E.steps(0, kind === "kuljetus") +
-          E.infoBox([["Tilausnumero", "#" + row.no], ["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto ravintolasta"], [kind === "kuljetus" ? "Osoite" : "Nouto", kind === "kuljetus" ? `${o.address}, ${o.zip} ${o.city || ""}` : "Tampereentie 414, Lempäälä"], ["Toivottu aika", when]].concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
+          E.infoBox([["Tilausnumero", "#" + row.no], ["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto ravintolasta"], ...(kind === "kuljetus" ? addrRows : [["Nouto", "Tampereentie 414, Lempäälä"]] as [string, string][]), ["Toivottu aika", when]].concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
           E.orderSummary({ ...o, no: row.no }),
         foot: E.btn(`${SITE}/tili.html`, "Seuraa tilausta") + E.btn("tel:+358453537000", "Soita 045 353 7000", true) +
           `<p style="margin:14px 0 0;font:13px/1.5 Arial,Helvetica,sans-serif;color:#6B6660">Luo <a href="${SITE}/tili.html" style="color:#B3121F">oma tili</a> samalla sähköpostilla, niin näet tilauksesi, leimakorttisi ja etusi. Joka 10. tilaus −20 %.</p>` })),

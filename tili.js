@@ -24,7 +24,7 @@ async function load(){
   const [o,c,g]=await Promise.all([SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city").order("created_at",{ascending:false}).limit(60),
     SB.from("customers").select("orders,spent,first_order").maybeSingle(),pub({action:"order_cfg"}).catch(()=>null)]);
   ORD=o.error?[]:o.data;CUS=c.data||null;CFG=g||CFG||{};
-  const me=USER.user_metadata||{};ls.set("mk_me",{...(ls.get("mk_me")||{}),n:me.name||"",p:me.phone||"",e:USER.email,a:me.address||"",z:me.zip||"",ci:me.city||"Lempäälä"});
+  const me=USER.user_metadata||{};ls.set("mk_me",{...(ls.get("mk_me")||{}),n:me.name||"",p:me.phone||"",e:USER.email,a:me.address||"",apt:me.apt||"",door:me.door||"",z:me.zip||"",ci:me.city||"Lempäälä"});
   try{const last=ORD.find(o=>o.status!=="peruttu"&&(o.items||[]).some(i=>i.c!=="Päivän pizza"));if(last)ls.set("mk_last",{no:last.no,date:last.created_at,total:last.total,name:(USER.user_metadata?.name||"").split(" ")[0],items:(last.items||[]).filter(i=>i.c!=="Päivän pizza").map(i=>({...toCart(i),img:IMGF(i.n,i.c)}))});else localStorage.removeItem("mk_last")}catch(e){}
   render();clearInterval(poll);poll=setInterval(async()=>{if(document.hidden||!USER)return;const r=await SB.from("orders").select("id,status,eta,reason").in("status",["uusi","hyvaksytty","valmis"]);
     const open=(ORD||[]).filter(x=>["uusi","hyvaksytty","valmis"].includes(x.status));if(!open.length&&!(r.data||[]).length)return;
@@ -126,12 +126,12 @@ function vHist(){const c=mk("div",{class:"ac-card"},mk("h2",{html:"Tilaus<em>his
   c.append(mk("div",{class:"ac-mut",style:"font-size:.86rem;margin:-4px 0 6px",text:sum.length+" tilausta · yhteensä "+eur(sum.reduce((a,o)=>a+ +o.total,0))}),list);M.append(c)}
 
 function vProfile(){const me=USER.user_metadata||{},I=(k,a={})=>mk("input",{value:me[k]||"",maxlength:120,...a});
-  const nm=I("name",{autocomplete:"name"}),ph=I("phone",{type:"tel",autocomplete:"tel"}),ad=I("address",{autocomplete:"street-address"}),zp=I("zip",{inputmode:"numeric",maxlength:5}),ci=I("city");if(!ci.value)ci.value="Lempäälä";
+  const nm=I("name",{autocomplete:"name"}),ph=I("phone",{type:"tel",autocomplete:"tel"}),ad=I("address",{autocomplete:"street-address"}),apt=I("apt"),door=I("door"),zp=I("zip",{inputmode:"numeric",maxlength:5}),ci=I("city");if(!ci.value)ci.value="Lempäälä";
   const f=mk("form",{class:"ac-card"},mk("h2",{html:"Omat <em>tiedot</em>"}),mk("p",{class:"ac-mut",style:"font-size:.86rem;margin:-6px 0 12px",text:"Tiedot täytetään valmiiksi tilaussivulle. Tilaa samalla sähköpostilla, niin tilaukset ja leimat tallentuvat tilillesi."}),
-    mk("div",{class:"ac-2"},mk("label",null,"Nimi",nm),mk("label",null,"Puhelin",ph)),mk("label",null,"Katuosoite (kotiinkuljetukseen)",ad),mk("div",{class:"ac-2"},mk("label",null,"Postinumero",zp),mk("label",null,"Paikkakunta",ci)),
+    mk("div",{class:"ac-2"},mk("label",null,"Nimi",nm),mk("label",null,"Puhelin",ph)),mk("label",null,"Katuosoite ja talon numero (kotiinkuljetukseen)",ad),mk("div",{class:"ac-2"},mk("label",null,"Rappu ja asunto",apt),mk("label",null,"Ovikoodi",door)),mk("div",{class:"ac-2"},mk("label",null,"Postinumero",zp),mk("label",null,"Paikkakunta",ci)),
     mk("button",{class:"ac-btn y",text:"Tallenna tiedot"}));
-  f.onsubmit=async e=>{e.preventDefault();const d={name:nm.value.trim(),phone:ph.value.trim(),address:ad.value.trim(),zip:zp.value.trim(),city:ci.value.trim()};
-    const {data,error}=await SB.auth.updateUser({data:d});if(error)return toast(fi(error),true);USER=data.user;ls.set("mk_me",{n:d.name,p:d.phone,e:USER.email,a:d.address,z:d.zip,ci:d.city});toast("Tiedot tallennettu");render()};
+  f.onsubmit=async e=>{e.preventDefault();const d={name:nm.value.trim(),phone:ph.value.trim(),address:ad.value.trim(),apt:apt.value.trim(),door:door.value.trim(),zip:zp.value.trim(),city:ci.value.trim()};
+    const {data,error}=await SB.auth.updateUser({data:d});if(error)return toast(fi(error),true);USER=data.user;ls.set("mk_me",{n:d.name,p:d.phone,e:USER.email,a:d.address,apt:d.apt,door:d.door,z:d.zip,ci:d.city});toast("Tiedot tallennettu");render()};
   const pw=mk("input",{type:"password",autocomplete:"new-password",minlength:8}),g=mk("form",{class:"ac-card"},mk("h2",{html:"Tili ja <em>tietosuoja</em>"}),
     mk("div",{class:"ac-kv"},mk("span",{text:"Sähköposti"}),mk("b",{text:USER.email})),mk("label",{style:"margin-top:12px"},"Vaihda salasana (vähintään 8 merkkiä)",pw),mk("button",{class:"ac-btn o",text:"Vaihda salasana"}),
     mk("p",{class:"ac-mut",style:"font-size:.84rem;margin:14px 0 0",html:'Haluatko poistaa tilisi ja tietosi? <a style="color:var(--ay)" href="mailto:malakairavintola@gmail.com?subject=Asiakastilin%20poisto">Lähetä poistopyyntö</a>, niin poistamme sen. Lue lisää <a style="color:var(--ay)" href="tietosuoja.html#tili">tietosuojaselosteesta</a>.'}));
