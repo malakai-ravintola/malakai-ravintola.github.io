@@ -162,3 +162,9 @@
 .od-day .od-pr{font-size:1.05rem!important;padding:6px 14px}
 @media(max-width:560px){.od-it.od-day{grid-template-columns:1fr auto!important;grid-template-areas:"img img" "tx plus"}.od-day .od-img{grid-area:img;max-width:300px;margin:0 auto 4px;width:100%}.od-day .od-tx{grid-area:tx}.od-day .od-plus{grid-area:plus}}
 .od-day .od-img img,.od-day .od-img .od-ph{width:100%!important;height:auto!important;aspect-ratio:1/1!important;object-fit:contain}
+/* Päivän pizza: kompaktimpi */
+.od-it.od-day{grid-template-columns:clamp(120px,34vw,170px) 1fr auto!important;padding:12px!important}
+@media(max-width:560px){.od-it.od-day{grid-template-columns:clamp(118px,34vw,150px) 1fr auto!important;grid-template-areas:none}.od-day .od-img,.od-day .od-tx,.od-day .od-plus{grid-area:auto}.od-day .od-img{max-width:none;margin:0}.od-day .od-tx b{font-size:1.3rem!important}}
+.od-day .od-pr{white-space:nowrap;font-size:.95rem!important}.od-day .od-tx p{font-size:.84rem}
+.od-grid section.od-sec{padding:0!important;margin:0 0 26px!important}.od-grid section.od-sec>h2{padding-top:14px!important}
+.od-day .od-tx small{color:var(--oy);font-weight:700}

@@ -41,12 +41,12 @@ const CIMG={"Pizza":"opera","Kebab":"kebab-ranskalaiset","Kana":"kana-ranskalais
 const CNAME={"Pizza":"Pizzat","Kebab":"Kebabit","Kana":"Kana-annokset","Wings":"Hot Wings","Dipit ja juomat":"Dipit ja juomat"};
 const pic=(f,alt,cls)=>{if(!f)return`<span class="od-ph ${cls||""}" aria-hidden="true"><img src="media/logo-malakai.svg" alt=""></span>`;
   if(f.includes("/"))return`<img src="${esc(f)}" alt="${esc(alt)}" loading="lazy" class="pho ${cls||""}">`;
-  const cut=!f.includes(".");return`<img src="${T}${cut?f+".webp":f}?v=6" alt="${esc(alt)}" loading="lazy" class="${cut?"cut":"pho"} ${cls||""}">`};
+  const cut=!f.includes(".");return`<img src="${T}${cut?f+".webp":f}?v=7" alt="${esc(alt)}" loading="lazy" class="${cut?"cut":"pho"} ${cls||""}">`};
 function menu(){const m=$("#odMenu"),cats=$("#odCats"),tiles=$("#odTiles");let h="",ch="",th="";
   if(dp&&dp.name&&S.dailyPrice){
     th+=`<a class="od-tile" href="#paivan-pizza">${pic(IMG[dp.name]||dp.img,dp.name)}<b>Päivän pizza</b></a>`;
     ch+=`<a href="#paivan-pizza">Päivän pizza</a>`;
-    h+=`<section class="od-sec" id="paivan-pizza"><h2>Päivän pizza</h2><div class="od-it od-day" data-c="Päivän pizza" data-n="${esc(dp.name)}"><div class="od-img">${pic(IMG[dp.name]||dp.img,dp.name)}</div><div class="od-tx"><b>${esc(dp.name)}</b><span class="od-pr">${eur(+S.dailyPrice)} <i>vain tänään</i></span><p>Päivän tarjouspizza – vaihtuu joka päivä.</p></div><button class="od-plus" data-c="Päivän pizza" data-n="${esc(dp.name)}" aria-label="Lisää ${esc(dp.name)}">+</button></div></section>`}
+    h+=`<section class="od-sec" id="paivan-pizza"><h2>Päivän pizza</h2><div class="od-it od-day" data-c="Päivän pizza" data-n="${esc(dp.name)}"><div class="od-img">${pic(IMG[dp.name]||dp.img,dp.name)}</div><div class="od-tx"><b>${esc(dp.name)}</b><span class="od-pr">${eur(+S.dailyPrice)}</span><small>Vain tänään</small><p>Päivän tarjouspizza – vaihtuu joka päivä.</p></div><button class="od-plus" data-c="Päivän pizza" data-n="${esc(dp.name)}" aria-label="Lisää ${esc(dp.name)}">+</button></div></section>`}
   if(M.Pizza)th+=`<a class="od-tile" href="#" data-open="Oma valinta">${pic("oma","Oma pizza")}<b>Luo oma pizza</b></a>`;
   Object.entries(M).forEach(([c,cat])=>{const items=cat.items.filter(it=>orderable(c,it));if(!items.length)return;const id=slug(c),nm=CNAME[c]||c;
     th+=`<a class="od-tile" href="#${id}">${pic(CIMG[c],nm)}<b>${esc(nm)}</b></a>`;ch+=`<a href="#${id}">${esc(nm)}</a>`;
