@@ -37,7 +37,7 @@ function marks(){document.querySelectorAll(".od-plus").forEach(b=>{const o=isOut
 // ---------- Ruokalista (kuvalliset kategoriat, välilehdet ja tuoterivit)
 const day=helDay(),dp=(S.daily||{})[day];
 const T="media/tilaa/";
-const IMG0={"Tropicana":"tropicana","Kebab Pizza":"kebab","Mexicana":"mexicana","Americano":"americano","Mamma Mia":"mammamia","Julia":"julia","Opera Special":"opera","Barbeque":"bbq","Margarita Mozzarella":"margarita","Oma valinta":"oma","Kebab ranskalaisilla":"kebab-ranskalaiset","Rullakebab":"kebabrulla","Kana ranskalaisilla":"kana-ranskalaiset","Kebabsalaatti":"kebabsalaatti","Iskender":"iskender","Kanasalaatti":"kanasalaatti","Kana riisillä":"kana-riisi"};
+const IMG0={"Tropicana":"tropicana","Kebab Pizza":"kebab","Mexicana":"mexicana","Americano":"americano","Mamma Mia":"mammamia","Julia":"julia","Opera Special":"opera","Barbeque":"bbq","Margarita Mozzarella":"margarita","Oma valinta":"oma","Kebab ranskalaisilla":"kebab-ranskalaiset","Rullakebab":"kebabrulla","Kana ranskalaisilla":"kana-ranskalaiset","Kebabsalaatti":"kebabsalaatti","Iskender":"iskender","Kanasalaatti":"kanasalaatti","Kana riisillä":"kana-riisi","Malakai Special":"malakai-special"};
 const IMG=new Proxy(IMG0,{get:(o,n)=>o[n]||(/rulla$/i.test(n)?"rulla":/^Sticky Fingers/.test(n)?"sticky":/^Hot ?wings/i.test(n)?"wings":/burgeri$/i.test(n)?"burgeri":undefined)});
 const CIMG={"Pizza":"opera","Kebab":"kebab-ranskalaiset","Kana":"kana-ranskalaiset","Sticky Fingers":"sticky","Wings":"wings","Burgerit":"burgeri","Lisukkeet":"kat-lisukkeet.jpg"};
 const CNAME={"Pizza":"Pizzat","Kebab":"Kebabit","Kana":"Kana-annokset","Wings":"Hot Wings","Dipit ja juomat":"Dipit ja juomat"};
