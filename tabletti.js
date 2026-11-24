@@ -57,7 +57,7 @@ function tone(dst,f,t,len,type,peak,partials){(partials||[[1,1]]).forEach(([m,a]
 function play(kind,vol){if(!AC)return 0;
   // kompressori nostaa äänen kuuluvuutta säröttä
   const cp=AC.createDynamicsCompressor();cp.threshold.value=-24;cp.knee.value=6;cp.ratio.value=8;cp.attack.value=.003;cp.release.value=.2;
-  const out=AC.createGain();out.gain.value=1.8*Math.pow((vol??VOL)/100,1.4);out.connect(cp).connect(AC.destination);const t=AC.currentTime+.05;
+  const out=AC.createGain();out.gain.value=1.8*Math.pow((vol??VOL)/100,1.4);const mg=AC.createGain();mg.gain.value=1.45;out.connect(cp).connect(mg).connect(AC.destination);const t=AC.currentTime+.05;
   if(kind==="soitto"){ // klassinen puhelinsoitto, 3 soittoa
     for(let r=0;r<3;r++)for(let i=0;i<20;i++){const s=t+r*2+i*.05;tone(out,i%2?1046:830,s,.06,"triangle",.9,[[1,1],[2,.25]])}return 5.8}
   if(kind==="melodia"){ // nouseva tilausmelodia kahdesti
