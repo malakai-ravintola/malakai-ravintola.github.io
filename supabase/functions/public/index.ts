@@ -53,7 +53,7 @@ function source(ref: string) {
 
 // ---------- Nettitilaukset
 const OMA: Record<string, number[]> = { n: [11.5, 12.5, 13.5, 13.9], p: [22, 24, 24, 24] };
-const MEAL = 4.9;
+const MEAL = 4.9, XT: Record<string, number> = { n: 1.5, p: 3 };
 const VAT = 13.5; // ruoka ja alkoholittomat juomat, ravintola- ja ateriapalvelut 1.1.2026 alkaen
 const vat = (t: number) => Math.round(t * VAT / (100 + VAT) * 100) / 100;
 const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
@@ -79,23 +79,26 @@ function needsSauce(cat: any, it: any[]) { return /Med tai Hot/i.test((cat.note 
 function priceLine(S: any, day: string, x: any, out: string[] = []) {
   const q = Math.min(Math.max(Math.round(+x.q || 1), 1), 20), n = s(x.n, 80), c = s(x.c, 40);
   if (out.includes((c === "Päivän pizza" ? "Pizza" : c) + "|" + n)) throw new Error(`${n} on valitettavasti loppu. Poista se ostoskorista.`);
+  const ALL = String(S.menu?.Pizza?.note || "").split("Täytteet:")[1]?.split(",").map((t: string) => t.trim().replace(/\.$/, "")) ?? [];
+  const pick = (v: unknown) => [...new Set((Array.isArray(v) ? v : []).map((t: unknown) => s(t, 40)))].filter((t) => ALL.includes(t as string)).slice(0, 30) as string[];
+  const ex = pick(x.x);
   if (c === "Päivän pizza") {
     if (!S.daily?.[day]?.name || S.daily[day].name !== n) throw new Error("Päivän pizza on vaihtunut. Päivitä sivu.");
-    return { c, n, q, unit: +S.dailyPrice, opt: "Päivän pizza", m: s(x.m, 120) };
+    return { c, n, q, unit: Math.round((+S.dailyPrice + ex.length * XT.n) * 100) / 100, opt: ["Päivän pizza", ex.length ? "Lisätäytteet: " + ex.join(", ") : ""].filter(Boolean).join(" · "), m: s(x.m, 120) };
   }
   const cat = S.menu?.[c], it = cat?.items?.find((i: any[]) => i[0] === n);
   if (!it) throw new Error(`Tuotetta ${n} ei löydy. Päivitä sivu.`);
   const sz = x.s === "p" ? "p" : "n", opt: string[] = [];
   let unit: number;
   if (c === "Pizza" && n === "Oma valinta") {
-    const all = String(cat.note || "").split("Täytteet:")[1]?.split(",").map((t: string) => t.trim().replace(/\.$/, "")) ?? [];
-    const t = [...new Set((Array.isArray(x.t) ? x.t : []).map((v: unknown) => s(v, 40)))].filter((v) => all.includes(v as string)) as string[];
-    if (t.length < 1 || t.length > 4) throw new Error("Valitse omaan pizzaan 1–4 täytettä");
-    unit = OMA[sz][t.length - 1]; opt.push(sz === "p" ? "Perhe" : "Normaali", t.join(", "));
+    const t = pick(x.t);
+    if (t.length < 1) throw new Error("Valitse omaan pizzaan vähintään 1 täyte");
+    unit = t.length <= 4 ? OMA[sz][t.length - 1] : OMA[sz][3] + (t.length - 4) * XT[sz]; opt.push(sz === "p" ? "Perhe" : "Normaali", t.join(", "));
   } else {
     const has2 = +it[3] > 0;
     unit = has2 && sz === "p" ? +it[3] : +it[2];
     if (has2) opt.push(sz === "p" ? "Perhe" : "Normaali");
+    if (c === "Pizza" && ex.length) { unit += ex.length * XT[has2 ? sz : "n"]; opt.push("Lisätäytteet: " + ex.join(", ")); }
   }
   if (!(unit > 0)) throw new Error(`Tuotetta ${n} ei voi tilata netissä`);
   if (n === "Dippi") { const l = String(it[1]).split(",").map((v: string) => v.trim()); if (!l.includes(s(x.o, 40))) throw new Error("Valitse dipin maku"); opt.push(s(x.o, 40)); }
@@ -184,7 +187,7 @@ async function placeOrder(b: any) {
   await Promise.allSettled([
     mail(OWNER_EMAIL, `UUSI TILAUS #${row.no}: ${kind === "kuljetus" ? "kuljetus" : "nouto"} ${when}, ${eur(o.total)}`,
       `Uusi nettitilaus #${row.no}\n\n${kindTxt}\nAika: ${when}\nNimi: ${o.name}\nPuhelin: ${o.phone}\nSähköposti: ${o.email}` + (o.note ? `\nLisätiedot: ${o.note}` : "") +
-      `\n\n${sum}\n\nHyväksy tilaus tilausnäytöllä:\n${SITE}/admin.html#tilaukset`, o.email),
+      `\n\n${sum}\n\nHyväksy tilaus kauppiasportaalissa:\n${SITE}/kauppias.html#tilaukset`, o.email),
     mail(o.email, `Tilauksesi #${row.no} on vastaanotettu – Malakai Ravintola`,
       `Hei ${o.name.split(" ")[0]}!\n\nKiitos tilauksestasi. Olemme vastaanottaneet sen, ja saat pian toisen viestin, kun tilaus on hyväksytty ja tiedämme valmistumisajan.\n\nTilausnumero: #${row.no}\n${kindTxt}\nToivottu aika: ${when}\n\n${sum}` +
       (o.note ? `\n\nLisätiedot: ${o.note}` : "") + `\n\nJos haluat muuttaa tilausta, soita 045 353 7000.\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000`),

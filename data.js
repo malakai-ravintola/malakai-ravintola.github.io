@@ -240,13 +240,13 @@ window.SITE=/*BEGIN*/{
     ],
     [
      "Oma valinta",
-     "1 täyte 11,50 / 22 € · 2 täytettä 12,50 / 24 € · 3 täytettä 13,50 / 24 € · 4 täytettä 13,90 / 24 €",
+     "1 täyte 11,50 / 22 € · 2 täytettä 12,50 / 24 € · 3 täytettä 13,50 / 24 € · 4 täytettä 13,90 / 24 € · jokainen seuraava täyte +1,50 / +3,00 €",
      0,
      0,
      "alk. 11,50 €"
     ]
    ],
-   "note": "Hinnat: pienempi / suurempi pizza. Täytteet: tonnikala, jauheliha, kinkku, salami, kebab, ananas, feta, aurajuusto, pekoni, rucola, artisokka, pepperoni, tomaatti, herkkusieni, jalapeno, simpukka, katkarapu, kana, sipuli, pesto, parmankinkku, paprika, kapris, oliivi, mozzarellajuusto, chorizomakkara, parmesan-juustolastu, vuohenjuusto, aurinkokuivattu tomaatti."
+   "note": "Hinnat: pienempi / suurempi pizza. Lisätäyte kaikkiin pizzoihin 1,50 € / perhe 3,00 €. Täytteet: tonnikala, jauheliha, kinkku, salami, kebab, ananas, feta, aurajuusto, pekoni, rucola, artisokka, pepperoni, tomaatti, herkkusieni, jalapeno, simpukka, katkarapu, kana, sipuli, pesto, parmankinkku, paprika, kapris, oliivi, mozzarellajuusto, chorizomakkara, parmesan-juustolastu, vuohenjuusto, aurinkokuivattu tomaatti."
   },
   "Kebab": {
    "items": [
