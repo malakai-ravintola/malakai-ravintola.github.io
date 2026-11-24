@@ -50,21 +50,23 @@ function boot(){$("#top").hidden=false;$("#tabs").hidden=false;$("#snd").hidden=
 async function keepAwake(){try{if("wakeLock"in navigator&&!wake){wake=await navigator.wakeLock.request("screen");wake.addEventListener("release",()=>wake=null)}}catch(e){}}
 // ---------- Äänet: 3 tilausääntä, voimakkuus, soi kunnes tilaus hyväksytään/hylätään (5 s tauko välissä)
 const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
-let VOL=+(LS.get("tab_vol")??80),SND=LS.get("tab_snd")||"kello",alarmOn=false,alarmT=null;
-const SOUNDS={kello:"Kello (ding-dong)",soitto:"Puhelinsoitto",melodia:"Melodia"};
+let VOL=+(LS.get("tab_vol")??80),SND=LS.get("tab_snd")||"tilaus",alarmOn=false,alarmT=null;
+const SOUNDS={tilaus:"Tilausääni (pirteä)",halytys:"Kiireellinen",kilina:"Kilinä"};if(!SOUNDS[SND])SND="tilaus";
 function tone(dst,f,t,len,type,peak,partials){(partials||[[1,1]]).forEach(([m,a])=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type||"sine";o.frequency.value=f*m;
   g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(peak*a,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+len);o.connect(g).connect(dst);o.start(t);o.stop(t+len+.05)})}
 function play(kind,vol){if(!AC)return 0;
   // kompressori nostaa äänen kuuluvuutta säröttä
   const cp=AC.createDynamicsCompressor();cp.threshold.value=-24;cp.knee.value=6;cp.ratio.value=8;cp.attack.value=.003;cp.release.value=.2;
   const out=AC.createGain();out.gain.value=1.8*Math.pow((vol??VOL)/100,1.4);const mg=AC.createGain();mg.gain.value=1.45;out.connect(cp).connect(mg).connect(AC.destination);const t=AC.currentTime+.05;
-  if(kind==="soitto"){ // klassinen puhelinsoitto, 3 soittoa
-    for(let r=0;r<3;r++)for(let i=0;i<20;i++){const s=t+r*2+i*.05;tone(out,i%2?1046:830,s,.06,"triangle",.9,[[1,1],[2,.25]])}return 5.8}
-  if(kind==="melodia"){ // nouseva tilausmelodia kahdesti
-    const N=[[784,0],[988,.18],[1175,.36],[1568,.54],[1175,.9],[1568,1.08],[1976,1.26]];
-    [0,1.9].forEach(o=>N.forEach(([f,d])=>tone(out,f,t+o+d,.6,"triangle",.8,[[1,1],[2,.3],[4,.1]])));return 3.9}
-  // kello: kirkas ding-dong, kolme kertaa
-  [0,1.7,3.4].forEach(o=>[[1047,0],[784,.55]].forEach(([f,d])=>tone(out,f,t+o+d,1.4,"sine",1,[[1,1],[2,.5],[3,.25],[4.2,.12]])));return 5.2}
+  // marimba-tyylinen näppäilty sävy
+  const pl=(f,s,len,pk)=>tone(out,f,s,len||.35,"sine",pk||1,[[1,1],[3.9,.18],[9.8,.05]]);
+  if(kind==="halytys"){ // kiireellinen kaksisävel, pulssi
+    for(let r=0;r<6;r++){const s=t+r*.9;[0,.12,.24].forEach((d,i)=>tone(out,i===1?1480:1175,s+d,.11,"triangle",.95,[[1,1],[2,.3]]));tone(out,1760,s+.4,.25,"triangle",.8,[[1,1],[2,.25]])}return 5.6}
+  if(kind==="kilina"){ // nopea kellotrilli
+    for(let r=0;r<4;r++){for(let i=0;i<8;i++)tone(out,i%2?2093:1568,t+r*1.3+i*.07,.4,"sine",.7,[[1,1],[2.76,.3],[5.4,.1]])}return 5.4}
+  // tilausääni: pirteä nouseva marimba-arpeggio, toistuu 4 kertaa
+  const A=[[1047,0],[1319,.11],[1568,.22],[2093,.33],[1568,.5],[2093,.62]];
+  for(let r=0;r<4;r++)A.forEach(([f,d])=>pl(f,t+r*1.35+d,.4,1));return 5.5}
 function beep(){if(soundOk)play(SND)}
 function alarm(){const want=soundOk&&NEW().length>0;if(!want){alarmOn=false;clearTimeout(alarmT);return}if(alarmOn)return;alarmOn=true;
   const loop=()=>{if(!soundOk||!NEW().length){alarmOn=false;return}const d=play(SND);alarmT=setTimeout(loop,(d+5)*1000)};loop()}
