@@ -63,6 +63,6 @@ export function orderSummary(o: any) {
   const rows: [string, string, string?][] = [["Välisumma", eur(o.subtotal)]];
   if (+o.fee) rows.push(["Kuljetus", eur(o.fee)]);
   if (+o.discount) rows.push([o.discount_note || "Alennus", "−" + eur(o.discount), "disc"]);
-  rows.push(["Yhteensä", eur(o.total), "tot"], [`josta ALV 13,5 %`, eur(vat), "small"], ["Maksutapa", `${o.pay === "kateinen" ? "Käteisellä" : "Kortilla"} ${del ? "toimitettaessa" : "noudettaessa"}`, "small"]);
+  rows.push(["Yhteensä", eur(o.total), "tot"], [`josta ALV 13,5 %`, eur(vat), "small"], ["Maksutapa", o.pay === "netti" ? "Maksettu netissä" : `${o.pay === "kateinen" ? "Käteisellä" : "Kortilla"} ${del ? "toimitettaessa" : "noudettaessa"}`, "small"]);
   return itemsHtml(o.items || []) + sumHtml(rows);
 }

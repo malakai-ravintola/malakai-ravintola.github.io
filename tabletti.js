@@ -146,7 +146,7 @@ function card(o,ro){const del=o.kind==="kuljetus",pre=preOf(o.want);
       mk("ul",{class:"its"},(o.items||[]).map(i=>mk("li",null,mk("b",{text:i.q+" × "+i.n}),i.opt?mk("small",{text:i.opt}):null,i.m?mk("em",{text:"Toive: "+i.m}):null))),
       o.note?mk("div",{class:"nt",text:"Lisätiedot: "+o.note}):null,
       o.rating?mk("div",{class:"nt",style:"background:#F4F4F4;color:#333"},"Asiakkaan arvio: ",mk("b",{class:"s"+o.rating,text:"★".repeat(o.rating)}),o.rating_note?mk("div",{text:"“"+o.rating_note+"”"}):null):null,
-      mk("div",{class:"tot"},eur(o.total),mk("span",{text:(o.pay==="kateinen"?"Käteinen":"Kortti")+(del?" · kuljettajalle":" · kassalla")}))));
+      mk("div",{class:"tot"},eur(o.total),mk("span",{text:o.pay==="netti"?(o.pay_status==="palautettu"?"Maksettu netissä · palautettu":"MAKSETTU NETISSÄ"):(o.pay==="kateinen"?"Käteinen":"Kortti")+(del?" · kuljettajalle":" · kassalla")}))));
   if(ro){}
   else if(o.status==="uusi"){
     c.append(mk("div",{class:"acts"},mk("p",{text:"Hyväksy – "+(del?"toimitus":"valmis")+" noin:"}),
@@ -183,7 +183,7 @@ function etaPick(o,del){let v=ETA[o.id]??(del?Math.min(60,+CFG.dtime||45):Math.m
   upd();return mk("div",null,mk("div",{class:"ep"},mi,mk("div",{class:"ec"},val,clk),pl),quick,ok)}
 
 function rejectSheet(o){const ta=mk("textarea",{placeholder:"Syy asiakkaalle"});
-  const s=sheetBox("Hylkää tilaus #"+o.no,mk("p",{text:"Asiakas saa sähköpostin, jossa syy kerrotaan."}),
+  const s=sheetBox("Hylkää tilaus #"+o.no,mk("p",{text:o.pay_status==="maksettu"?"Asiakas saa sähköpostin, jossa syy kerrotaan. Netissä maksettu "+eur(o.total)+" palautetaan asiakkaalle automaattisesti.":"Asiakas saa sähköpostin, jossa syy kerrotaan."}),
     mk("div",{class:"chips"},["Tuote on loppu","Liian kiireinen hetki","Osoite liian kaukana","Suljemme pian"].map(t=>mk("button",{text:t,onclick:()=>ta.value=t}))),ta,
     mk("div",{class:"row2"},btn("Peruuta",async()=>s.remove(),"o"),btn("Hylkää",async()=>{await setOrd(o,"peruttu",{reason:ta.value.trim()});s.remove()},"y")))}
 function storeSheet(){const oi=openInfo(),pa=paused();let s;

@@ -60,6 +60,15 @@ Deno.serve(async (req) => {
       const up: Record<string, unknown> = { status: st };
       if (st === "hyvaksytty") { up.eta = String(b.eta ?? "").slice(0, 5); up.handled_at = new Date().toISOString(); }
       if (st === "peruttu") { up.reason = String(b.reason ?? "").slice(0, 300); up.handled_at = new Date().toISOString(); }
+      // Netissä maksettu tilaus, joka hylätään ennen valmistumista -> rahat palautetaan automaattisesti
+      let refunded = false;
+      if (st === "peruttu" && o.pay_status === "maksettu" && o.stripe_pi && ["uusi", "hyvaksytty"].includes(o.status)) {
+        const r = await fetch("https://api.stripe.com/v1/refunds", { method: "POST",
+          headers: { Authorization: "Bearer " + (Deno.env.get("STRIPE_SECRET_KEY") ?? "").trim(), "Content-Type": "application/x-www-form-urlencoded", "Idempotency-Key": "refund-" + o.id },
+          body: new URLSearchParams({ payment_intent: o.stripe_pi, "metadata[order_id]": o.id, "metadata[syy]": String(up.reason || "Hylätty").slice(0, 200) }) });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); return j({ error: "Rahojen palautus epäonnistui: " + (d?.error?.message || r.status) + ". Tilausta ei hylätty." }, 502); }
+        up.pay_status = "palautettu"; up.refunded_at = new Date().toISOString(); refunded = true;
+      }
       if (st === "luovutettu" || st === "valmis") up.done_at = new Date().toISOString();
       const { error } = await db.from("orders").update(up).eq("id", b.id);
       if (error) throw error;
@@ -72,15 +81,15 @@ Deno.serve(async (req) => {
       const H = (pre: string, tag: string, title: string, body: string) => E.shell({ pre, tag, title, body, foot: E.btn(`${E.SITE}/tili.html`, "Seuraa tilausta") + E.btn("tel:+358453537000", "Soita meille", true) });
       if (st === "hyvaksytty") {
         sub = `Tilauksesi #${o.no} on vahvistettu – ${del ? "perillä noin" : "valmiina noin"} ${eta}`;
-        txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on vahvistettu ja se on työn alla.\n\n${del ? `Toimitamme sen osoitteeseen ${o.address}${o.apt ? " " + o.apt : ""}, ${o.zip} noin ${eta}.` : `Tilauksesi on noudettavissa noin ${eta} osoitteesta Tampereentie 414, Lempäälä.`}\n\n${items}\n\nYhteensä ${eur(o.total)} (sis. ALV 13,5 % ${eur(Math.round(o.total * 13.5 / 113.5 * 100) / 100)}), maksu ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${del ? "toimitettaessa" : "noudettaessa"}.` + foot;
+        txt = `Hei ${fn}!\n\nTilauksesi #${o.no} on vahvistettu ja se on työn alla.\n\n${del ? `Toimitamme sen osoitteeseen ${o.address}${o.apt ? " " + o.apt : ""}, ${o.zip} noin ${eta}.` : `Tilauksesi on noudettavissa noin ${eta} osoitteesta Tampereentie 414, Lempäälä.`}\n\n${items}\n\nYhteensä ${eur(o.total)} (sis. ALV 13,5 % ${eur(Math.round(o.total * 13.5 / 113.5 * 100) / 100)}), ${o.pay === "netti" ? "maksettu netissä" : `maksu ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${del ? "toimitettaessa" : "noudettaessa"}`}.` + foot;
         html = H(`${del ? "Perillä" : "Valmiina"} noin ${eta}`, "Tilaus vahvistettu", `Tilauksesi #${o.no} on työn alla, ${E.esc(fn)}!`,
           E.p(del ? "Valmistamme tilaustasi, ja kuljettaja tuo sen sinulle." : "Valmistamme tilaustasi. Tervetuloa noutamaan!") + E.big(eta, del ? "Arvioitu toimitus" : "Valmiina noudettavaksi") + E.steps(1, del) +
           E.infoBox([["Tilausnumero", "#" + o.no], [del ? "Toimitusosoite" : "Nouto", del ? `${o.address}${o.apt ? " " + o.apt : ""}, ${o.zip} ${o.city || ""}` : "Tampereentie 414, Lempäälä"]]) + E.orderSummary(o));
       } else if (st === "peruttu") {
         sub = `Tilauksesi #${o.no} on valitettavasti peruttu`;
-        txt = `Hei ${fn}!\n\nEmme valitettavasti pysty toimittamaan tilaustasi #${o.no}.` + (up.reason ? `\n\nSyy: ${up.reason}` : "") + `\n\nPahoittelemme. Voit soittaa meille numeroon 045 353 7000.` + foot;
+        txt = `Hei ${fn}!\n\nEmme valitettavasti pysty toimittamaan tilaustasi #${o.no}.` + (up.reason ? `\n\nSyy: ${up.reason}` : "") + (refunded ? `\n\nMaksamasi ${eur(o.total)} palautetaan automaattisesti samalle kortille. Palautus näkyy tililläsi yleensä 5–10 pankkipäivän kuluessa.` : "") + `\n\nPahoittelemme. Voit soittaa meille numeroon 045 353 7000.` + foot;
         html = E.shell({ pre: "Emme valitettavasti pysty toimittamaan tilaustasi.", tag: "Tilaus peruttu", title: `Pahoittelemme, ${E.esc(fn)}`,
-          body: E.p(`Emme valitettavasti pysty toimittamaan tilaustasi #${o.no}.`) + (up.reason ? E.infoBox([["Syy", String(up.reason)]]) : "") + E.p("Tilauksesta ei veloiteta mitään. Soita meille, niin etsitään korvaava vaihtoehto.") + E.itemsHtml(o.items || []),
+          body: E.p(`Emme valitettavasti pysty toimittamaan tilaustasi #${o.no}.`) + (up.reason ? E.infoBox([["Syy", String(up.reason)]]) : "") + E.p(refunded ? `Maksamasi ${eur(o.total)} palautetaan automaattisesti samalle kortille. Palautus näkyy tililläsi yleensä 5–10 pankkipäivän kuluessa.` : "Tilauksesta ei veloiteta mitään. Soita meille, niin etsitään korvaava vaihtoehto.") + E.itemsHtml(o.items || []),
           foot: E.btn("tel:+358453537000", "Soita 045 353 7000") + E.btn(`${E.SITE}/tilaa.html`, "Tilaa uudelleen", true) });
       } else if (st === "valmis" && !del && b.notify) {
         sub = `Tilauksesi #${o.no} on valmis noudettavaksi`;
@@ -93,7 +102,7 @@ Deno.serve(async (req) => {
       }
       let sent = false, err = "";
       if (sub && o.email) { try { sent = await mail(o.email, sub, txt, undefined, html || undefined); } catch (e) { err = (e as Error).message; } }
-      return j({ ok: true, mail: sent, error: err || undefined });
+      return j({ ok: true, mail: sent, refunded, error: err || undefined });
     }
     if (b.action === "sms") {
       if (!(await sms(String(b.to), String(b.text).slice(0, 600)))) return j({ error: "Tekstiviestit eivät ole käytössä (46elks-avaimet puuttuvat)" }, 400);

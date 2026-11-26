@@ -90,7 +90,7 @@ function beep(){if(!oSound)return;try{oAC=oAC||new (window.AudioContext||window.
 async function saveCfg(msg){const {error}=await SB.from("settings").upsert({key:"orders",value:OCFG,updated_at:new Date().toISOString()});if(error)throw new Error(error.message);toast(msg||"Tallennettu");render()}
 async function setOrd(o,status,extra={}){const r=await api("order",{id:o.id,status,...extra});Object.assign(o,{status},extra.eta?{eta:extra.eta}:{});
   toast({hyvaksytty:"Hyväksytty",peruttu:"Peruttu",valmis:"Merkitty valmiiksi",luovutettu:"Luovutettu"}[status]+(r.mail?" · asiakkaalle lähti sähköposti":""));await ordLoad();render()}
-const live=()=>(ORD||[]).filter(o=>o.status!=="peruttu");
+const live=()=>(ORD||[]).filter(o=>o.status!=="peruttu"&&o.status!=="maksu");
 const onDay=(arr,d)=>arr.filter(o=>hDate(o.created_at)===d);
 const sumT=a=>Math.round(a.reduce((x,o)=>x+ +o.total,0)*100)/100;
 
@@ -146,7 +146,7 @@ function ordCard(o){const del=o.kind==="kuljetus",pre=preOf(o.want),want=wantTxt
       del?mk("div",null,"Osoite: ",mk("b",{text:o.address+(o.apt?" "+o.apt:"")+", "+o.zip+" "+(o.city||"")}),o.door?mk("span",null," · Ovikoodi: ",mk("b",{text:o.door})):null,o.dnote?mk("div",null,"Kuljettajalle: ",mk("b",{text:o.dnote})):null," ",mk("a",{href:"https://maps.google.com/?q="+encodeURIComponent(o.address+", "+o.zip+" "+(o.city||"")),target:"_blank",rel:"noopener",text:"kartta"})):null),
     mk("ul",null,(o.items||[]).map(i=>mk("li",null,mk("b",{text:i.q+" × "+i.n}),i.opt?mk("small",{text:i.opt}):null,i.m?mk("em",{text:"Toive: "+i.m}):null))),
     o.note?mk("div",{class:"meta"},"Lisätiedot: ",mk("b",{text:o.note})):null,
-    mk("div",{class:"tot"},eur(o.total),mk("span",{text:"  sis. ALV "+eur(vatOf(+o.total))+" · "+(o.pay==="kateinen"?"KÄTEINEN":"KORTTI")+(o.fee>0?" · kuljetus "+eur(o.fee):"")+(o.discount>0?" · "+(o.discount_note||"alennus")+" −"+eur(o.discount):"")})));
+    mk("div",{class:"tot"},eur(o.total),mk("span",{text:"  sis. ALV "+eur(vatOf(+o.total))+" · "+(o.pay==="netti"?"MAKSETTU NETISSÄ":o.pay==="kateinen"?"KÄTEINEN":"KORTTI")+(o.fee>0?" · kuljetus "+eur(o.fee):"")+(o.discount>0?" · "+(o.discount_note||"alennus")+" −"+eur(o.discount):"")})));
   if(o.status==="uusi"){const now=new Date();
     c.append(mk("div",{class:"mut",text:"Hyväksy ja valitse "+(del?"toimitusaika":"valmistumisaika")+":"}),
       mk("div",{class:"etas"},(o.want==="heti"?[10,15,20,30,45,60]:[0]).map(mn=>{const t=o.want==="heti"?hm(new Date(now.getTime()+mn*60e3)):(pre?pre.t:o.want);return act(o.want==="heti"?mn+" min":"Vahvista "+wantTxt(o.want),()=>setOrd(o,"hyvaksytty",{eta:t}),"g")})),
@@ -171,7 +171,7 @@ function vTil(m){const c=OCFG;
 
 async function repLoad(ym){const [y,mo]=ym.split("-").map(Number),a=new Date(y,mo-1,1),b=new Date(y,mo,1);
   const {data,error}=await SB.from("orders").select("*").gte("created_at",new Date(a.getTime()-864e5).toISOString()).lt("created_at",new Date(b.getTime()+864e5).toISOString()).order("created_at");
-  if(error)throw new Error(error.message);REP=(data||[]).filter(o=>hDate(o.created_at).slice(0,7)===ym);repKey=ym}
+  if(error)throw new Error(error.message);REP=(data||[]).filter(o=>o.status!=="maksu"&&hDate(o.created_at).slice(0,7)===ym);repKey=ym}
 function vRep(m){if(!repM)repM=hToday().slice(0,7);
   const mi=mk("input",{type:"month",value:repM,max:hToday().slice(0,7)});mi.onchange=()=>{repM=mi.value;REP=null;render()};
   m.append(mk("section",{class:"card noprint g2",style:"align-items:end"},lab("Kuukausi",mi),mk("div",{class:"row",style:"margin-bottom:12px;justify-content:flex-end"},act("Tulosta / PDF",async()=>print(),"o"))));
@@ -179,23 +179,23 @@ function vRep(m){if(!repM)repM=hToday().slice(0,7);
   const ok=REP.filter(o=>o.status!=="peruttu"),canc=REP.filter(o=>o.status==="peruttu");
   const sum=(a,k)=>Math.round(a.reduce((x,o)=>x+ +(o[k]||0),0)*100)/100;
   const gross=sum(ok,"total"),vat=Math.round(ok.reduce((x,o)=>x+vatOf(+o.total),0)*100)/100,net=Math.round((gross-vat)*100)/100;
-  const nou=ok.filter(o=>o.kind!=="kuljetus"),kul=ok.filter(o=>o.kind==="kuljetus"),kat=ok.filter(o=>o.pay==="kateinen"),kor=ok.filter(o=>o.pay!=="kateinen");
+  const nou=ok.filter(o=>o.kind!=="kuljetus"),kul=ok.filter(o=>o.kind==="kuljetus"),kat=ok.filter(o=>o.pay==="kateinen"),kor=ok.filter(o=>o.pay==="kortti"),web=ok.filter(o=>o.pay==="netti");
   const [y,mo]=repM.split("-"),MN=["tammikuu","helmikuu","maaliskuu","huhtikuu","toukokuu","kesäkuu","heinäkuu","elokuu","syyskuu","lokakuu","marraskuu","joulukuu"][+mo-1];
   const kv=(k,v)=>mk("div",{class:"kv"},mk("span",{text:k}),mk("b",{text:v}));
   m.append(mk("section",{class:"card"},mk("h2",{text:"Nettitilaukset – "+MN+" "+y}),mk("p",{class:"mut",text:"Malakai Ravintola · Tampereentie 414, 33880 Lempäälä · Summat sisältävät ALV:n 13,5 %."}),
     mk("div",{class:"tiles"},mk("div",{class:"tile"},mk("small",{text:"Myynti (sis. ALV)"}),mk("b",{text:eur(gross)})),mk("div",{class:"tile"},mk("small",{text:"ALV 13,5 %"}),mk("b",{text:eur(vat)})),mk("div",{class:"tile"},mk("small",{text:"Veroton"}),mk("b",{text:eur(net)})),mk("div",{class:"tile"},mk("small",{text:"Tilauksia · keskiostos"}),mk("b",{text:ok.length+" · "+(ok.length?eur(gross/ok.length):"–")})))));
   m.append(mk("div",{class:"g2"},
     mk("section",{class:"card",style:"margin:0"},mk("h3",{text:"Erittely"}),kv("Tuotemyynti",eur(sum(ok,"subtotal"))),kv("Kuljetusmaksut",eur(sum(ok,"fee"))),kv("Alennukset (uuden asiakkaan etu)","−"+eur(sum(ok,"discount"))),kv("Myynti yhteensä",eur(gross)),kv("josta ALV 13,5 %",eur(vat)),kv("Veroton",eur(net))),
-    mk("section",{class:"card",style:"margin:0"},mk("h3",{text:"Tilaukset"}),kv("Nouto",nou.length+" kpl · "+eur(sum(nou,"total"))),kv("Kotiinkuljetus",kul.length+" kpl · "+eur(sum(kul,"total"))),kv("Kortilla",kor.length+" kpl · "+eur(sum(kor,"total"))),kv("Käteisellä",kat.length+" kpl · "+eur(sum(kat,"total"))),kv("Uudet asiakkaat (alennus)",ok.filter(o=>o.discount>0).length+" kpl"),kv("Hylätyt",canc.length+" kpl"))));
+    mk("section",{class:"card",style:"margin:0"},mk("h3",{text:"Tilaukset"}),kv("Nouto",nou.length+" kpl · "+eur(sum(nou,"total"))),kv("Kotiinkuljetus",kul.length+" kpl · "+eur(sum(kul,"total"))),kv("Kortilla",kor.length+" kpl · "+eur(sum(kor,"total"))),kv("Käteisellä",kat.length+" kpl · "+eur(sum(kat,"total"))),kv("Maksettu netissä (Stripe)",web.length+" kpl · "+eur(sum(web,"total"))),kv("Uudet asiakkaat (alennus)",ok.filter(o=>o.discount>0).length+" kpl"),kv("Hylätyt",canc.length+" kpl"))));
   const days={};ok.forEach(o=>{const d=hDate(o.created_at);(days[d]=days[d]||[]).push(o)});
   const tb=(hs,rows)=>mk("div",{class:"scroll"},mk("table",{class:"list"},mk("tr",null,hs.map(h=>mk("th",{text:h}))),rows));
   const pr={};ok.forEach(o=>(o.items||[]).forEach(i=>{const k=i.n+(i.opt&&/Perhe|Normaali/.test(i.opt)?" ("+i.opt.split(" · ")[0]+")":"");pr[k]=pr[k]||{q:0,s:0};pr[k].q+=+i.q;pr[k].s+=i.unit*i.q}));
   m.append(mk("section",{class:"card"},mk("h3",{text:"Myynti päivittäin"}),Object.keys(days).length?tb(["Päivä","Tilauksia","Myynti","ALV","Veroton"],Object.keys(days).sort().map(d=>{const g=sumT(days[d]),v=Math.round(days[d].reduce((x,o)=>x+vatOf(+o.total),0)*100)/100;return mk("tr",null,mk("td",{text:wd(d)+" "+fd(d)}),mk("td",{text:days[d].length}),mk("td",{text:eur(g)}),mk("td",{text:eur(v)}),mk("td",{text:eur(g-v)}))})):mk("p",{class:"mut",text:"Ei myyntiä."})),
     mk("section",{class:"card"},mk("h3",{text:"Myydyt tuotteet"}),Object.keys(pr).length?tb(["Tuote","Kpl","Myynti"],Object.entries(pr).sort((a,b)=>b[1].s-a[1].s).map(([k,v])=>mk("tr",null,mk("td",{text:k}),mk("td",{text:v.q}),mk("td",{text:eur(v.s)})))):mk("p",{class:"mut",text:"Ei myyntiä."})),
-    mk("section",{class:"card"},mk("h3",{text:"Kaikki tilaukset"}),REP.length?tb(["Nro","Pvm","Klo","Asiakas","Tapa","Maksu","Yhteensä","ALV","Tila"],REP.map(o=>mk("tr",{class:o.status==="peruttu"?"x":""},mk("td",{text:"#"+o.no}),mk("td",{text:fd(hDate(o.created_at))}),mk("td",{text:hm(o.created_at)}),mk("td",{text:o.name}),mk("td",{text:o.kind==="kuljetus"?"Kuljetus":"Nouto"}),mk("td",{text:o.pay==="kateinen"?"Käteinen":"Kortti"}),mk("td",{text:eur(o.total)}),mk("td",{text:eur(vatOf(+o.total))}),mk("td",{text:o.status==="peruttu"?"Hylätty":"Myyty"})))):mk("p",{class:"mut",text:"Ei tilauksia tässä kuussa."})));
+    mk("section",{class:"card"},mk("h3",{text:"Kaikki tilaukset"}),REP.length?tb(["Nro","Pvm","Klo","Asiakas","Tapa","Maksu","Yhteensä","ALV","Tila"],REP.map(o=>mk("tr",{class:o.status==="peruttu"?"x":""},mk("td",{text:"#"+o.no}),mk("td",{text:fd(hDate(o.created_at))}),mk("td",{text:hm(o.created_at)}),mk("td",{text:o.name}),mk("td",{text:o.kind==="kuljetus"?"Kuljetus":"Nouto"}),mk("td",{text:o.pay==="netti"?"Netti":o.pay==="kateinen"?"Käteinen":"Kortti"}),mk("td",{text:eur(o.total)}),mk("td",{text:eur(vatOf(+o.total))}),mk("td",{text:o.status==="peruttu"?"Hylätty":"Myyty"})))):mk("p",{class:"mut",text:"Ei tilauksia tässä kuussa."})));
   m.append(mk("section",{class:"card noprint"},mk("h3",{text:"Lataa kirjanpitoon"}),mk("p",{class:"mut",text:"CSV-tiedostot avautuvat Excelissä. Lähetä ne tilitoimistolle kuukauden raportin kanssa."}),
     mk("div",{class:"row"},
-      act("Tilaukset (CSV)",async()=>dl(`malakai-tilaukset-${repM}.csv`,["tilausnro;pvm;klo;asiakas;puhelin;sahkoposti;tapa;tuotteet_eur;kuljetus_eur;alennus_eur;yhteensa_eur;alv_13_5_eur;veroton_eur;tila;maksutapa"].concat(REP.map(o=>["#"+o.no,fd(hDate(o.created_at)),hm(o.created_at),q(o.name),q(o.phone),q(o.email),o.kind,fe2(o.subtotal),fe2(o.fee),fe2(o.discount),fe2(o.total),fe2(vatOf(+o.total)),fe2(+o.total-vatOf(+o.total)),o.status==="peruttu"?"hylatty":"myyty",o.pay==="kateinen"?"kateinen":"kortti"].join(";"))).join("\n")),"o"),
+      act("Tilaukset (CSV)",async()=>dl(`malakai-tilaukset-${repM}.csv`,["tilausnro;pvm;klo;asiakas;puhelin;sahkoposti;tapa;tuotteet_eur;kuljetus_eur;alennus_eur;yhteensa_eur;alv_13_5_eur;veroton_eur;tila;maksutapa"].concat(REP.map(o=>["#"+o.no,fd(hDate(o.created_at)),hm(o.created_at),q(o.name),q(o.phone),q(o.email),o.kind,fe2(o.subtotal),fe2(o.fee),fe2(o.discount),fe2(o.total),fe2(vatOf(+o.total)),fe2(+o.total-vatOf(+o.total)),o.status==="peruttu"?"hylatty":"myyty",o.pay==="netti"?"netti":o.pay==="kateinen"?"kateinen":"kortti"].join(";"))).join("\n")),"o"),
       act("Päivittäin (CSV)",async()=>dl(`malakai-myynti-paivittain-${repM}.csv`,["pvm;tilauksia;myynti_sis_alv_eur;alv_13_5_eur;veroton_eur"].concat(Object.keys(days).sort().map(d=>{const g=sumT(days[d]),v=Math.round(days[d].reduce((x,o)=>x+vatOf(+o.total),0)*100)/100;return[fd(d),days[d].length,fe2(g),fe2(v),fe2(g-v)].join(";")})).concat([["YHTEENSA",ok.length,fe2(gross),fe2(vat),fe2(net)].join(";")]).join("\n")),"o"),
       act("Tuotteet (CSV)",async()=>dl(`malakai-tuotteet-${repM}.csv`,["tuote;kpl;myynti_eur"].concat(Object.entries(pr).map(([k,v])=>[q(k),v.q,fe2(v.s)].join(";"))).join("\n")),"o"))))}
 

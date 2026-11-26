@@ -32,6 +32,53 @@ async function mail(to: string, subject: string, text: string, replyTo?: string,
   if (!r.ok) throw new Error("Sähköpostin lähetys epäonnistui: " + (await r.text()).slice(0, 200));
   return true;
 }
+// ---------- Stripe (avaimet Supabasen salaisuuksissa: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET)
+const SK = () => (Deno.env.get("STRIPE_SECRET_KEY") ?? "").trim();
+const payMode = () => /^(sk|rk)_live_/.test(SK()) ? "live" : /^(sk|rk)_test_/.test(SK()) ? "test" : "";
+async function stripe(path: string, params?: Record<string, string>, idem?: string) {
+  const r = await fetch("https://api.stripe.com/v1/" + path, { method: params ? "POST" : "GET",
+    headers: { Authorization: "Bearer " + SK(), ...(params ? { "Content-Type": "application/x-www-form-urlencoded" } : {}), ...(idem ? { "Idempotency-Key": idem } : {}) },
+    body: params ? new URLSearchParams(params) : undefined });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d?.error?.message || "Stripe " + r.status);
+  return d;
+}
+async function hookOk(raw: string, sig: string) {
+  const sec = (Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "").trim();
+  if (!sec || !sig) return false;
+  const parts = Object.fromEntries(sig.split(",").map((p) => p.split("=")).filter((p) => p.length === 2 && p[0] === "t")) as Record<string, string>;
+  const t = parts.t, v1 = sig.split(",").filter((p) => p.startsWith("v1=")).map((p) => p.slice(3));
+  if (!t || !v1.length || Math.abs(Date.now() / 1000 - +t) > 600) return false;
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(sec), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = Array.from(new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${t}.${raw}`))), (b) => b.toString(16).padStart(2, "0")).join("");
+  return v1.some((x) => x.length === mac.length && [...x].every((c, i) => c === mac[i]));
+}
+// Maksamaton tilaus poistetaan (kuponki palautuu peruttu-triggerin kautta)
+async function dropUnpaid(id: string) {
+  const { data } = await db.from("orders").update({ status: "peruttu", reason: "Maksu keskeytyi" }).eq("id", id).eq("status", "maksu").select("id");
+  if (data?.length) await db.from("orders").delete().eq("id", id).eq("status", "peruttu").is("paid_at", null);
+}
+async function markPaid(id: string, pi: string) {
+  const { data } = await db.from("orders").update({ status: "uusi", pay_status: "maksettu", paid_at: new Date().toISOString(), stripe_pi: pi || null }).eq("id", id).eq("status", "maksu").select("*");
+  if (data?.length) await afterPlaced(data[0]);
+  return !!data?.length;
+}
+async function stripeHook(raw: string, sig: string) {
+  if (!(await hookOk(raw, sig))) return j({ error: "bad signature" }, 400);
+  const ev = JSON.parse(raw), o = ev.data?.object ?? {};
+  if (ev.type === "checkout.session.completed" || ev.type === "checkout.session.async_payment_succeeded") {
+    const id = o.metadata?.order_id;
+    if (id && o.payment_status === "paid" && !(await markPaid(id, o.payment_intent))) {
+      const { data: ex } = await db.from("orders").select("id,paid_at").eq("id", id).maybeSingle();
+      if (!ex && o.payment_intent) await stripe("refunds", { payment_intent: o.payment_intent, "metadata[syy]": "tilaus poistettu ennen maksua" }, "orphan-" + o.payment_intent).catch(() => {});
+    }
+  } else if (ev.type === "checkout.session.expired") {
+    if (o.metadata?.order_id) await dropUnpaid(o.metadata.order_id);
+  } else if (ev.type === "charge.refunded") {
+    if (o.payment_intent) await db.from("orders").update({ pay_status: o.refunded ? "palautettu" : "osapalautus", refunded_at: new Date().toISOString() }).eq("stripe_pi", o.payment_intent);
+  }
+  return j({ received: true });
+}
 const s = (x: unknown, n = 200) => String(x ?? "").trim().slice(0, n);
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Helsinki" }).format(new Date());
 // Kävijälaskuri: ei evästeitä, IP-osoitetta ei tallenneta (vain päivittäin vaihtuva tiiviste)
@@ -172,7 +219,7 @@ const lines = (items: any[]) => items.map((i) => `${i.q} × ${i.n}${i.opt ? " ("
 async function orderCount(email: string, phone: string) {
   const e = email.toLowerCase().trim(), p = norm(phone);
   if (!e && p.length < 8) return -1;
-  const { count } = await db.from("orders").select("id", { count: "exact", head: true }).neq("status", "peruttu").or(`email.eq."${e.replace(/"/g, "")}",phone.eq."${p.replace(/"/g, "")}"`);
+  const { count } = await db.from("orders").select("id", { count: "exact", head: true }).not("status", "in", "(peruttu,maksu)").or(`email.eq."${e.replace(/"/g, "")}",phone.eq."${p.replace(/"/g, "")}"`);
   return count ?? 0;
 }
 // Leimakortti korvattu bonusjärjestelmällä (1 € = 1 piste)
@@ -233,14 +280,43 @@ async function orderCfg() {
     return { date, open: hh && hh[0] ? hm(hh[0]) : null, close: hh && hh[1] ? hm(hh[1]) : null };
   });
   return { days, preDays: pre, paused, pauseUntil: paused ? c.pauseUntil : null, delCut: DEL_CUT, delNow, on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
-    bonus: BONUS, soldout: Array.isArray(c.soldout) ? c.soldout : [], hidden: Array.isArray(c.hidden) ? c.hidden : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, loyEvery: loyOf(c).every, loyPct: loyOf(c).pct, day: now.day, now: now.min, open, close, isOpen };
+    pay: payMode(), bonus: BONUS, soldout: Array.isArray(c.soldout) ? c.soldout : [], hidden: Array.isArray(c.hidden) ? c.hidden : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, loyEvery: loyOf(c).every, loyPct: loyOf(c).pct, day: now.day, now: now.min, open, close, isOpen };
+}
+// Tilaus vastaanotettu (maksettu tai maksetaan paikan päällä): asiakastiedot + sähköpostit
+async function afterPlaced(o: any) {
+  const row = { id: o.id, no: o.no }, kind = o.kind, want = o.want, items = o.items || [], subtotal = +o.subtotal, fee = +o.fee || 0;
+  o.total = +o.total; o.discount = +o.discount || 0;
+  const when = whenTxt(want);
+  const fullAddr = kind === "kuljetus" ? `${o.address}${o.apt ? " " + o.apt : ""}, ${o.zip} ${o.city || ""}` : "";
+  const kindTxt = kind === "kuljetus" ? `Kotiinkuljetus: ${fullAddr}` + (o.door ? `\nOvikoodi: ${o.door}` : "") + (o.dnote ? `\nOhjeet kuljettajalle: ${o.dnote}` : "") : "Nouto ravintolasta";
+  const addrRows: [string, string][] = kind === "kuljetus" ? ([["Osoite", fullAddr]] as [string, string][]).concat(o.door ? [["Ovikoodi", o.door]] : [], o.dnote ? [["Ohjeet kuljettajalle", o.dnote]] : []) : [];
+  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + (o.discount ? `\n${o.discount_note}: -${eur(o.discount)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksutapa: ${o.pay === "netti" ? "maksettu netissä" : (o.pay === "kateinen" ? "käteisellä " : "kortilla ") + (kind === "kuljetus" ? "toimitettaessa" : "noudettaessa")}`;
+  await saveCustomer(o).catch(() => {});
+  await Promise.allSettled([
+    mail(OWNER_EMAIL, `UUSI TILAUS #${row.no}${o.pay === "netti" ? " (MAKSETTU)" : ""}: ${kind === "kuljetus" ? "kuljetus" : "nouto"} ${when}, ${eur(o.total)}`,
+      `Uusi nettitilaus #${row.no}\n\n${kindTxt}\nAika: ${when}\nNimi: ${o.name}\nPuhelin: ${o.phone}\nSähköposti: ${o.email}` + (o.note ? `\nLisätiedot: ${o.note}` : "") +
+      `\n\n${sum}\n\nHyväksy tilaus kauppiasportaalissa:\n${SITE}/kauppias.html#tilaukset`, o.email,
+      E.shell({ pre: `${o.name} · ${when} · ${eur(o.total)}`, tag: "Uusi tilaus", title: `Tilaus #${row.no} odottaa hyväksyntää`,
+        body: E.btn(`${SITE}/kauppias.html#tilaukset`, "Avaa kauppiasportaali →") + E.infoBox([["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto"], ["Aika", when], ["Asiakas", o.name], ["Puhelin", o.phone], ["Sähköposti", o.email]].concat(addrRows).concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
+          E.orderSummary({ ...o, no: row.no }) })),
+    mail(o.email, `Tilauksesi #${row.no} on vastaanotettu – Malakai Ravintola`,
+      `Hei ${o.name.split(" ")[0]}!\n\nKiitos tilauksestasi. Olemme vastaanottaneet sen, ja saat pian toisen viestin, kun tilaus on hyväksytty ja tiedämme valmistumisajan.\n\nTilausnumero: #${row.no}\n${kindTxt}\nToivottu aika: ${when}\n\n${sum}` +
+      (o.note ? `\n\nLisätiedot: ${o.note}` : "") + `\n\nJos haluat muuttaa tilausta, soita 045 353 7000.\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000`, undefined,
+      E.shell({ pre: `Tilaus #${row.no} vastaanotettu – saat pian valmistumisajan.`, tag: "Tilaus vastaanotettu", title: `Kiitos tilauksesta, ${E.esc(o.name.split(" ")[0])}!`,
+        body: E.p("Olemme vastaanottaneet tilauksesi. Saat pian toisen viestin, kun ravintola on hyväksynyt sen ja tiedämme valmistumisajan.") + E.steps(0, kind === "kuljetus") +
+          E.infoBox([["Tilausnumero", "#" + row.no], ["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto ravintolasta"], ...(kind === "kuljetus" ? addrRows : [["Nouto", "Tampereentie 414, Lempäälä"]] as [string, string][]), ["Toivottu aika", when]].concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
+          E.orderSummary({ ...o, no: row.no }),
+        foot: E.btn(`${SITE}/tili.html`, "Seuraa tilausta") + E.btn("tel:+358453537000", "Soita 045 353 7000", true) +
+          `<p style="margin:14px 0 0;font:13px/1.5 Arial,Helvetica,sans-serif;color:#6B6660">Luo <a href="${SITE}/tili.html" style="color:#B3121F">oma tili</a> samalla sähköpostilla, niin näet tilauksesi, bonuspisteesi ja kuponkisi. Saat ${Math.floor(o.total)} pistettä tästä tilauksesta, kun se on luovutettu – jo 50 pisteellä saat −1 € kupongin ja 300 pisteellä −25 €.</p>` })),
+  ]);
 }
 async function placeOrder(b: any) {
   const C = await orderCfg(), S = await site();
   if (!C.on) return j({ error: "Nettitilaus ei ole juuri nyt käytössä. Soita 045 353 7000." }, 400);
   const kind = b.kind === "kuljetus" ? "kuljetus" : "nouto";
   if (kind === "kuljetus" && !C.delivery) return j({ error: "Kotiinkuljetus ei ole juuri nyt käytössä. Valitse nouto." }, 400);
-  const o: any = { name: s(b.n, 80), phone: norm(s(b.p, 30)), email: s(b.e, 120).toLowerCase(), kind, note: s(b.m, 400), pay: b.pay === "kateinen" ? "kateinen" : "kortti",
+  const PM = payMode(), online = PM === "live" || (PM === "test" && b.pt === true);
+  const o: any = { name: s(b.n, 80), phone: norm(s(b.p, 30)), email: s(b.e, 120).toLowerCase(), kind, note: s(b.m, 400), pay: online ? "netti" : b.pay === "kateinen" ? "kateinen" : "kortti",
     address: kind === "kuljetus" ? s(b.a, 120) : null, zip: kind === "kuljetus" ? s(b.z, 10) : null, city: kind === "kuljetus" ? s(b.ci, 40) : null,
     apt: kind === "kuljetus" ? s(b.apt, 30) || null : null, door: kind === "kuljetus" ? s(b.door, 30) || null : null, dnote: kind === "kuljetus" ? s(b.dn, 300) || null : null };
   if (!o.name || o.phone.replace(/\D/g, "").length < 7 || !/^\S+@\S+\.\S+$/.test(o.email)) return j({ error: "Täytä nimi, puhelin ja sähköposti" }, 400);
@@ -291,41 +367,38 @@ async function placeOrder(b: any) {
     o.total = Math.round((o.total - ce) * 100) / 100; o.bonus_coupon = k.id;
   }
   if (typeof b.total === "number" && Math.abs(b.total - o.total) > 0.01) return j({ error: "Hinnat ovat muuttuneet. Tarkista ostoskori ja lähetä uudelleen.", total: o.total }, 409);
-  const { count: openN } = await db.from("orders").select("id", { count: "exact", head: true }).eq("status", "uusi").or(`email.eq."${o.email.replace(/"/g, "")}",phone.eq."${o.phone.replace(/"/g, "")}"`);
+  const { count: openN } = await db.from("orders").select("id", { count: "exact", head: true }).in("status", ["uusi", "maksu"]).or(`email.eq."${o.email.replace(/"/g, "")}",phone.eq."${o.phone.replace(/"/g, "")}"`);
   if ((openN ?? 0) >= 2) return j({ error: "Sinulla on jo tilauksia odottamassa hyväksyntää. Odota vahvistusta tai soita 045 353 7000." }, 429);
   { const bad = await emailOk(o.email); if (bad) return j({ error: bad }, 400); }
   if (CP) { const { data: lk } = await db.from("bonus_coupons").update({ used_at: new Date().toISOString() }).eq("id", CP.id).is("used_at", null).select("id"); if (!lk?.length) return j({ error: "Kuponki on jo käytetty. Päivitä sivu." }, 400); }
+  if (online) { o.status = "maksu"; o.pay_status = "odottaa"; }
   const { data: row, error } = await db.from("orders").insert(o).select("id,no").single();
   if (error) { if (CP) await db.from("bonus_coupons").update({ used_at: null }).eq("id", CP.id); throw error; }
   if (CP) { await db.from("bonus_coupons").update({ used_order: row.no }).eq("id", CP.id); await db.from("bonus_log").insert({ email: o.email, order_no: row.no, delta: 0, note: `Kuponki −${CP.eur} € käytetty, tilaus #${row.no}` }); }
-  const when = whenTxt(want);
-  const fullAddr = kind === "kuljetus" ? `${o.address}${o.apt ? " " + o.apt : ""}, ${o.zip} ${o.city || ""}` : "";
-  const kindTxt = kind === "kuljetus" ? `Kotiinkuljetus: ${fullAddr}` + (o.door ? `\nOvikoodi: ${o.door}` : "") + (o.dnote ? `\nOhjeet kuljettajalle: ${o.dnote}` : "") : "Nouto ravintolasta";
-  const addrRows: [string, string][] = kind === "kuljetus" ? ([["Osoite", fullAddr]] as [string, string][]).concat(o.door ? [["Ovikoodi", o.door]] : [], o.dnote ? [["Ohjeet kuljettajalle", o.dnote]] : []) : [];
-  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + (o.discount ? `\n${o.discount_note}: -${eur(o.discount)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksutapa: ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
-  await saveCustomer(o).catch(() => {});
-  await Promise.allSettled([
-    mail(OWNER_EMAIL, `UUSI TILAUS #${row.no}: ${kind === "kuljetus" ? "kuljetus" : "nouto"} ${when}, ${eur(o.total)}`,
-      `Uusi nettitilaus #${row.no}\n\n${kindTxt}\nAika: ${when}\nNimi: ${o.name}\nPuhelin: ${o.phone}\nSähköposti: ${o.email}` + (o.note ? `\nLisätiedot: ${o.note}` : "") +
-      `\n\n${sum}\n\nHyväksy tilaus kauppiasportaalissa:\n${SITE}/kauppias.html#tilaukset`, o.email,
-      E.shell({ pre: `${o.name} · ${when} · ${eur(o.total)}`, tag: "Uusi tilaus", title: `Tilaus #${row.no} odottaa hyväksyntää`,
-        body: E.btn(`${SITE}/kauppias.html#tilaukset`, "Avaa kauppiasportaali →") + E.infoBox([["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto"], ["Aika", when], ["Asiakas", o.name], ["Puhelin", o.phone], ["Sähköposti", o.email]].concat(addrRows).concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
-          E.orderSummary({ ...o, no: row.no }) })),
-    mail(o.email, `Tilauksesi #${row.no} on vastaanotettu – Malakai Ravintola`,
-      `Hei ${o.name.split(" ")[0]}!\n\nKiitos tilauksestasi. Olemme vastaanottaneet sen, ja saat pian toisen viestin, kun tilaus on hyväksytty ja tiedämme valmistumisajan.\n\nTilausnumero: #${row.no}\n${kindTxt}\nToivottu aika: ${when}\n\n${sum}` +
-      (o.note ? `\n\nLisätiedot: ${o.note}` : "") + `\n\nJos haluat muuttaa tilausta, soita 045 353 7000.\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000`, undefined,
-      E.shell({ pre: `Tilaus #${row.no} vastaanotettu – saat pian valmistumisajan.`, tag: "Tilaus vastaanotettu", title: `Kiitos tilauksesta, ${E.esc(o.name.split(" ")[0])}!`,
-        body: E.p("Olemme vastaanottaneet tilauksesi. Saat pian toisen viestin, kun ravintola on hyväksynyt sen ja tiedämme valmistumisajan.") + E.steps(0, kind === "kuljetus") +
-          E.infoBox([["Tilausnumero", "#" + row.no], ["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto ravintolasta"], ...(kind === "kuljetus" ? addrRows : [["Nouto", "Tampereentie 414, Lempäälä"]] as [string, string][]), ["Toivottu aika", when]].concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
-          E.orderSummary({ ...o, no: row.no }),
-        foot: E.btn(`${SITE}/tili.html`, "Seuraa tilausta") + E.btn("tel:+358453537000", "Soita 045 353 7000", true) +
-          `<p style="margin:14px 0 0;font:13px/1.5 Arial,Helvetica,sans-serif;color:#6B6660">Luo <a href="${SITE}/tili.html" style="color:#B3121F">oma tili</a> samalla sähköpostilla, niin näet tilauksesi, bonuspisteesi ja kuponkisi. Saat ${Math.floor(o.total)} pistettä tästä tilauksesta, kun se on luovutettu – jo 50 pisteellä saat −1 € kupongin ja 300 pisteellä −25 €.</p>` })),
-  ]);
+  if (online) {
+    const cents = Math.round(o.total * 100), ret = `${SITE}/tilaa.html?t=${row.id}&maksu=`;
+    try {
+      const ses = await stripe("checkout/sessions", { mode: "payment", locale: "fi", customer_email: o.email, client_reference_id: row.id,
+        "line_items[0][quantity]": "1", "line_items[0][price_data][currency]": "eur", "line_items[0][price_data][unit_amount]": String(cents),
+        "line_items[0][price_data][product_data][name]": `Malakai Ravintola – tilaus #${row.no}`,
+        "line_items[0][price_data][product_data][description]": items.map((i: any) => `${i.q} × ${i.n}`).join(", ").slice(0, 300) + (kind === "kuljetus" ? " · kotiinkuljetus" : " · nouto"),
+        "metadata[order_id]": row.id, "metadata[no]": String(row.no), "payment_intent_data[metadata][order_id]": row.id, "payment_intent_data[description]": `Malakai tilaus #${row.no}`,
+        expires_at: String(Math.floor(Date.now() / 1000) + 31 * 60), success_url: ret + "ok", cancel_url: ret + "peruttu" }, "ord-" + row.id);
+      await db.from("orders").update({ stripe_session: ses.id }).eq("id", row.id);
+      return j({ ok: true, pay_url: ses.url, t: row.id, no: row.no, total: o.total, discount: o.discount, earn: Math.floor(o.total) });
+    } catch (e) {
+      await dropUnpaid(row.id);
+      return j({ error: "Maksun avaaminen epäonnistui. Yritä hetken päästä uudelleen tai soita 045 353 7000." }, 502);
+    }
+  }
+  await afterPlaced({ ...o, id: row.id, no: row.no });
   return j({ ok: true, no: row.no, total: o.total, discount: o.discount, earn: Math.floor(o.total) });
 }
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
+    const sig = req.headers.get("stripe-signature");
+    if (sig) return await stripeHook(await req.text(), sig);
     const b = await req.json();
     if (b.website) return j({ ok: true }); // roskapostiansa
     if (b.action === "hit") {
@@ -342,6 +415,21 @@ Deno.serve(async (req) => {
     }
     if (b.action === "order_cfg") return j(await orderCfg());
     if (b.action === "order") return await placeOrder(b);
+    if (b.action === "pay_status" || b.action === "pay_cancel") {
+      const id = s(b.t, 40);
+      if (!/^[0-9a-f-]{36}$/.test(id)) return j({ error: "Virheellinen tilaus" }, 400);
+      let { data: o } = await db.from("orders").select("id,no,status,pay_status,stripe_session,total,discount,kind,email").eq("id", id).maybeSingle();
+      if (o && o.status === "maksu" && o.stripe_session && SK()) {
+        const ses = await stripe("checkout/sessions/" + o.stripe_session).catch(() => null);
+        if (ses?.payment_status === "paid") { await markPaid(id, ses.payment_intent); o.status = "uusi"; o.pay_status = "maksettu"; }
+        else if (b.action === "pay_cancel") {
+          if (ses?.status === "open") await stripe(`checkout/sessions/${o.stripe_session}/expire`, {}).catch(() => {});
+          await dropUnpaid(id); o = null;
+        }
+      }
+      if (!o) return j({ status: "poistettu" });
+      return j({ status: o.status, paid: o.pay_status === "maksettu" || o.pay_status === "palautettu", no: o.no, total: +o.total, discount: +o.discount || 0, earn: Math.floor(+o.total), kind: o.kind });
+    }
     if (b.action === "rate") {
       const id = s(b.id, 40), e = s(b.e, 120).toLowerCase(), r = Math.round(+b.r);
       if (!/^[0-9a-f-]{36}$/.test(id) || !(r >= 1 && r <= 5)) return j({ error: "Virheellinen arvio" }, 400);

@@ -26,6 +26,8 @@ const drinks=(c,it)=>c==="Dipit ja juomat"&&/^Juoma/i.test((it||[])[0]||"")?Stri
 const dImg=(b,n)=>{const l=litres(n);return "juoma-"+slug(b)+"-"+(l===0.33?"033":l===0.5?"05":"15")};
 const litres=n=>{const m=String(n).match(/(\d+(?:[,.]\d+)?)\s*l\b/i);return m?+m[1].replace(",","."):0};
 
+const PT=(()=>{const q=new URLSearchParams(location.search).get("paytest");if(q==="1")ls.set("mk_pt",1);if(q==="0")try{localStorage.removeItem("mk_pt")}catch(e){}return !!ls.get("mk_pt")})();
+const ONLINE=()=>!!CFG&&(CFG.pay==="live"||(CFG.pay==="test"&&PT));
 let CFG=null,FIRST=false,LOY=null,cart=ls.get("mk_cart")||[],cur=null;
 const save=()=>ls.set("mk_cart",cart);
 
@@ -196,7 +198,7 @@ function draw(){
   $("#odSum").innerHTML=`<div><span>Tuotteet</span><span>${eur(T.s)}</span></div>`+(kind()==="kuljetus"?`<div><span>Kuljetus</span><span>${eur(T.fee)}</span></div>`:"")+(T.d?`<div class="disc"><span>${FIRST?"Uuden asiakkaan etu":"Kanta-asiakasetu"} −${T.pct} %</span><span>−${eur(T.d)}</span></div>`:"")+(T.rw?`<div class="disc"><span>Bonuskuponki</span><span>−${eur(T.rw.eur)}</span></div>`:"")+`<div class="tot"><span>Yhteensä</span><span>${eur(T.t)}</span></div>`+`<div class="vat"><span>Veroton hinta</span><span>${eur(T.t-vat(T.t))}</span></div><div class="vat"><span>ALV 13,5 % (sisältyy hintaan)</span><span>${eur(vat(T.t))}</span></div>`;
   upsell();bonus();$("#odBarN").textContent=n;$("#odBarT").textContent=eur(T.t);$("#odBar").hidden=!n;
   const send=$("#odSend"),why=!CFG?"Ladataan…":!CFG.on?"Nettitilaus ei ole käytössä":!$("#odWhen").value?"Ei vapaita aikoja":(kind()==="kuljetus"&&cart.some(x=>x.c==="Tarjous"))?"Tarjous on vain noutona – valitse Nouto":!n?"Ostoskori on tyhjä":(kind()==="kuljetus"&&T.s<CFG.min?"Vähimmäistilaus kuljetukseen "+eur(CFG.min):"");
-  send.disabled=!!why;send.textContent=why||"Lähetä tilaus · "+eur(T.t)}
+  send.disabled=!!why;send.textContent=why||(ONLINE()?"Siirry maksamaan · ":"Lähetä tilaus · ")+eur(T.t)}
 $("#odLines").addEventListener("click",e=>{const b=e.target.closest("button[data-i]");if(!b)return;const x=cart[+b.dataset.i];x.q+=+b.dataset.d;if(x.q<1)cart.splice(+b.dataset.i,1);save();draw()});
 $("#odBar").onclick=()=>{$("#odCart").classList.add("open");setTimeout(()=>$("#odClose").focus(),30)};
 $("#odClose").onclick=()=>$("#odCart").classList.remove("open");
@@ -214,7 +216,9 @@ function when(){const sel=$("#odWhen"),k=kind(),c=CFG;if(!c||!c.days){sel.innerH
   sel.innerHTML=h||'<option value="">Ei vapaita aikoja</option>';if([...sel.options].some(o=>o.value===cur))sel.value=cur;
   const pre=/^\d{4}-/.test(sel.value);$("#odPre").hidden=!pre;if(pre)$("#odPre").textContent="📅 Ennakkotilaus: "+sel.options[sel.selectedIndex].text+". Saat vahvistuksen sähköpostiin.";}
 function kindUi(){const k=kind();$("#odAddr").hidden=k!=="kuljetus";$$("#odAddr [data-req]").forEach(i=>i.required=k==="kuljetus");
-  $("#odPayInfo").textContent=k==="kuljetus"?"Maksat kuljettajalle, kun ruoka tuodaan.":"Maksat kassalla, kun noudat tilauksen.";$("#odKindInfo").textContent=!CFG?"":k==="kuljetus"?`Kuljetus ${eur(CFG.fee)} · vähimmäistilaus ${eur(CFG.min)}${CFG.area?" · Toimitusalue: "+CFG.area:""} · Maksu toimitettaessa.`:"Nouto: Tampereentie 414, Lempäälä. Maksu noudettaessa.";
+  const on=ONLINE();document.querySelectorAll(".od-pay,.od-pay-l").forEach(x=>x.hidden=on);const pn=$("#odPayNote");if(pn)pn.textContent=on?"Maksat turvallisesti netissä (kortti, Apple Pay tai Google Pay). Jos emme voi ottaa tilausta vastaan, rahat palautetaan automaattisesti.":"Maksat vasta, kun saat ruoan. Saat sähköpostiin vahvistuksen ja valmistumisajan.";
+  const tb=$("#odTestPay");if(tb)tb.hidden=!(on&&CFG.pay==="test");
+  $("#odPayInfo").textContent=on?"Maksu netissä tilauksen yhteydessä: kortti, Apple Pay tai Google Pay.":k==="kuljetus"?"Maksat kuljettajalle, kun ruoka tuodaan.":"Maksat kassalla, kun noudat tilauksen.";$("#odKindInfo").textContent=!CFG?"":k==="kuljetus"?`Kuljetus ${eur(CFG.fee)} · vähimmäistilaus ${eur(CFG.min)}${CFG.area?" · Toimitusalue: "+CFG.area:""} · ${on?"Maksu netissä.":"Maksu toimitettaessa."}`:`Nouto: Tampereentie 414, Lempäälä. ${on?"Maksu netissä.":"Maksu noudettaessa."}`;
   if(CFG&&k==="kuljetus"&&CFG.isOpen&&CFG.delNow===false&&CFG.close!=null)$("#odKindInfo").textContent=`Kotiinkuljetus päättyi tänään klo ${clock(CFG.close-(CFG.delCut||30)).replace(":",".")}. Nouto onnistuu vielä klo ${clock(CFG.close-15).replace(":",".")} asti – tai valitse kuljetukselle ennakkoaika.`;
   when();draw()}
 $$('input[name="kind"]').forEach(i=>i.onchange=kindUi);
@@ -275,9 +279,11 @@ $("#odForm").onsubmit=async e=>{e.preventDefault();const f=e.target,send=$("#odS
   if(k==="kuljetus"){if(!/\d/.test(v("a"))){alert("Lisää katuosoitteeseen talon numero.");f.elements.a.focus();return}if(!/^\d{5}$/.test(v("z"))){alert("Tarkista postinumero (5 numeroa).");f.elements.z.focus();return}}
   ls.set("mk_me",{n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),z:v("z"),ci:v("ci")});
   send.disabled=true;send.textContent="Lähetetään…";clearTimeout(fT);await checkFirst();if(RWSEL&&SBC){try{const{data:{session}}=await SBC.auth.getSession();if(session)BON.at=session.access_token}catch(e){}}const T0=totals();send.disabled=true;send.textContent="Lähetetään…";
-  try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),dn:v("dn"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,vt:(ls.get("mk_vt")||{})[v("e").toLowerCase()]||"",vc:VC,cp:T0.rw?T0.rw.id:"",at:T0.rw?BON.at:"",pay:($('input[name="pay"]:checked')||{}).value||"kortti",total:T0.t,
+  try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),dn:v("dn"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,vt:(ls.get("mk_vt")||{})[v("e").toLowerCase()]||"",vc:VC,cp:T0.rw?T0.rw.id:"",at:T0.rw?BON.at:"",pay:($('input[name="pay"]:checked')||{}).value||"kortti",pt:PT,total:T0.t,
       items:cart.map(x=>({c:x.c,n:x.n,s:x.s,o:x.o,t:x.t,tx:x.tx,x:x.x,meal:x.meal,l:x.l,pt:x.pt,d:x.d,dr:x.dr,hot:x.hot,sp:x.sp,q:x.q,m:x.m}))});
     VC="";if(r.vt){const t=ls.get("mk_vt")||{};t[v("e").toLowerCase()]=r.vt;ls.set("mk_vt",t)}
+    if(r.pay_url){try{const im=x=>{const f=IMG[x.n]||(x.c==="Wings"?"wings":"");return f?T+(f.includes(".")?f:f+".webp"):""};ls.set("mk_paying",{t:r.t,e:v("e"),name:v("n").split(" ")[0],kind:k,cp:T0.rw?T0.rw.id:"",items:cart.filter(x=>x.c!=="Päivän pizza").map(x=>({...x,img:im(x)}))})}catch(e){}
+      send.textContent="Siirrytään maksamaan…";location.href=r.pay_url;return}
     $("#odDoneT").innerHTML=`Tilausnumerosi on <b>#${r.no}</b>.${r.discount?" Sait alennusta "+eur(r.discount)+".":""} Lähetimme vahvistuksen osoitteeseen ${esc(v("e"))}.${r.earn?(BON.pts==null?" Tästä tilauksesta kertyy <b>+"+r.earn+" bonuspistettä</b> – <a href=\"tili.html\" style=\"color:#E3A51C;font-weight:700\">luo tili samalla sähköpostilla</a>, niin näet ja voit käyttää ne.":" Saat tilauksesta <b>+"+r.earn+" bonuspistettä</b>, kun se on luovutettu."):""}<br><br>Saat toisen viestin, kun olemme hyväksyneet tilauksen ja ${k==="kuljetus"?"arvioineet toimitusajan":"tiedämme valmistumisajan"}. Kiireellisissä asioissa soita 045 353 7000.`;
     try{const im=x=>{const f=IMG[x.c==="Päivän pizza"?x.n:x.n]||(x.c==="Wings"?"wings":"");return f?T+(f.includes(".")?f:f+".webp"):""};ls.set("mk_last",{no:r.no,date:new Date().toISOString(),total:r.total,name:v("n").split(" ")[0],items:cart.filter(x=>x.c!=="Päivän pizza").map(x=>({...x,img:im(x)}))})}catch(e){}
     if(T0.rw)BON.cps=BON.cps.filter(c=>c.id!==T0.rw.id);RWSEL=null;cart=[];save();draw();$("#odCart").classList.remove("open");$("#odDone").hidden=false}
@@ -288,7 +294,20 @@ $("#odForm").onsubmit=async e=>{e.preventDefault();const f=e.target,send=$("#odS
       return f.requestSubmit?f.requestSubmit():f.dispatchEvent(new Event("submit",{cancelable:true}))}
     if(x.j&&x.j.total){await checkFirst();alert("Hinta päivittyi: "+eur(x.j.total)+". Tarkista summa ja lähetä uudelleen.")}else alert(x.message);draw()}};
 
-menu();draw();load();bonusLoad();
+async function payReturn(){const q=new URLSearchParams(location.search),t=q.get("t"),m=q.get("maksu");if(!t||!m)return;
+  history.replaceState(null,"",location.pathname);const P=ls.get("mk_paying")||{};
+  if(m==="peruttu"){try{await call({action:"pay_cancel",t})}catch(e){}try{localStorage.removeItem("mk_paying")}catch(e){}
+    const note=$("#odNote");note.hidden=false;note.className="od-note bad";note.textContent="Maksu keskeytyi, joten tilausta ei lähetetty. Ostoskorisi on tallessa – voit yrittää uudelleen.";note.scrollIntoView({block:"center"});return}
+  const D=$("#odDone"),DT=$("#odDoneT");D.querySelector("h3").textContent="Tarkistetaan maksua…";DT.textContent="Hetki vain.";D.hidden=false;
+  let r=null;for(let i=0;i<12;i++){try{r=await call({action:"pay_status",t})}catch(e){}if(r&&r.status!=="maksu")break;await new Promise(z=>setTimeout(z,1500))}
+  if(r&&r.paid){D.querySelector("h3").textContent="Kiitos tilauksesta!";
+    DT.innerHTML=`Maksu onnistui ja tilausnumerosi on <b>#${r.no}</b>.${r.discount?" Sait alennusta "+eur(r.discount)+".":""}${P.e?" Lähetimme kuitin ja vahvistuksen osoitteeseen "+esc(P.e)+".":""}${r.earn?" Saat tilauksesta <b>+"+r.earn+" bonuspistettä</b>, kun se on luovutettu.":""}<br><br>Saat toisen viestin, kun olemme hyväksyneet tilauksen ja ${r.kind==="kuljetus"?"arvioineet toimitusajan":"tiedämme valmistumisajan"}. Jos emme voi ottaa tilausta vastaan, rahat palautetaan automaattisesti.`;
+    try{ls.set("mk_last",{no:r.no,date:new Date().toISOString(),total:r.total,name:P.name||"",items:P.items||[]})}catch(e){}
+    if(P.cp)BON.cps=(BON.cps||[]).filter(c=>c.id!==P.cp);RWSEL=null;cart=[];save();draw()}
+  else{D.querySelector("h3").textContent=r&&r.status==="maksu"?"Maksu käsittelyssä":"Maksua ei löytynyt";
+    DT.innerHTML=r&&r.status==="maksu"?"Maksusi on vielä käsittelyssä. Saat vahvistuksen sähköpostiin heti, kun se on valmis. Älä tee tilausta uudelleen – soita tarvittaessa 045 353 7000.":"Tilausta ei veloitettu. Ostoskorisi on tallessa – voit yrittää uudelleen tai soittaa 045 353 7000."}
+  try{localStorage.removeItem("mk_paying")}catch(e){}}
+menu();draw();load().then(()=>{kindUi();draw()});bonusLoad();payReturn();
 {const q=new URLSearchParams(location.search).get("tarjous");if(q&&offOf(q))setTimeout(()=>open("Tarjous",q),300)}
 setInterval(()=>{if(document.visibilityState==="visible")load()},120000);
 })();
