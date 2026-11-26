@@ -115,3 +115,29 @@
 .bd-ov section.bd-sec{padding:20px 18px!important;margin:14px 0 0!important;min-height:0!important;border-top:8px solid #141414!important;background:none!important}
 .bd-ov h3{font:800 1.2rem/1.3 Inter,system-ui,sans-serif!important;letter-spacing:0!important;margin:0 0 12px!important;color:#fff!important}
 .bb{margin-left:16px!important;margin-right:22px!important}
+
+/* Tili-keskus */
+.hb-hero{background:linear-gradient(160deg,#B3121F,#5c0a10 70%);border-radius:24px;padding:26px 18px 22px;margin-bottom:16px}
+.hb-hero h2{margin:0 0 20px;font:800 2.1rem/1.1 Inter,sans-serif;color:#fff}.hb-hero h2 em{font-style:normal;color:var(--ay)}
+.hb-q{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.hb-qb{background:none;border:0;color:#fff;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:0}
+.hb-qb span{width:64px;height:64px;border-radius:50%;background:#fff;color:var(--ar);display:grid;place-items:center;box-shadow:0 6px 16px rgba(0,0,0,.3)}.hb-qb svg{width:30px;height:30px}
+.hb-qb b{font:700 .78rem/1.2 Inter,sans-serif;text-align:center;hyphens:manual}
+.hb-list h3{margin:18px 0 4px;font:800 1.25rem Inter,sans-serif}.hb-list h3:first-child{margin-top:0}
+.hb-row{display:flex;align-items:center;gap:14px;width:100%;padding:15px 2px;border:0;border-bottom:1px solid var(--al);background:none;color:#fff;text-align:left;text-decoration:none;cursor:pointer;font:inherit}
+.hb-i{flex:none;color:var(--ay)}.hb-i svg{width:28px;height:28px}
+.hb-t{flex:1;min-width:0}.hb-t b{display:block;font-size:1.05rem}.hb-t small{display:block;color:var(--am);font-size:.82rem;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb-c{color:#777}.hb-c svg{width:20px;height:20px}.hb-p{white-space:nowrap}
+.sb-top{display:flex;align-items:center;gap:14px;padding:calc(14px + env(safe-area-inset-top)) 18px 14px;position:sticky;top:0;background:#0b0b0b;z-index:2;border-bottom:1px solid var(--al)}
+.sb-top h2{margin:0;font:800 1.3rem Inter,sans-serif}
+.sb-body{padding:16px 18px 30px}.sb-body .ac-card{margin:0;background:none;border:0;padding:0}
+.rc{background:#fbfaf7;color:#111;border-radius:6px;padding:22px 20px;font:14px/1.45 "Courier New",ui-monospace,monospace;box-shadow:0 10px 30px rgba(0,0,0,.4);
+  -webkit-mask:radial-gradient(circle 6px at 50% 0,#0000 98%,#000) 0 0/14px 100% repeat-x;}
+.rc-h{text-align:center;border-bottom:1px dashed #999;padding-bottom:12px;margin-bottom:10px}.rc-h b{display:block;font-size:1.05rem;letter-spacing:.08em}.rc-h span{display:block;font-size:.8rem}
+.rc-m{display:flex;justify-content:space-between;font-size:.82rem}
+.rc-l{border-top:1px dashed #999;border-bottom:1px dashed #999;margin:10px 0;padding:8px 0}.rc-i{padding:4px 0}.rc-i small{display:block;color:#555;font-size:.75rem}
+.rc-r{display:flex;justify-content:space-between;gap:10px}.rc-d{color:#1F7A44}.rc-t{font-size:1.15rem;font-weight:700;border-top:1px solid #111;margin-top:6px;padding-top:6px}.rc-s{font-size:.8rem;color:#444}
+.rc-f{text-align:center;margin:14px 0 0;font-size:.82rem}
+.ac-pill.g{background:#1d3b28;color:#7BE0A6}.ac-pill.r{background:#3b1d1d;color:#FF9A8C}
+@media print{body.rc-print>*:not(.rc-ov){display:none!important}body.rc-print .rc-ov{position:static;background:#fff}body.rc-print .sb-top,body.rc-print .rc-ov .ac-btn{display:none!important}body.rc-print .rc{box-shadow:none;-webkit-mask:none}}
+.hb-list h3{font-family:Inter,system-ui,sans-serif!important;font-weight:800!important;font-size:1.25rem!important;letter-spacing:0!important}

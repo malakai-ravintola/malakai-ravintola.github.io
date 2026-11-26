@@ -174,7 +174,7 @@ function rwOk(r,t0){return !!r&&BON.cps.some(c=>c.id===r.id)&&formEmail()===BON.
 async function bonusLoad(){if(!SBC)return;try{const{data:{session}}=await SBC.auth.getSession();if(!session){BON={pts:null,email:"",at:"",cps:[]};return bonus()}
   BON.email=String(session.user.email||"").toLowerCase();BON.at=session.access_token;
   const[c,k]=await Promise.all([SBC.from("customers").select("points").eq("email",BON.email).maybeSingle(),SBC.from("bonus_coupons").select("id,eur,tier,round").eq("email",BON.email).is("used_at",null).order("eur",{ascending:false})]);
-  BON.pts=+(c.data&&c.data.points)||0;BON.cps=(k.data||[]).map(x=>({id:x.id,eur:+x.eur,tier:x.tier}));
+  BON.pts=+(c.data&&c.data.points)||0;BON.cps=(k.data||[]).map(x=>({id:x.id,eur:+x.eur,tier:x.tier}));try{const w=localStorage.getItem("mk_cp");if(w){localStorage.removeItem("mk_cp");const c0=BON.cps.find(x=>x.id===w);if(c0)RWSEL=c0}}catch(_){}
   const f=$("#odForm");if(f&&!f.elements.e.value)f.elements.e.value=BON.email}catch(e){}bonus();draw()}
 function nextTier(p){const B=bRules(),r=B.round||300,q=p%r,n=B.tiers.find(x=>x.p>q);return n?{e:n.e,left:n.p-q}:{e:B.tiers[0].e,left:r-q+B.tiers[0].p}}
 function bonus(){const el=$("#odStamps");if(!el)return;if(!cart.length){el.hidden=true;return}el.hidden=false;
