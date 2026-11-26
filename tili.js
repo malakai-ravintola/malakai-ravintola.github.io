@@ -22,8 +22,9 @@ SB.auth.getSession().then(({data})=>{USER=data.session?.user||null;if(USER&&!rec
 
 async function load(){
   const [o,c,g]=await Promise.all([SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city,rating").order("created_at",{ascending:false}).limit(60),
-    SB.from("customers").select("orders,spent,first_order").maybeSingle(),pub({action:"order_cfg"}).catch(()=>null)]);
+    SB.from("customers").select("orders,spent,first_order,points").maybeSingle(),pub({action:"order_cfg"}).catch(()=>null)]);
   ORD=o.error?[]:o.data;CUS=c.data||null;CFG=g||CFG||{};
+  try{const bl=await SB.from("bonus_log").select("delta,note,created_at").order("created_at",{ascending:false}).limit(30);BLOG=bl.error?[]:bl.data}catch(e){BLOG=[]}
   const me=USER.user_metadata||{};ls.set("mk_me",{...(ls.get("mk_me")||{}),n:me.name||"",p:me.phone||"",e:USER.email,a:me.address||"",apt:me.apt||"",door:me.door||"",z:me.zip||"",ci:me.city||"Lempäälä"});
   try{const last=ORD.find(o=>o.status!=="peruttu"&&(o.items||[]).some(i=>i.c!=="Päivän pizza"));if(last)ls.set("mk_last",{no:last.no,date:last.created_at,total:last.total,name:(USER.user_metadata?.name||"").split(" ")[0],items:(last.items||[]).filter(i=>i.c!=="Päivän pizza").map(i=>({...toCart(i),img:IMGF(i.n,i.c)}))});else localStorage.removeItem("mk_last")}catch(e){}
   render();clearInterval(poll);poll=setInterval(async()=>{if(document.hidden||!USER)return;const r=await SB.from("orders").select("id,status,eta,reason").in("status",["uusi","hyvaksytty","valmis"]);
@@ -81,21 +82,25 @@ function vLive(){const act=ORD.filter(o=>["uusi","hyvaksytty","valmis"].includes
       mk("div",{class:"ac-mut",style:"font-size:.86rem",text:(o.items||[]).map(i=>i.q+" × "+i.n).join(", ")+" · "+eur(o.total)}),
       mk("div",{class:"ac-mut",style:"font-size:.84rem;margin-top:6px",html:'Kysyttävää? Soita <a href="tel:+358453537000" style="color:var(--ay)">045 353 7000</a>'})))})}
 
-function vStamps(){const ev=+(CFG?.loyEvery??10),pc=+(CFG?.loyPct??20),n=ORD.filter(o=>o.status!=="peruttu").length;
-  const c=mk("div",{class:"ac-card"},mk("h2",{html:"Leima<em>kortti</em>"}));
-  if(!(ev>0&&pc>0)){c.append(mk("p",{class:"ac-mut",text:"Leimakortti ei ole juuri nyt käytössä."}));return c}
-  const next=(n+1)%ev===0,k=next?ev-1:n%ev,left=next?0:ev-1-k;
-  c.append(mk("div",{class:"ac-big",html:`${k}<span> / ${ev} leimaa</span>`}),
-    mk("div",{class:"ac-stamps"},Array.from({length:ev},(_,i)=>mk("i",{class:(i<k?"on":"")+(i===ev-1?" gift":""),text:i===ev-1?"−"+pc+"%":i<k?"✓":""}))),
-    mk("p",{class:"ac-mut",style:"margin:0",text:next?`🎉 Seuraava tilauksesi on ${n+1}. – saat siitä −${pc} %!`:`Vielä ${left} ${left===1?"tilaus":"tilausta"}, niin ${ev}. tilauksesta saat −${pc} %.`}),
-    mk("p",{class:"ac-mut",style:"font-size:.8rem;margin:8px 0 0",text:`Jokainen nettitilaus = 1 leima. Kertynyt yhteensä ${n} ${n===1?"tilaus":"tilausta"}.`}));return c}
+let BLOG=[];
+function vStamps(){const B=(CFG&&CFG.bonus)||{rate:1,rewards:[{id:"b2",eur:2,pts:40},{id:"b5",eur:5,pts:100},{id:"b10",eur:10,pts:200}],minMul:2},pts=+(CUS&&CUS.points)||0;
+  const nx=B.rewards.find(r=>r.pts>pts),top=B.rewards[B.rewards.length-1],goal=nx||top,pr=Math.min(100,Math.round(pts/goal.pts*100));
+  const c=mk("div",{class:"ac-card ac-bonus"},mk("h2",{html:"Bonus<em>pisteet</em>"}),
+    mk("div",{class:"ac-big",html:`${pts}<span> pistettä</span>`}),
+    mk("div",{class:"ac-bar"},mk("i",{style:"width:"+pr+"%"})),
+    mk("p",{class:"ac-mut",style:"margin:6px 0 14px",text:nx?`Vielä ${nx.pts-pts} p, niin saat −${nx.eur} € alennuksen.`:`Voit käyttää jopa −${top.eur} € seuraavassa tilauksessa!`}),
+    mk("div",{class:"ac-rw"},B.rewards.map(r=>mk("div",{class:"ac-rwi"+(pts>=r.pts?" on":"")},mk("b",{text:"−"+r.eur+" €"}),mk("small",{text:r.pts+" p"}),mk("span",{text:pts>=r.pts?"Käytettävissä":"Lukittu"})))),
+    pts>=B.rewards[0].pts?mk("a",{class:"ac-btn y",href:"tilaa.html",style:"margin-top:14px",text:"Käytä pisteet tilauksessa →"}):null,
+    mk("p",{class:"ac-mut",style:"font-size:.8rem;margin:12px 0 0",text:`Saat ${B.rate||1} pisteen jokaisesta maksetusta eurosta, kun tilaus on luovutettu. Palkinnon voi käyttää, kun tilaus on vähintään kaksinkertainen alennukseen nähden (esim. −5 € vähintään 10 € tilauksessa).`}));
+  if(BLOG.length)c.append(mk("details",{class:"ac-blog"},mk("summary",{text:"Pistehistoria"}),BLOG.map(l=>mk("div",{class:"ac-kv"},mk("span",{text:fdt(l.created_at)+" · "+(l.note||"")}),mk("b",{style:"color:"+(l.delta>0?"#7BE0A6":"#FF9A8C"),text:(l.delta>0?"+":"")+l.delta+" p"})))));
+  return c}
 
 function vPerks(){const fp=+(CFG?.firstPct??15),ev=+(CFG?.loyEvery??10),pc=+(CFG?.loyPct??20),n=ORD.filter(o=>o.status!=="peruttu").length;
   const saved=ORD.filter(o=>o.status!=="peruttu").reduce((a,o)=>a+ +(o.discount||0),0);
   const P=(on,b,t,s)=>mk("div",{class:"ac-perk"+(on?"":" off")},mk("b",{class:"n",text:b}),mk("div",null,mk("strong",{text:t}),mk("small",{text:s})));
   const c=mk("div",{class:"ac-card"},mk("h2",{html:"Omat <em>edut</em>"}));
   if(fp>0)c.append(P(n===0,"−"+fp+"%","Uuden asiakkaan etu",n===0?"Käytössä ensimmäisessä nettitilauksessasi – lasketaan automaattisesti.":"Käytetty ✓"));
-  if(ev>0&&pc>0)c.append(P((n+1)%ev===0,"−"+pc+"%","Leimakortin etu",(n+1)%ev===0?"Aktiivinen! Saat alennuksen seuraavasta tilauksesta.":"Joka "+ev+". tilaus. Kerää leimoja tilaamalla."));
+  c.append(P(true,"1 €","Bonuspisteet","Jokainen euro = 1 piste. Pisteillä −2 €, −5 € tai −10 € alennus."));
   c.append(P(true,"💳","Maksa vasta noudettaessa","Kortilla tai käteisellä – ei ennakkomaksua."));
   if(saved>0)c.append(mk("div",{class:"ac-kv"},mk("span",{text:"Olet säästänyt etuina yhteensä"}),mk("b",{style:"color:var(--ay)",text:eur(saved)})));
   return c}

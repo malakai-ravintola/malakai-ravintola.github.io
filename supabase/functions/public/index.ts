@@ -173,7 +173,9 @@ async function orderCount(email: string, phone: string) {
   const { count } = await db.from("orders").select("id", { count: "exact", head: true }).neq("status", "peruttu").or(`email.eq."${e.replace(/"/g, "")}",phone.eq."${p.replace(/"/g, "")}"`);
   return count ?? 0;
 }
-const loyOf = (c: any) => ({ every: c.loyEvery === 0 ? 0 : Math.max(2, +c.loyEvery || 10), pct: c.loyPct === 0 ? 0 : Math.min(50, +c.loyPct || 20) });
+// Leimakortti korvattu bonusjärjestelmällä (1 € = 1 piste)
+const loyOf = (_c: any) => ({ every: 0, pct: 0 });
+const BONUS = { rate: 1, rewards: [{ id: "b2", eur: 2, pts: 40 }, { id: "b5", eur: 5, pts: 100 }, { id: "b10", eur: 10, pts: 200 }], minMul: 2 };
 function discountFor(n: number, firstPct: number, L: { every: number; pct: number }) {
   if (n < 0) return { pct: 0, note: null as string | null, loy: false };
   if (n === 0 && firstPct > 0) return { pct: firstPct, note: `Ensitilaus -${firstPct} %`, loy: false };
@@ -229,7 +231,7 @@ async function orderCfg() {
     return { date, open: hh && hh[0] ? hm(hh[0]) : null, close: hh && hh[1] ? hm(hh[1]) : null };
   });
   return { days, preDays: pre, paused, pauseUntil: paused ? c.pauseUntil : null, delCut: DEL_CUT, delNow, on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
-    soldout: Array.isArray(c.soldout) ? c.soldout : [], hidden: Array.isArray(c.hidden) ? c.hidden : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, loyEvery: loyOf(c).every, loyPct: loyOf(c).pct, day: now.day, now: now.min, open, close, isOpen };
+    bonus: BONUS, soldout: Array.isArray(c.soldout) ? c.soldout : [], hidden: Array.isArray(c.hidden) ? c.hidden : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, loyEvery: loyOf(c).every, loyPct: loyOf(c).pct, day: now.day, now: now.min, open, close, isOpen };
 }
 async function placeOrder(b: any) {
   const C = await orderCfg(), S = await site();
@@ -274,17 +276,31 @@ async function placeOrder(b: any) {
   const discount = D.pct ? Math.round((subtotal + fee) * D.pct) / 100 : 0;
   o.discount = discount; o.discount_note = D.note;
   o.want = want; o.items = items; o.subtotal = subtotal; o.fee = fee; o.total = Math.round((subtotal + fee - discount) * 100) / 100;
+  let RW: { id: string; eur: number; pts: number } | null = null;
+  if (b.rw) {
+    RW = BONUS.rewards.find((r) => r.id === s(b.rw, 8)) ?? null;
+    if (!RW) return j({ error: "Tuntematon bonuspalkinto" }, 400);
+    const { data: u } = await db.auth.getUser(s(b.at, 4000));
+    if (!u?.user || String(u.user.email || "").toLowerCase() !== o.email) return j({ error: "Kirjaudu omalle tilillesi samalla sähköpostilla, niin voit käyttää bonuspisteitä." }, 400);
+    if (o.total < RW.eur * BONUS.minMul) return j({ error: `Bonus −${RW.eur} € vaatii vähintään ${eur(RW.eur * BONUS.minMul)} tilauksen.` }, 400);
+    const { data: cu } = await db.from("customers").select("points").eq("email", o.email).maybeSingle();
+    if ((cu?.points ?? 0) < RW.pts) return j({ error: "Bonuspisteesi eivät riitä tähän palkintoon." }, 400);
+    o.discount = Math.round((discount + RW.eur) * 100) / 100; o.discount_note = [D.note, `Bonus −${RW.eur} € (${RW.pts} p)`].filter(Boolean).join(" + ");
+    o.total = Math.round((o.total - RW.eur) * 100) / 100; o.bonus_pts = RW.pts;
+  }
   if (typeof b.total === "number" && Math.abs(b.total - o.total) > 0.01) return j({ error: "Hinnat ovat muuttuneet. Tarkista ostoskori ja lähetä uudelleen.", total: o.total }, 409);
   const { count: openN } = await db.from("orders").select("id", { count: "exact", head: true }).eq("status", "uusi").or(`email.eq."${o.email.replace(/"/g, "")}",phone.eq."${o.phone.replace(/"/g, "")}"`);
   if ((openN ?? 0) >= 2) return j({ error: "Sinulla on jo tilauksia odottamassa hyväksyntää. Odota vahvistusta tai soita 045 353 7000." }, 429);
   { const bad = await emailOk(o.email); if (bad) return j({ error: bad }, 400); }
+  if (RW) { const { data: okSpend } = await db.rpc("bonus_spend", { p_email: o.email, p_pts: RW.pts }); if (!okSpend) return j({ error: "Bonuspisteesi eivät riitä tähän palkintoon." }, 400); }
   const { data: row, error } = await db.from("orders").insert(o).select("id,no").single();
-  if (error) throw error;
+  if (error) { if (RW) await db.rpc("bonus_spend", { p_email: o.email, p_pts: -RW.pts }); throw error; }
+  if (RW) await db.from("bonus_log").insert({ email: o.email, order_no: row.no, delta: -RW.pts, note: `Käytetty: −${RW.eur} €, tilaus #${row.no}` });
   const when = whenTxt(want);
   const fullAddr = kind === "kuljetus" ? `${o.address}${o.apt ? " " + o.apt : ""}, ${o.zip} ${o.city || ""}` : "";
   const kindTxt = kind === "kuljetus" ? `Kotiinkuljetus: ${fullAddr}` + (o.door ? `\nOvikoodi: ${o.door}` : "") + (o.dnote ? `\nOhjeet kuljettajalle: ${o.dnote}` : "") : "Nouto ravintolasta";
   const addrRows: [string, string][] = kind === "kuljetus" ? ([["Osoite", fullAddr]] as [string, string][]).concat(o.door ? [["Ovikoodi", o.door]] : [], o.dnote ? [["Ohjeet kuljettajalle", o.dnote]] : []) : [];
-  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + (discount ? `\n${o.discount_note}: -${eur(discount)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksutapa: ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
+  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + (o.discount ? `\n${o.discount_note}: -${eur(o.discount)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksutapa: ${o.pay === "kateinen" ? "käteisellä" : "kortilla"} ${kind === "kuljetus" ? "toimitettaessa" : "noudettaessa"}`;
   await saveCustomer(o).catch(() => {});
   await Promise.allSettled([
     mail(OWNER_EMAIL, `UUSI TILAUS #${row.no}: ${kind === "kuljetus" ? "kuljetus" : "nouto"} ${when}, ${eur(o.total)}`,
@@ -301,9 +317,9 @@ async function placeOrder(b: any) {
           E.infoBox([["Tilausnumero", "#" + row.no], ["Tapa", kind === "kuljetus" ? "Kotiinkuljetus" : "Nouto ravintolasta"], ...(kind === "kuljetus" ? addrRows : [["Nouto", "Tampereentie 414, Lempäälä"]] as [string, string][]), ["Toivottu aika", when]].concat(o.note ? [["Lisätiedot", o.note]] : []) as [string, string][]) +
           E.orderSummary({ ...o, no: row.no }),
         foot: E.btn(`${SITE}/tili.html`, "Seuraa tilausta") + E.btn("tel:+358453537000", "Soita 045 353 7000", true) +
-          `<p style="margin:14px 0 0;font:13px/1.5 Arial,Helvetica,sans-serif;color:#6B6660">Luo <a href="${SITE}/tili.html" style="color:#B3121F">oma tili</a> samalla sähköpostilla, niin näet tilauksesi, leimakorttisi ja etusi.${C.loyEvery > 0 && C.loyPct > 0 ? ` Joka ${C.loyEvery}. tilaus −${C.loyPct} %.` : ""}</p>` })),
+          `<p style="margin:14px 0 0;font:13px/1.5 Arial,Helvetica,sans-serif;color:#6B6660">Luo <a href="${SITE}/tili.html" style="color:#B3121F">oma tili</a> samalla sähköpostilla, niin näet tilauksesi ja bonuspisteesi. Saat ${Math.floor(o.total)} pistettä tästä tilauksesta, kun se on luovutettu.</p>` })),
   ]);
-  return j({ ok: true, no: row.no, total: o.total, discount });
+  return j({ ok: true, no: row.no, total: o.total, discount: o.discount, earn: Math.floor(o.total) });
 }
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
