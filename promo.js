@@ -45,7 +45,7 @@ const st=document.createElement("style");st.textContent=css;document.head.append
 function bubble(){const a=document.getElementById("acc");if(!a||a.querySelector(".np-bub"))return;
   a.classList.add("np-glow");const b=document.createElement("span");b.className="np-bub";
   b.innerHTML="<small>Uutta!</small><b>Oma tili</b>Kerää bonuspisteitä tilauksista";a.append(b);
-  const off=()=>{b.remove();a.classList.remove("np-glow")};a.addEventListener("click",()=>LS.set(KEY+"_acc","1"));setTimeout(off,14000)}
+  const off=()=>{b.remove();a.classList.remove("np-glow")};a.addEventListener("click",()=>LS.set(KEY+"_acc","1"));setTimeout(off,8000)}
 
 function modal(){const bg=document.createElement("div");bg.className="np-bg";bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-label","Uutta: oma nettitilaus");
   bg.innerHTML=`<div class="np"><img class="np-pz" src="media/tilaa/pizza-uusi.webp" alt=""><button class="np-x" aria-label="Sulje">×</button>
