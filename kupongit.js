@@ -12,17 +12,17 @@ M.addEventListener("click",e=>{const a=e.target.closest("[data-cp]");if(a)try{lo
 async function run(){
   if(!C.url||!window.supabase){M.innerHTML='<p class="ac-mut">Kuponkipalvelu ei latautunut. Päivitä sivu.</p>';return}
   const SB=supabase.createClient(C.url,C.anon);const{data:{session}}=await SB.auth.getSession();
-  if(!session){M.innerHTML=`<div class="kp-in"><span class="kp-g">${GIFT}</span><h2>Kerää bonuskuponkeja</h2><p>Saat 1 pisteen jokaisesta nettitilauksen eurosta. Jo 50 pisteellä saat −1 € kupongin ja 300 pisteellä −25 €.</p><a class="kp-btn" href="tili.html">Kirjaudu tai luo tili</a></div>`+
+  if(!session){M.innerHTML=`<div class="kp-in"><span class="kp-g">${GIFT}</span><h2>Kerää bonuskuponkeja</h2><p>Saat 1 pisteen jokaisesta nettitilauksen eurosta. Jo 50 pisteellä saat −1 € kupongin ja 300 pisteellä −25 €.</p><a class="kp-btn" href="tili.html">Kirjaudu tai luo tili</a><p class="kp-only" style="margin:14px 0 0">Pisteet kertyvät vain nettitilauksista, ja kupongit käyvät vain nettitilauksiin (malakairavintola.fi).</p></div>`+
     `<h2 class="kp-h">Kaikki kupongit</h2>`+T.map(t=>ticket({eur:t.e,note:`Kun pisteitä on vähintään ${t.p}`,left:t.p},"lock")).join("")+ticket({eur:"20 %",note:"−20 % koko tilauksesta, lasketaan kassalla automaattisesti."},"first").replace("−20 % €","−20 %");return}
   const em=String(session.user.email||"").toLowerCase();
   const[c,k]=await Promise.all([SB.from("customers").select("points,orders").eq("email",em).maybeSingle(),SB.from("bonus_coupons").select("id,round,tier,eur,used_at").eq("email",em).order("created_at",{ascending:false})]);
   const pts=+(c.data&&c.data.points)||0,K=(k.data||[]).map(x=>({...x,eur:+x.eur})),av=K.filter(x=>!x.used_at),used=K.filter(x=>x.used_at);
   const rn=pts>0?Math.floor((pts-1)/R)+1:1,q=pts-(rn-1)*R,nx=T.find(t=>t.p>q),left=nx?nx.p-q:R-q+T[0].p,nxe=nx?nx.e:T[0].e;
   const first=!(c.data&&c.data.orders>0);
-  M.innerHTML=`<p class="kp-cnt">Käytettävissä <b>${av.length+(first?1:0)}</b> kuponkia</p>
+  M.innerHTML=`<p class="kp-only">Pisteet kertyvät vain nettitilauksista, ja kupongit käyvät vain nettitilauksiin (malakairavintola.fi).</p><p class="kp-cnt">Käytettävissä <b>${av.length+(first?1:0)}</b> kuponkia</p>
    <a class="kp-sum" href="tili.html#bonus"><div><small>Bonuspisteesi</small><b>${q} p</b><span>Seuraava kuponki −${nxe} € · vielä ${left} p</span></div><i class="kp-bar"><em style="width:${Math.min(100,q/R*100)}%"></em></i><u>Lisätietoja ›</u></a>`+
    (first?ticket({eur:"20 %",note:"−20 % koko ensimmäisestä nettitilauksesta. Lasketaan kassalla automaattisesti."},"first").replace("−20 % €","−20 %"):"")+
-   av.map(x=>ticket({...x,note:`Nettitilaukseen, kun tilaus on vähintään ${eur(x.eur*2)}`},"avail")).join("")+
+   av.map(x=>ticket({...x,note:`Vain nettitilaukseen, kun tilaus on vähintään ${eur(x.eur*2)}`},"avail")).join("")+
    (nx||true?ticket({eur:nxe,note:`Ansaitset tämän, kun pisteitä kertyy vielä ${left}`,left},"lock"):"")+
    (used.length?`<h2 class="kp-h">Käytetyt</h2>`+used.slice(0,10).map(x=>ticket({...x,note:"Käytetty nettitilauksessa"},"used")).join(""):"");
 }

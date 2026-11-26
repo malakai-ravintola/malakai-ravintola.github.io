@@ -180,7 +180,7 @@ function nextTier(p){const B=bRules(),r=B.round||300,q=p%r,n=B.tiers.find(x=>x.p
 function bonus(){const el=$("#odStamps");if(!el)return;if(!cart.length){el.hidden=true;return}el.hidden=false;
   const B=bRules(),s=sub(),fee=kind()==="kuljetus"&&CFG?CFG.fee:0,pct=FIRST&&CFG?CFG.firstPct:0,t0=Math.round((s+fee-(pct?Math.round((s+fee)*pct)/100:0))*100)/100;
   const T=totals(),earn=Math.floor(T.t*(B.rate||1));
-  if(BON.pts==null){el.innerHTML=`<div class="od-bn-g"><span class="od-bn-ic">★</span><div><b>Luo tili – kerää bonuskuponkeja</b><span>Tästä tilauksesta <strong>+${earn} pistettä</strong>. Jo 50 pisteellä −1 € kuponki, 300 pisteellä −25 €.</span></div><a href="tili.html" target="_blank" rel="noopener" class="od-bn-a">Luo tili →</a></div>`;return}
+  if(BON.pts==null){el.innerHTML=`<div class="od-bn-g"><span class="od-bn-ic">★</span><div><b>Luo tili – kerää bonuskuponkeja</b><span>Tästä tilauksesta <strong>+${earn} pistettä</strong>. Jo 50 pisteellä −1 € kuponki, 300 pisteellä −25 €. Kertyy vain nettitilauksista.</span></div><a href="tili.html" target="_blank" rel="noopener" class="od-bn-a">Luo tili →</a></div>`;return}
   const other=formEmail()&&formEmail()!==BON.email,nx=nextTier(BON.pts);
   const sel=RWSEL&&rwOk(RWSEL,t0)?RWSEL.id:"";
   el.innerHTML=`<div class="od-bn-h"><div><b>Bonuspisteesi <em>${BON.pts} p</em></b><span>${other?"Käytä tilisi sähköpostia ("+esc(BON.email)+"), niin voit käyttää kuponkeja.":`Tästä tilauksesta +${earn} p · seuraava kuponki −${nx.e} € vielä ${nx.left} p päässä`}</span></div><a href="tili.html#bonus" target="_blank" rel="noopener" class="od-bn-a">Lisätietoja</a></div>`+

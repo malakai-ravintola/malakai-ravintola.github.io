@@ -60,3 +60,5 @@
 @media(max-width:400px){.kp-t{grid-template-columns:40% 60%}.kp-t::before,.kp-t::after{left:40%}.kp-l b{font-size:1.5rem}.kp-y{font-size:1.2rem}}
 .tf-tx h3,.kp-r h3,.kp-in h2,.kp-h,.tf-wk h2{font-family:Inter,system-ui,sans-serif!important;letter-spacing:0!important}
 .tf-tx h3{font-size:1.02rem!important;font-weight:800!important;line-height:1.25!important}.kp-r h3{font-size:1.05rem!important;font-weight:800!important}
+
+.kp-only{background:rgba(227,165,28,.1);border:1px solid rgba(227,165,28,.35);color:#E3A51C;border-radius:12px;padding:10px 12px;font:600 .85rem/1.4 Inter,sans-serif;margin:0 0 14px}
