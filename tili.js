@@ -178,7 +178,7 @@ function vProfile(part){const me=USER.user_metadata||{},I=(k,a={})=>mk("input",{
   g.onsubmit=async e=>{e.preventDefault();if(pw.value.length<8)return toast("Salasanan pitää olla vähintään 8 merkkiä.",true);const {error}=await SB.auth.updateUser({password:pw.value});if(error)return toast(fi(error),true);pw.value="";toast("Salasana vaihdettu")};
   if(part==="f")return M.append(f);if(part==="g")return M.append(g);M.append(mk("div",{class:"ac-grid"},f,g))}
 // ---------- Tili-keskus (sovellustyylinen)
-const IC={rc:'<path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4L6 21z"/><path d="M9 8h6M9 12h6M9 16h3"/>',hist:'<path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2"/>',res:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h3"/>',me:'<circle cx="10" cy="8" r="3.6"/><path d="M3.5 20c0-3.7 2.9-6 6.5-6 1.5 0 2.9.4 4 1.1"/><path d="M18 21s-3.2-2-3.2-4.1a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8C21.2 19 18 21 18 21z"/>',
+const IC={gift:'<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8c-1.5-3-5-3.5-5-1s3 1 5 1c2 0 5 .5 5-1s-3.5-2-5 1"/>',rc:'<path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4L6 21z"/><path d="M9 8h6M9 12h6M9 16h3"/>',hist:'<path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2"/>',res:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h3"/>',me:'<circle cx="10" cy="8" r="3.6"/><path d="M3.5 20c0-3.7 2.9-6 6.5-6 1.5 0 2.9.4 4 1.1"/><path d="M18 21s-3.2-2-3.2-4.1a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8C21.2 19 18 21 18 21z"/>',
   per:'<circle cx="12" cy="7.5" r="3.5"/><path d="M7 21v-4.5a5 5 0 0 1 10 0V21"/>',addr:'<path d="M12 21s-6.5-6.2-6.5-11.5a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.3"/>',lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10M12 14v3"/>',share:'<path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5v10h14V11h-1"/>',
   cp:'<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/>',off:'<path d="M12 2.5l2.6 1.9 3.2-.2.9 3.1 2.6 1.9-1 3.1 1 3.1-2.6 1.9-.9 3.1-3.2-.2L12 21.5l-2.6-1.9-3.2.2-.9-3.1-2.6-1.9 1-3.1-1-3.1 2.6-1.9.9-3.1 3.2.2z"/><path d="M9 15l6-6"/><circle cx="9.3" cy="9.3" r=".9"/><circle cx="14.7" cy="14.7" r=".9"/>',out:'<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/>',chev:'<path d="M9 5l7 7-7 7"/>'};
 const ico=(k,w)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w||1.7}" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
@@ -202,6 +202,24 @@ function receipt(o){const vat=Math.round(+o.total*13.5/113.5*100)/100,d=new Date
     mk("p",{class:"rc-f",text:"Kiitos tilauksestasi! Tervetuloa uudelleen."}));
   const ov=sub("Digikuitti #"+o.no,mk("div",null,w,mk("button",{class:"ac-btn o",style:"margin-top:16px;width:100%",type:"button",text:"Tulosta tai tallenna PDF",onclick:()=>{document.body.classList.add("rc-print");window.print();setTimeout(()=>document.body.classList.remove("rc-print"),500)}})));ov.classList.add("rc-ov")}
 const SUBS={
+  lahjakortit:()=>{const box=mk("div",null,mk("p",{class:"ac-mut",text:"Ladataan…"})),inp=mk("input",{class:"gb-in",placeholder:"MALA-XXXX-XXXX",maxlength:"16",autocomplete:"off",autocapitalize:"characters"}),res=mk("p",{class:"gb-res",hidden:true});
+    const fdt=d=>d?new Date(d).toLocaleDateString("fi-FI"):"–";
+    const chk=async()=>{const c=inp.value.trim().toUpperCase().replace(/\s+/g,"");if(!c)return;res.hidden=false;res.className="gb-res";res.textContent="Tarkistetaan…";
+      try{const r=await pub({action:"gift_check",code:c});if(r.error)throw new Error(r.error);res.innerHTML=`Saldo <b>${eur(r.balance)}</b> · voimassa ${fdt(r.expires)} asti<br><a href="tilaa.html?lahjakortti=${encodeURIComponent(r.code)}">Käytä nettitilauksessa →</a>`}
+      catch(x){res.className="gb-res bad";res.textContent=x.message||"Tarkistus epäonnistui"}};
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();chk()}});
+    sub("Lahjakortit",mk("div",null,
+      mk("div",{class:"ac-card gb-chk"},mk("h3",{text:"Tarkista lahjakortin saldo"}),mk("p",{class:"ac-mut",text:"Kirjoita lahjakortin koodi (sähköpostista), niin näet jäljellä olevan saldon."}),mk("div",{class:"gb-row"},inp,mk("button",{class:"btn",type:"button",onclick:chk,text:"Tarkista"})),res),
+      mk("h3",{class:"gb-h",text:"Omat lahjakorttisi"}),box,
+      mk("a",{class:"btn r gb-buy",href:"lahjakortti.html",text:"Osta lahjakortti"})),"lahjakortit");
+    SB.from("gift_cards").select("code,amount,balance,status,expires_at,mode,buyer_email,recipient_email,recipient_name,paid_at").neq("status","maksu").or(`buyer_email.eq."${MYE()}",recipient_email.eq."${MYE()}"`).order("paid_at",{ascending:false}).limit(50).then(({data,error})=>{box.textContent="";
+      const L=(data||[]).filter(g=>g.code);if(error||!L.length){box.append(mk("p",{class:"ac-mut",text:"Tällä sähköpostilla ei ole lahjakortteja. Jos sait lahjakortin toiseen osoitteeseen, tarkista saldo koodilla yllä."}));return}
+      L.forEach(g=>{const old=g.expires_at&&Date.parse(g.expires_at)<Date.now(),gave=g.mode==="gift"&&String(g.buyer_email).toLowerCase()===MYE()&&String(g.recipient_email).toLowerCase()!==MYE();
+        const st=old?["Vanhentunut","r"]:+g.balance>0?["Voimassa","g"]:["Käytetty","r"];
+        box.append(mk("div",{class:"gb-card"+(+g.balance>0&&!old?"":" off")},mk("div",{class:"gb-top"},mk("span",{class:"gb-code",text:g.code}),mk("span",{class:"ac-pill "+st[1],text:st[0]})),
+          mk("div",{class:"gb-bal"},mk("b",{text:eur(+g.balance)}),mk("small",{text:" / "+eur(+g.amount)})),
+          mk("small",{class:"gb-meta",text:(gave?"Lahja: "+(g.recipient_name||g.recipient_email)+" · ":"")+"Voimassa "+fdt(g.expires_at)+" asti"}),
+          !gave&&+g.balance>0&&!old?mk("a",{class:"gb-use",href:"tilaa.html?lahjakortti="+encodeURIComponent(g.code),text:"Käytä tilauksessa →"}):null))})})},
   digikuitit:()=>{const L=ORD.filter(o=>o.status!=="peruttu");sub("Digikuitit",L.length?mk("div",null,mk("p",{class:"ac-mut",text:"Kaikki nettitilaustesi kuitit yhdessä paikassa."}),L.map(o=>mk("button",{class:"hb-row",type:"button",onclick:()=>receipt(o)},mk("span",{class:"hb-i",html:ico("rc")}),mk("span",{class:"hb-t"},mk("b",{text:"#"+o.no+" · "+fdt(o.created_at)}),mk("small",{text:(o.items||[]).map(i=>i.n).slice(0,3).join(", ")})),mk("b",{class:"hb-p",text:eur(o.total)}))))
     :mk("p",{class:"ac-mut",text:"Kuitit näkyvät tässä, kun olet tilannut netistä."}),"digikuitit")},
   historia:()=>sub("Tilaushistoria",capture(vHist),"historia"),
@@ -222,7 +240,7 @@ function vHub(){const nm=(USER.user_metadata?.name||"").split(" ")[0];
   vLive();M.append(mk("div",{class:"ac-grid"},vStamps(),vPerks()));
   M.append(mk("div",{class:"ac-card hb-list"},
     mk("h3",{text:"Ostoksesi / varauksesi"}),row("rc","Digikuitit","Kuitit kaikista nettitilauksista",SUBS.digikuitit),row("hist","Tilaushistoria","Tilaa uudelleen ja arvioi",SUBS.historia),row("res","Pöytävaraukset","Omat varauksesi ja uusi varaus",SUBS.varaukset),
-    mk("h3",{text:"Edut"}),row("cp","Kuponkini","Bonuskupongit ja pisteet","kupongit.html"),row("off","Tarjoukset","Voimassa olevat tarjoukset","tarjoukset.html"),
+    mk("h3",{text:"Edut"}),row("cp","Kuponkini","Bonuskupongit ja pisteet","kupongit.html"),row("gift","Lahjakortit","Tarkista saldo ja omat lahjakortit",SUBS.lahjakortit),row("off","Tarjoukset","Voimassa olevat tarjoukset","tarjoukset.html"),
     mk("h3",{text:"Profiili"}),row("per","Henkilö- ja osoitetiedot","Nimi, puhelin ja toimitusosoite",SUBS.henkilotiedot),row("lock","Kirjautumistiedot","Sähköposti ja salasana",SUBS.kirjautuminen),row("share","Vinkkaa kaverille","Jaa tilauslinkki",shareApp),
     row("out","Kirjaudu ulos","",async()=>{clearInterval(poll);try{localStorage.removeItem("mk_last")}catch(e){}await SB.auth.signOut({scope:"local"});toast("Kirjauduit ulos")})))}
 })();

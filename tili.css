@@ -141,3 +141,16 @@
 .ac-pill.g{background:#1d3b28;color:#7BE0A6}.ac-pill.r{background:#3b1d1d;color:#FF9A8C}
 @media print{body.rc-print>*:not(.rc-ov){display:none!important}body.rc-print .rc-ov{position:static;background:#fff}body.rc-print .sb-top,body.rc-print .rc-ov .ac-btn{display:none!important}body.rc-print .rc{box-shadow:none;-webkit-mask:none}}
 .hb-list h3{font-family:Inter,system-ui,sans-serif!important;font-weight:800!important;font-size:1.25rem!important;letter-spacing:0!important}
+/* Lahjakortit omalla tilillä */
+.gb-chk{margin:0 0 16px}.gb-chk h3{margin:0 0 4px}
+.gb-row{display:flex;gap:8px;margin-top:10px}.gb-in{flex:1;min-width:0;background:#0b0b0b;border:1px solid #333;border-radius:12px;color:#fff;font:700 1rem "Courier New",monospace!important;letter-spacing:.08em;padding:12px 14px;text-transform:uppercase}
+.gb-res{margin:12px 0 0;font:500 .95rem/1.5 Inter,sans-serif!important;color:#e8e2d6}.gb-res b{color:#E3A51C;font-size:1.15rem}.gb-res a{color:#E3A51C}.gb-res.bad{color:#ffb4ba}
+.gb-h{margin:8px 0 10px!important}
+.gb-card{background:radial-gradient(120% 140% at 100% 0%,rgba(227,165,28,.16),transparent 55%),#0f0f0f;border:1.5px solid #E3A51C;border-radius:16px;padding:14px 16px;margin-bottom:10px}
+.gb-card.off{border-color:#2a2a2a;opacity:.7}
+.gb-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.gb-code{font:700 1rem "Courier New",monospace!important;letter-spacing:.08em;color:#fff}
+.gb-bal{margin:8px 0 2px}.gb-bal b{font:600 1.7rem "Playfair Display",serif!important;color:#E3A51C}.gb-bal small{color:#9a9a9a}
+.gb-meta{display:block;color:#9a9a9a;font-size:.82rem}.gb-use{display:inline-block;margin-top:8px;color:#E3A51C;font-weight:700}
+.gb-buy{display:block;text-align:center;margin-top:16px}
+.gb-chk{background:#121212;border:1px solid #262626;border-radius:18px;padding:16px}
+.gb-h{margin:24px 0 10px!important}
