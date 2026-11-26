@@ -87,9 +87,9 @@ Deno.serve(async (req) => {
           E.infoBox([["Tilausnumero", "#" + o.no], [del ? "Toimitusosoite" : "Nouto", del ? `${o.address}${o.apt ? " " + o.apt : ""}, ${o.zip} ${o.city || ""}` : "Tampereentie 414, Lempäälä"]]) + E.orderSummary(o));
       } else if (st === "peruttu") {
         sub = `Tilauksesi #${o.no} on valitettavasti peruttu`;
-        txt = `Hei ${fn}!\n\nEmme valitettavasti pysty toimittamaan tilaustasi #${o.no}.` + (up.reason ? `\n\nSyy: ${up.reason}` : "") + (refunded ? `\n\nMaksamasi ${eur(o.total)} palautetaan automaattisesti samalle kortille. Palautus näkyy tililläsi yleensä 5–10 pankkipäivän kuluessa.` : "") + `\n\nPahoittelemme. Voit soittaa meille numeroon 045 353 7000.` + foot;
+        txt = `Hei ${fn}!\n\nEmme valitettavasti pysty toimittamaan tilaustasi #${o.no}.` + (up.reason ? `\n\nSyy: ${up.reason}` : "") + (refunded ? `\n\nMaksamasi ${eur(o.total - (+o.gift_amt || 0))} palautetaan automaattisesti samalle kortille. Palautus näkyy tililläsi yleensä 5–10 pankkipäivän kuluessa.` : "") + (+o.gift_amt ? `\n\nLahjakortilla maksettu ${eur(+o.gift_amt)} on palautettu lahjakorttisi saldoon.` : "") + `\n\nPahoittelemme. Voit soittaa meille numeroon 045 353 7000.` + foot;
         html = E.shell({ pre: "Emme valitettavasti pysty toimittamaan tilaustasi.", tag: "Tilaus peruttu", title: `Pahoittelemme, ${E.esc(fn)}`,
-          body: E.p(`Emme valitettavasti pysty toimittamaan tilaustasi #${o.no}.`) + (up.reason ? E.infoBox([["Syy", String(up.reason)]]) : "") + E.p(refunded ? `Maksamasi ${eur(o.total)} palautetaan automaattisesti samalle kortille. Palautus näkyy tililläsi yleensä 5–10 pankkipäivän kuluessa.` : "Tilauksesta ei veloiteta mitään. Soita meille, niin etsitään korvaava vaihtoehto.") + E.itemsHtml(o.items || []),
+          body: E.p(`Emme valitettavasti pysty toimittamaan tilaustasi #${o.no}.`) + (up.reason ? E.infoBox([["Syy", String(up.reason)]]) : "") + E.p(refunded ? `Maksamasi ${eur(o.total - (+o.gift_amt || 0))} palautetaan automaattisesti samalle kortille. Palautus näkyy tililläsi yleensä 5–10 pankkipäivän kuluessa.` : +o.gift_amt ? "Tilauksesta ei veloiteta mitään." : "Tilauksesta ei veloiteta mitään. Soita meille, niin etsitään korvaava vaihtoehto.") + (+o.gift_amt ? E.p(`Lahjakortilla maksettu ${eur(+o.gift_amt)} on palautettu lahjakorttisi saldoon.`) : "") + E.itemsHtml(o.items || []),
           foot: E.btn("tel:+358453537000", "Soita 045 353 7000") + E.btn(`${E.SITE}/tilaa.html`, "Tilaa uudelleen", true) });
       } else if (st === "valmis" && !del && b.notify) {
         sub = `Tilauksesi #${o.no} on valmis noudettavaksi`;
@@ -122,6 +122,25 @@ Deno.serve(async (req) => {
       try { res.tx = (await list("balance_transactions")).map((x: any) => ({ id: x.id, created: x.created, available_on: x.available_on, type: x.type, desc: x.description || "", amount: x.amount / 100, fee: x.fee / 100, net: x.net / 100, src: typeof x.source === "string" ? x.source : x.source?.id || "" })); } catch (e) { res.tx = []; res.txErr = (e as Error).message; }
       try { res.po = (await list("payouts")).map((x: any) => ({ id: x.id, created: x.created, arrival: x.arrival_date, amount: x.amount / 100, status: x.status })); } catch (e) { res.po = []; res.poErr = (e as Error).message; }
       return j(res);
+    }
+    // Lahjakortti kassalla: haku ja veloitus
+    if (b.action === "gift_use") {
+      const code = String(b.code ?? "").trim().toUpperCase(), amt = Math.round(+b.amount * 100) / 100;
+      if (!(amt > 0)) return j({ error: "Kirjoita summa" }, 400);
+      const { data: gt, error: ge } = await db.rpc("gift_take", { p_code: code, p_max: amt });
+      if (ge || !gt?.length) return j({ error: "Lahjakorttia ei löydy, se on vanhentunut tai saldo on käytetty." }, 400);
+      await db.from("gift_card_uses").update({ note: "Kassa" + (b.note ? ": " + String(b.note).slice(0, 80) : "") }).eq("id", gt[0].use_id);
+      const { data: g } = await db.from("gift_cards").select("balance").eq("id", gt[0].card_id).single();
+      return j({ ok: true, taken: +gt[0].taken, balance: +g!.balance });
+    }
+    if (b.action === "gift_resend") {
+      const { data: g } = await db.from("gift_cards").select("*").eq("id", b.id).single();
+      if (!g || !g.code) return j({ error: "Lahjakorttia ei löydy" }, 404);
+      const to = String(b.to || (g.mode === "gift" ? g.recipient_email : g.buyer_email));
+      const exp = new Date(g.expires_at).toLocaleDateString("fi-FI", { timeZone: "Europe/Helsinki" }), amt = E.eur(+g.amount);
+      const sent = await mail(to, `Lahjakorttisi ${amt} – Malakai Ravintola`, `Lahjakortti ${amt}\nKoodi: ${g.code}\nSaldo: ${E.eur(+g.balance)}\nVoimassa: ${exp} asti\n\nKäytä koodi nettitilauksessa malakairavintola.fi/tilaa.html tai näytä se kassalla.`, undefined,
+        E.shell({ pre: `Lahjakortti – koodi ${g.code}`, tag: "Lahjakortti", title: "Lahjakorttisi", body: E.giftCard(amt, g.code, exp, g.message || "", g.mode === "gift" ? g.buyer_name || "" : "") + E.infoBox([["Saldo nyt", E.eur(+g.balance)], ["Nettitilaus", "Kirjoita koodi tilaussivulla kohtaan Lahjakortti"], ["Ravintolassa", "Näytä koodi kassalla"]]), foot: E.btn(`${E.SITE}/tilaa.html?lahjakortti=${encodeURIComponent(g.code)}`, "Tilaa ja käytä lahjakortti") }));
+      return j({ ok: sent });
     }
     if (b.action === "sms") {
       if (!(await sms(String(b.to), String(b.text).slice(0, 600)))) return j({ error: "Tekstiviestit eivät ole käytössä (46elks-avaimet puuttuvat)" }, 400);

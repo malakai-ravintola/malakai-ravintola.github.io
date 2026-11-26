@@ -192,7 +192,7 @@ const YTUNNUS="3305891-1";
 function receipt(o){const vat=Math.round(+o.total*13.5/113.5*100)/100,d=new Date(o.created_at);
   const w=mk("div",{class:"rc"},mk("div",{class:"rc-h"},mk("b",{text:"MALAKAI RAVINTOLA"}),YTUNNUS?mk("span",{text:"Y-tunnus "+YTUNNUS}):null,mk("span",{text:"Tampereentie 414, 33880 Lempäälä"}),mk("span",{text:"045 353 7000"}),mk("span",{text:"malakairavintola.fi"})),
     mk("div",{class:"rc-m"},mk("span",{text:"Tilaus #"+o.no}),mk("span",{text:d.toLocaleDateString("fi-FI",{timeZone:TZ})+" klo "+d.toLocaleTimeString("fi-FI",{timeZone:TZ,hour:"2-digit",minute:"2-digit"})})),
-    mk("div",{class:"rc-m"},mk("span",{text:o.kind==="kuljetus"?"Kotiinkuljetus":"Nouto"}),mk("span",{text:o.pay==="netti"?"Maksettu netissä":o.pay==="kateinen"?"Käteinen":"Kortti"})),
+    mk("div",{class:"rc-m"},mk("span",{text:o.kind==="kuljetus"?"Kotiinkuljetus":"Nouto"}),mk("span",{text:o.pay==="lahjakortti"?"Lahjakortti":o.pay==="netti"?"Maksettu netissä":o.pay==="kateinen"?"Käteinen":"Kortti"})),
     mk("div",{class:"rc-l"},(o.items||[]).map(i=>mk("div",{class:"rc-i"},mk("div",{class:"rc-r"},mk("span",{text:i.q+" × "+i.n}),mk("b",{text:eur((+i.unit||0)*(+i.q||1))})),i.opt?mk("small",{text:i.opt}):null))),
     mk("div",{class:"rc-r"},mk("span",{text:"Välisumma"}),mk("span",{text:eur(o.subtotal)})),
     +o.fee?mk("div",{class:"rc-r"},mk("span",{text:"Kuljetus"}),mk("span",{text:eur(o.fee)})):null,

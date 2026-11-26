@@ -146,7 +146,7 @@ function card(o,ro){const del=o.kind==="kuljetus",pre=preOf(o.want);
       mk("ul",{class:"its"},(o.items||[]).map(i=>mk("li",null,mk("b",{text:i.q+" × "+i.n}),i.opt?mk("small",{text:i.opt}):null,i.m?mk("em",{text:"Toive: "+i.m}):null))),
       o.note?mk("div",{class:"nt",text:"Lisätiedot: "+o.note}):null,
       o.rating?mk("div",{class:"nt",style:"background:#F4F4F4;color:#333"},"Asiakkaan arvio: ",mk("b",{class:"s"+o.rating,text:"★".repeat(o.rating)}),o.rating_note?mk("div",{text:"“"+o.rating_note+"”"}):null):null,
-      mk("div",{class:"tot"},eur(o.total),mk("span",{text:o.pay==="netti"?(o.pay_status==="palautettu"?"Maksettu netissä · palautettu":"MAKSETTU NETISSÄ"):(o.pay==="kateinen"?"Käteinen":"Kortti")+(del?" · kuljettajalle":" · kassalla")}))));
+      mk("div",{class:"tot"},eur(o.total),mk("span",{text:(+o.gift_amt?"Lahjakortti "+eur(+o.gift_amt)+" · ":"")+(o.pay==="lahjakortti"?"MAKSETTU LAHJAKORTILLA":o.pay==="netti"?(o.pay_status==="palautettu"?"Maksettu netissä · palautettu":"MAKSETTU NETISSÄ"):(+o.gift_amt?"Peri "+eur(+o.total-o.gift_amt)+" ":"")+(o.pay==="kateinen"?"Käteinen":"Kortti")+(del?" · kuljettajalle":" · kassalla"))}))));
   if(ro){}
   else if(o.status==="uusi"){
     c.append(mk("div",{class:"acts"},mk("p",{text:"Hyväksy – "+(del?"toimitus":"valmis")+" noin:"}),

@@ -66,6 +66,11 @@ async function markPaid(id: string, pi: string) {
 async function stripeHook(raw: string, sig: string) {
   if (!(await hookOk(raw, sig))) return j({ error: "bad signature" }, 400);
   const ev = JSON.parse(raw), o = ev.data?.object ?? {};
+  if (o.metadata?.kind === "gift" && o.metadata?.gift_id) {
+    if ((ev.type === "checkout.session.completed" || ev.type === "checkout.session.async_payment_succeeded") && o.payment_status === "paid") await markGiftPaid(o.metadata.gift_id, o.payment_intent);
+    else if (ev.type === "checkout.session.expired") await dropGift(o.metadata.gift_id);
+    return j({ received: true });
+  }
   if (ev.type === "checkout.session.completed" || ev.type === "checkout.session.async_payment_succeeded") {
     const id = o.metadata?.order_id;
     if (id && o.payment_status === "paid" && !(await markPaid(id, o.payment_intent))) {
@@ -78,6 +83,61 @@ async function stripeHook(raw: string, sig: string) {
     if (o.payment_intent) await db.from("orders").update({ pay_status: o.refunded ? "palautettu" : "osapalautus", refunded_at: new Date().toISOString() }).eq("stripe_pi", o.payment_intent);
   }
   return j({ received: true });
+}
+// ---------- Lahjakortit
+const GIFT_MIN = 10, GIFT_MAX = 300, GIFT_MONTHS = 12;
+const giftCode = () => { const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", r = crypto.getRandomValues(new Uint8Array(8)); const c = Array.from(r, (b) => A[b % A.length]).join(""); return `MALA-${c.slice(0, 4)}-${c.slice(4)}`; };
+const fdt = (d: string | Date) => new Date(d).toLocaleDateString("fi-FI", { timeZone: "Europe/Helsinki" });
+async function dropGift(id: string) { await db.from("gift_cards").delete().eq("id", id).eq("status", "maksu"); }
+async function markGiftPaid(id: string, pi: string) {
+  for (let i = 0; i < 5; i++) {
+    const exp = new Date(); exp.setMonth(exp.getMonth() + GIFT_MONTHS);
+    const { data, error } = await db.from("gift_cards").update({ code: giftCode(), status: "aktiivinen", paid_at: new Date().toISOString(), expires_at: exp.toISOString(), stripe_pi: pi || null }).eq("id", id).eq("status", "maksu").select("*");
+    if (error && /duplicate|unique/i.test(error.message)) continue;
+    if (data?.length) { await db.from("gift_cards").update({ balance: data[0].amount }).eq("id", id); await giftMails({ ...data[0], balance: data[0].amount }); return true; }
+    return false;
+  }
+  return false;
+}
+async function giftMails(g: any) {
+  const gift = g.mode === "gift" && g.recipient_email, to = gift ? g.recipient_email : g.buyer_email, toName = (gift ? g.recipient_name : g.buyer_name) || "";
+  const fn = (x: string) => String(x || "").split(" ")[0], exp = fdt(g.expires_at), amt = eur(+g.amount);
+  const howTxt = `Näin käytät lahjakortin:\n- Nettitilaus: malakairavintola.fi/tilaa.html – kirjoita koodi kohtaan "Lahjakortti".\n- Ravintolassa: näytä koodi kassalla.\nLahjakortin voi käyttää useassa osassa, ja jäljellä oleva saldo säilyy voimassaoloajan loppuun.`;
+  const txt = `Hei ${fn(toName)}!\n\n${gift ? `${g.buyer_name || "Ystäväsi"} lähetti sinulle Malakai Ravintolan lahjakortin!` : "Kiitos ostoksesta! Tässä lahjakorttisi."}${g.message ? `\n\nViesti: "${g.message}"` : ""}\n\nArvo: ${amt}\nKoodi: ${g.code}\nVoimassa: ${exp} asti\n\n${howTxt}\n\nMalakai Ravintola\nTampereentie 414, 33880 Lempäälä\n045 353 7000`;
+  const html = E.shell({ pre: `${amt} lahjakortti – koodi ${g.code}`, tag: "Lahjakortti", title: gift ? `${E.esc(fn(toName) || "Hei")}, sait lahjakortin!` : `Lahjakorttisi on valmis, ${E.esc(fn(toName))}!`,
+    body: (gift ? E.p(`<b>${E.esc(g.buyer_name || "Ystäväsi")}</b> lähetti sinulle Malakai Ravintolan lahjakortin.`) : E.p("Kiitos ostoksesta! Tässä lahjakorttisi – säilytä koodi.")) + E.giftCard(amt, g.code, exp, g.message || "", gift ? (g.buyer_name || "") : "") +
+      E.infoBox([["Nettitilaus", "Kirjoita koodi tilaussivulla kohtaan Lahjakortti"], ["Ravintolassa", "Näytä koodi kassalla"], ["Saldo", "Voi käyttää useassa osassa"], ["Voimassa", exp + " asti"]]),
+    foot: E.btn(`${E.SITE}/tilaa.html?lahjakortti=${encodeURIComponent(g.code)}`, "Tilaa ja käytä lahjakortti") + E.btn(`${E.SITE}/ruokalista.html`, "Katso ruokalista", true) });
+  const jobs: Promise<unknown>[] = [mail(to, gift ? `${g.buyer_name || "Ystäväsi"} lähetti sinulle lahjakortin – Malakai Ravintola` : `Lahjakorttisi ${amt} – Malakai Ravintola`, txt, undefined, html)];
+  if (gift) jobs.push(mail(g.buyer_email, `Kuitti: lahjakortti ${amt} lähetetty – Malakai Ravintola`,
+    `Hei ${fn(g.buyer_name)}!\n\nKiitos ostoksesta! Lähetimme ${amt} lahjakortin osoitteeseen ${g.recipient_email}${g.recipient_name ? ` (${g.recipient_name})` : ""}.\n\nKoodi: ${g.code}\nVoimassa: ${exp} asti\n\nMalakai Ravintola · Y-tunnus 3305891-1\nTampereentie 414, 33880 Lempäälä`, undefined,
+    E.shell({ pre: `Lahjakortti lähetetty: ${g.recipient_email}`, tag: "Kuitti", title: `Kiitos, ${E.esc(fn(g.buyer_name))}!`,
+      body: E.p(`Lähetimme lahjakortin osoitteeseen <b>${E.esc(g.recipient_email)}</b>${g.recipient_name ? ` (${E.esc(g.recipient_name)})` : ""}.`) + E.infoBox([["Arvo", amt], ["Koodi", g.code], ["Voimassa", exp + " asti"], ["Maksettu", fdt(g.paid_at || new Date()) + " · netissä"], ["Myyjä", "Malakai Ravintola, Y-tunnus 3305891-1"]]) + E.p("Jos lahjan saaja ei löydä viestiä, pyydä häntä tarkistamaan roskaposti – tai anna koodi hänelle itse.") })));
+  jobs.push(mail(OWNER_EMAIL, `LAHJAKORTTI MYYTY: ${amt} (${g.code})`, `Lahjakortti myyty ja maksettu netissä.\n\nArvo: ${amt}\nKoodi: ${g.code}\nOstaja: ${g.buyer_name} <${g.buyer_email}>${gift ? `\nSaaja: ${g.recipient_name || ""} <${g.recipient_email}>` : ""}\nVoimassa: ${exp} asti`));
+  await Promise.allSettled(jobs);
+  await db.from("gift_cards").update({ sent_at: new Date().toISOString() }).eq("id", g.id);
+}
+async function giftBuy(b: any) {
+  const PM = payMode(); if (!PM) return j({ error: "Lahjakortin osto ei ole juuri nyt käytössä. Soita 045 353 7000." }, 400);
+  const amount = Math.round(+b.amount), mode = b.mode === "gift" ? "gift" : "self";
+  if (!(amount >= GIFT_MIN && amount <= GIFT_MAX)) return j({ error: `Valitse summa ${GIFT_MIN}–${GIFT_MAX} €` }, 400);
+  const g: any = { amount, mode, buyer_name: s(b.n, 80), buyer_email: s(b.e, 120).toLowerCase(), recipient_name: mode === "gift" ? s(b.rn, 80) || null : null, recipient_email: mode === "gift" ? s(b.re, 120).toLowerCase() : null, message: mode === "gift" ? s(b.msg, 300) || null : null };
+  if (!g.buyer_name) return j({ error: "Kirjoita nimesi" }, 400);
+  { const bad = await emailOk(g.buyer_email); if (bad) return j({ error: bad }, 400); }
+  if (mode === "gift") { if (!g.recipient_email) return j({ error: "Kirjoita lahjan saajan sähköposti" }, 400); const bad = await emailOk(g.recipient_email); if (bad) return j({ error: "Lahjan saaja: " + bad }, 400); }
+  const { data: row, error } = await db.from("gift_cards").insert(g).select("id").single();
+  if (error) throw error;
+  const ret = `${SITE}/lahjakortti.html?g=${row.id}&maksu=`;
+  try {
+    const ses = await stripe("checkout/sessions", { mode: "payment", locale: "fi", customer_email: g.buyer_email, client_reference_id: row.id,
+      "line_items[0][quantity]": "1", "line_items[0][price_data][currency]": "eur", "line_items[0][price_data][unit_amount]": String(amount * 100),
+      "line_items[0][price_data][product_data][name]": `Malakai Ravintola – lahjakortti ${amount} €`,
+      "line_items[0][price_data][product_data][description]": mode === "gift" ? `Lähetetään sähköpostilla: ${g.recipient_email}` : `Lähetetään sähköpostilla: ${g.buyer_email}`,
+      "metadata[kind]": "gift", "metadata[gift_id]": row.id, "payment_intent_data[metadata][kind]": "gift", "payment_intent_data[metadata][gift_id]": row.id, "payment_intent_data[description]": `Malakai lahjakortti ${amount} €`,
+      expires_at: String(Math.floor(Date.now() / 1000) + 31 * 60), success_url: ret + "ok", cancel_url: ret + "peruttu" }, "gift-" + row.id);
+    await db.from("gift_cards").update({ stripe_session: ses.id }).eq("id", row.id);
+    return j({ ok: true, pay_url: ses.url, g: row.id });
+  } catch (_e) { await dropGift(row.id); return j({ error: "Maksun avaaminen epäonnistui. Yritä hetken päästä uudelleen." }, 502); }
 }
 const s = (x: unknown, n = 200) => String(x ?? "").trim().slice(0, n);
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Helsinki" }).format(new Date());
@@ -290,7 +350,7 @@ async function afterPlaced(o: any) {
   const fullAddr = kind === "kuljetus" ? `${o.address}${o.apt ? " " + o.apt : ""}, ${o.zip} ${o.city || ""}` : "";
   const kindTxt = kind === "kuljetus" ? `Kotiinkuljetus: ${fullAddr}` + (o.door ? `\nOvikoodi: ${o.door}` : "") + (o.dnote ? `\nOhjeet kuljettajalle: ${o.dnote}` : "") : "Nouto ravintolasta";
   const addrRows: [string, string][] = kind === "kuljetus" ? ([["Osoite", fullAddr]] as [string, string][]).concat(o.door ? [["Ovikoodi", o.door]] : [], o.dnote ? [["Ohjeet kuljettajalle", o.dnote]] : []) : [];
-  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + (o.discount ? `\n${o.discount_note}: -${eur(o.discount)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})\nMaksutapa: ${o.pay === "netti" ? "maksettu netissä" : (o.pay === "kateinen" ? "käteisellä " : "kortilla ") + (kind === "kuljetus" ? "toimitettaessa" : "noudettaessa")}`;
+  const sum = `${lines(items)}\n\nVälisumma: ${eur(subtotal)}` + (fee ? `\nKuljetus: ${eur(fee)}` : "") + (o.discount ? `\n${o.discount_note}: -${eur(o.discount)}` : "") + `\nYhteensä: ${eur(o.total)}\n  josta ALV 13,5 %: ${eur(vat(o.total))} (veroton ${eur(o.total - vat(o.total))})${+o.gift_amt ? `\nLahjakortilla: -${eur(+o.gift_amt)}` : ""}\nMaksutapa: ${o.pay === "lahjakortti" ? "lahjakortti" : o.pay === "netti" ? "maksettu netissä" : (o.pay === "kateinen" ? "käteisellä " : "kortilla ") + (kind === "kuljetus" ? "toimitettaessa" : "noudettaessa")}`;
   await saveCustomer(o).catch(() => {});
   await Promise.allSettled([
     mail(OWNER_EMAIL, `UUSI TILAUS #${row.no}${o.pay === "netti" ? " (MAKSETTU)" : ""}: ${kind === "kuljetus" ? "kuljetus" : "nouto"} ${when}, ${eur(o.total)}`,
@@ -315,7 +375,7 @@ async function placeOrder(b: any) {
   if (!C.on) return j({ error: "Nettitilaus ei ole juuri nyt käytössä. Soita 045 353 7000." }, 400);
   const kind = b.kind === "kuljetus" ? "kuljetus" : "nouto";
   if (kind === "kuljetus" && !C.delivery) return j({ error: "Kotiinkuljetus ei ole juuri nyt käytössä. Valitse nouto." }, 400);
-  const PM = payMode(), online = PM === "live" || (PM === "test" && b.pt === true);
+  const PM = payMode(); let online = PM === "live" || (PM === "test" && b.pt === true);
   const o: any = { name: s(b.n, 80), phone: norm(s(b.p, 30)), email: s(b.e, 120).toLowerCase(), kind, note: s(b.m, 400), pay: online ? "netti" : b.pay === "kateinen" ? "kateinen" : "kortti",
     address: kind === "kuljetus" ? s(b.a, 120) : null, zip: kind === "kuljetus" ? s(b.z, 10) : null, city: kind === "kuljetus" ? s(b.ci, 40) : null,
     apt: kind === "kuljetus" ? s(b.apt, 30) || null : null, door: kind === "kuljetus" ? s(b.door, 30) || null : null, dnote: kind === "kuljetus" ? s(b.dn, 300) || null : null };
@@ -371,12 +431,30 @@ async function placeOrder(b: any) {
   if ((openN ?? 0) >= 2) return j({ error: "Sinulla on jo tilauksia odottamassa hyväksyntää. Odota vahvistusta tai soita 045 353 7000." }, 429);
   { const bad = await emailOk(o.email); if (bad) return j({ error: bad }, 400); }
   if (CP) { const { data: lk } = await db.from("bonus_coupons").update({ used_at: new Date().toISOString() }).eq("id", CP.id).is("used_at", null).select("id"); if (!lk?.length) return j({ error: "Kuponki on jo käytetty. Päivitä sivu." }, 400); }
+  let GC: { card_id: string; taken: number; use_id: number } | null = null;
+  if (b.gc) {
+    const { data: gt, error: ge } = await db.rpc("gift_take", { p_code: s(b.gc, 20).toUpperCase(), p_max: o.total });
+    if (ge || !gt?.length) { if (CP) await db.from("bonus_coupons").update({ used_at: null }).eq("id", CP.id); return j({ error: "Lahjakorttia ei löydy, se on vanhentunut tai saldo on käytetty." }, 400); }
+    GC = { card_id: gt[0].card_id, taken: +gt[0].taken, use_id: +gt[0].use_id };
+    o.gift_card = GC.card_id; o.gift_amt = GC.taken;
+  }
+  let payable = Math.round((o.total - (o.gift_amt || 0)) * 100) / 100;
+  // Stripen pienin veloitus on 0,50 €: jätetään tarvittaessa pieni osa lahjakortin saldoon
+  if (GC && online && payable > 0 && payable < 0.5) {
+    const back = Math.round((0.5 - payable) * 100) / 100;
+    const { data: gcr } = await db.from("gift_cards").select("balance").eq("id", GC.card_id).single();
+    await db.from("gift_cards").update({ balance: Math.round((+gcr!.balance + back) * 100) / 100, status: "aktiivinen" }).eq("id", GC.card_id);
+    GC.taken = Math.round((GC.taken - back) * 100) / 100; o.gift_amt = GC.taken; payable = 0.5;
+    await db.from("gift_card_uses").update({ amount: GC.taken }).eq("id", GC.use_id);
+  }
+  if (online && payable <= 0) { online = false; o.pay = "lahjakortti"; }
   if (online) { o.status = "maksu"; o.pay_status = "odottaa"; }
   const { data: row, error } = await db.from("orders").insert(o).select("id,no").single();
-  if (error) { if (CP) await db.from("bonus_coupons").update({ used_at: null }).eq("id", CP.id); throw error; }
+  if (error) { if (CP) await db.from("bonus_coupons").update({ used_at: null }).eq("id", CP.id); if (GC) { await db.from("gift_card_uses").delete().eq("id", GC.use_id); const { data: gcr } = await db.from("gift_cards").select("balance").eq("id", GC.card_id).single(); await db.from("gift_cards").update({ balance: +gcr!.balance + GC.taken, status: "aktiivinen" }).eq("id", GC.card_id); } throw error; }
+  if (GC) await db.from("gift_card_uses").update({ order_no: row.no }).eq("id", GC.use_id);
   if (CP) { await db.from("bonus_coupons").update({ used_order: row.no }).eq("id", CP.id); await db.from("bonus_log").insert({ email: o.email, order_no: row.no, delta: 0, note: `Kuponki −${CP.eur} € käytetty, tilaus #${row.no}` }); }
   if (online) {
-    const cents = Math.round(o.total * 100), ret = `${SITE}/tilaa.html?t=${row.id}&maksu=`;
+    const cents = Math.round(payable * 100), ret = `${SITE}/tilaa.html?t=${row.id}&maksu=`;
     try {
       const ses = await stripe("checkout/sessions", { mode: "payment", locale: "fi", customer_email: o.email, client_reference_id: row.id,
         "line_items[0][quantity]": "1", "line_items[0][price_data][currency]": "eur", "line_items[0][price_data][unit_amount]": String(cents),
@@ -385,14 +463,14 @@ async function placeOrder(b: any) {
         "metadata[order_id]": row.id, "metadata[no]": String(row.no), "payment_intent_data[metadata][order_id]": row.id, "payment_intent_data[description]": `Malakai tilaus #${row.no}`,
         expires_at: String(Math.floor(Date.now() / 1000) + 31 * 60), success_url: ret + "ok", cancel_url: ret + "peruttu" }, "ord-" + row.id);
       await db.from("orders").update({ stripe_session: ses.id }).eq("id", row.id);
-      return j({ ok: true, pay_url: ses.url, t: row.id, no: row.no, total: o.total, discount: o.discount, earn: Math.floor(o.total) });
+      return j({ ok: true, pay_url: ses.url, t: row.id, no: row.no, total: o.total, gift: o.gift_amt || 0, discount: o.discount, earn: Math.floor(o.total) });
     } catch (e) {
       await dropUnpaid(row.id);
       return j({ error: "Maksun avaaminen epäonnistui. Yritä hetken päästä uudelleen tai soita 045 353 7000." }, 502);
     }
   }
   await afterPlaced({ ...o, id: row.id, no: row.no });
-  return j({ ok: true, no: row.no, total: o.total, discount: o.discount, earn: Math.floor(o.total) });
+  return j({ ok: true, no: row.no, total: o.total, gift: o.gift_amt || 0, discount: o.discount, earn: Math.floor(o.total) });
 }
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -429,6 +507,28 @@ Deno.serve(async (req) => {
       }
       if (!o) return j({ status: "poistettu" });
       return j({ status: o.status, paid: o.pay_status === "maksettu" || o.pay_status === "palautettu", no: o.no, total: +o.total, discount: +o.discount || 0, earn: Math.floor(+o.total), kind: o.kind });
+    }
+    if (b.action === "gift_buy") return await giftBuy(b);
+    if (b.action === "gift_check") {
+      const code = s(b.code, 20).toUpperCase().replace(/\s+/g, "");
+      if (!/^MALA-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)) return j({ error: "Tarkista koodi (muotoa MALA-XXXX-XXXX)" }, 400);
+      const { data: g } = await db.from("gift_cards").select("balance,status,expires_at").eq("code", code).maybeSingle();
+      if (!g || g.status === "maksu") return j({ error: "Lahjakorttia ei löydy. Tarkista koodi." }, 404);
+      if (g.expires_at && Date.parse(g.expires_at) < Date.now()) return j({ error: "Lahjakortti on vanhentunut." }, 400);
+      if (!(+g.balance > 0)) return j({ error: "Lahjakortin saldo on käytetty." }, 400);
+      return j({ ok: true, code, balance: +g.balance, expires: g.expires_at });
+    }
+    if (b.action === "gift_status" || b.action === "gift_cancel") {
+      const id = s(b.g, 40);
+      if (!/^[0-9a-f-]{36}$/.test(id)) return j({ error: "Virheellinen" }, 400);
+      let { data: g } = await db.from("gift_cards").select("id,status,stripe_session,amount,mode,recipient_email,buyer_email").eq("id", id).maybeSingle();
+      if (g && g.status === "maksu" && g.stripe_session && SK()) {
+        const ses = await stripe("checkout/sessions/" + g.stripe_session).catch(() => null);
+        if (ses?.payment_status === "paid") { await markGiftPaid(id, ses.payment_intent); g.status = "aktiivinen"; }
+        else if (b.action === "gift_cancel") { if (ses?.status === "open") await stripe(`checkout/sessions/${g.stripe_session}/expire`, {}).catch(() => {}); await dropGift(id); g = null; }
+      }
+      if (!g) return j({ status: "poistettu" });
+      return j({ status: g.status, amount: +g.amount, to: g.mode === "gift" ? g.recipient_email : g.buyer_email, gift: g.mode === "gift" });
     }
     if (b.action === "rate") {
       const id = s(b.id, 40), e = s(b.e, 120).toLowerCase(), r = Math.round(+b.r);

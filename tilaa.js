@@ -168,7 +168,8 @@ const kind=()=>($('input[name="kind"]:checked')||{}).value||"nouto";
 function totals(){const s=sub(),fee=kind()==="kuljetus"&&CFG?CFG.fee:0,pct=FIRST&&CFG?CFG.firstPct:(LOY&&LOY.now?LOY.pct:0),d=pct?Math.round((s+fee)*pct)/100:0,t0=Math.round((s+fee-d)*100)/100;
   const rw=rwOk(RWSEL,t0)?RWSEL:null;return{s,fee,d,pct,rw,t:Math.round((t0-(rw?rw.eur:0))*100)/100}}
 // ---------- Bonuspisteet (1 € = 1 piste)
-let BON={pts:null,email:"",at:"",cps:[]},RWSEL=null;
+let BON={pts:null,email:"",at:"",cps:[]},RWSEL=null,GC=null;
+const gcAmt=t=>GC?Math.min(GC.balance,Math.max(0,t)):0;
 const SBC=window.supabase&&C.url?supabase.createClient(C.url,C.anon):null;
 const bRules=()=>(CFG&&CFG.bonus&&CFG.bonus.tiers)?CFG.bonus:{rate:1,round:300,tiers:[{p:50,e:1},{p:90,e:2},{p:120,e:4},{p:150,e:10},{p:200,e:15},{p:250,e:20},{p:300,e:25}],minMul:2};
 const formEmail=()=>{const f=$("#odForm");return f?f.elements.e.value.trim().toLowerCase():""};
@@ -195,10 +196,10 @@ function draw(){
   const L=$("#odLines");
   L.innerHTML=cart.length?cart.map((x,i)=>`<div class="od-line"><b>${esc(x.n)}</b><em>${eur(price(x)*x.q)}</em>${optTxt(x)?`<small>${esc(optTxt(x))}</small>`:""}${x.m?`<small>Toive: ${esc(x.m)}</small>`:""}<div class="od-q"><button type="button" data-i="${i}" data-d="-1" aria-label="Vähemmän">−</button><b>${x.q}</b><button type="button" data-i="${i}" data-d="1" aria-label="Enemmän">+</button></div></div>`).join(""):'<p class="od-empty">Ostoskori on tyhjä. Lisää tuotteita listalta.</p>';
   const T=totals(),n=cart.reduce((a,x)=>a+x.q,0);
-  $("#odSum").innerHTML=`<div><span>Tuotteet</span><span>${eur(T.s)}</span></div>`+(kind()==="kuljetus"?`<div><span>Kuljetus</span><span>${eur(T.fee)}</span></div>`:"")+(T.d?`<div class="disc"><span>${FIRST?"Uuden asiakkaan etu":"Kanta-asiakasetu"} −${T.pct} %</span><span>−${eur(T.d)}</span></div>`:"")+(T.rw?`<div class="disc"><span>Bonuskuponki</span><span>−${eur(T.rw.eur)}</span></div>`:"")+`<div class="tot"><span>Yhteensä</span><span>${eur(T.t)}</span></div>`+`<div class="vat"><span>Veroton hinta</span><span>${eur(T.t-vat(T.t))}</span></div><div class="vat"><span>ALV 13,5 % (sisältyy hintaan)</span><span>${eur(vat(T.t))}</span></div>`;
+  $("#odSum").innerHTML=`<div><span>Tuotteet</span><span>${eur(T.s)}</span></div>`+(kind()==="kuljetus"?`<div><span>Kuljetus</span><span>${eur(T.fee)}</span></div>`:"")+(T.d?`<div class="disc"><span>${FIRST?"Uuden asiakkaan etu":"Kanta-asiakasetu"} −${T.pct} %</span><span>−${eur(T.d)}</span></div>`:"")+(T.rw?`<div class="disc"><span>Bonuskuponki</span><span>−${eur(T.rw.eur)}</span></div>`:"")+`<div class="tot"><span>Yhteensä</span><span>${eur(T.t)}</span></div>`+(GC?`<div class="disc"><span>Lahjakortti ${GC.code}</span><span>−${eur(gcAmt(T.t))}</span></div><div class="tot"><span>Maksettava</span><span>${eur(T.t-gcAmt(T.t))}</span></div>`:"")+`<div class="vat"><span>Veroton hinta</span><span>${eur(T.t-vat(T.t))}</span></div><div class="vat"><span>ALV 13,5 % (sisältyy hintaan)</span><span>${eur(vat(T.t))}</span></div>`;
   upsell();bonus();$("#odBarN").textContent=n;$("#odBarT").textContent=eur(T.t);$("#odBar").hidden=!n;
   const send=$("#odSend"),why=!CFG?"Ladataan…":!CFG.on?"Nettitilaus ei ole käytössä":!$("#odWhen").value?"Ei vapaita aikoja":(kind()==="kuljetus"&&cart.some(x=>x.c==="Tarjous"))?"Tarjous on vain noutona – valitse Nouto":!n?"Ostoskori on tyhjä":(kind()==="kuljetus"&&T.s<CFG.min?"Vähimmäistilaus kuljetukseen "+eur(CFG.min):"");
-  send.disabled=!!why;send.textContent=why||(ONLINE()?"Siirry maksamaan · ":"Lähetä tilaus · ")+eur(T.t)}
+  send.disabled=!!why;const pay=Math.round((T.t-gcAmt(T.t))*100)/100;send.textContent=why||(GC&&pay<=0?"Lähetä tilaus · maksettu lahjakortilla":(ONLINE()?"Siirry maksamaan · ":"Lähetä tilaus · ")+eur(pay))}
 $("#odLines").addEventListener("click",e=>{const b=e.target.closest("button[data-i]");if(!b)return;const x=cart[+b.dataset.i];x.q+=+b.dataset.d;if(x.q<1)cart.splice(+b.dataset.i,1);save();draw()});
 $("#odBar").onclick=()=>{$("#odCart").classList.add("open");setTimeout(()=>$("#odClose").focus(),30)};
 $("#odClose").onclick=()=>$("#odCart").classList.remove("open");
@@ -280,14 +281,14 @@ $("#odForm").onsubmit=async e=>{e.preventDefault();const f=e.target,send=$("#odS
   if(k==="kuljetus"){if(!/\d/.test(v("a"))){alert("Lisää katuosoitteeseen talon numero.");f.elements.a.focus();return}if(!/^\d{5}$/.test(v("z"))){alert("Tarkista postinumero (5 numeroa).");f.elements.z.focus();return}}
   ls.set("mk_me",{n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),z:v("z"),ci:v("ci")});
   send.disabled=true;send.textContent="Lähetetään…";clearTimeout(fT);await checkFirst();if(RWSEL&&SBC){try{const{data:{session}}=await SBC.auth.getSession();if(session)BON.at=session.access_token}catch(e){}}const T0=totals();send.disabled=true;send.textContent="Lähetetään…";
-  try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),dn:v("dn"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,vt:(ls.get("mk_vt")||{})[v("e").toLowerCase()]||"",vc:VC,cp:T0.rw?T0.rw.id:"",at:T0.rw?BON.at:"",pay:($('input[name="pay"]:checked')||{}).value||"kortti",pt:PT,total:T0.t,
+  try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),dn:v("dn"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,vt:(ls.get("mk_vt")||{})[v("e").toLowerCase()]||"",vc:VC,cp:T0.rw?T0.rw.id:"",at:T0.rw?BON.at:"",gc:GC?GC.code:"",pay:($('input[name="pay"]:checked')||{}).value||"kortti",pt:PT,total:T0.t,
       items:cart.map(x=>({c:x.c,n:x.n,s:x.s,o:x.o,t:x.t,tx:x.tx,x:x.x,meal:x.meal,l:x.l,pt:x.pt,d:x.d,dr:x.dr,hot:x.hot,sp:x.sp,q:x.q,m:x.m}))});
     VC="";if(r.vt){const t=ls.get("mk_vt")||{};t[v("e").toLowerCase()]=r.vt;ls.set("mk_vt",t)}
     if(r.pay_url){try{const im=x=>{const f=IMG[x.n]||(x.c==="Wings"?"wings":"");return f?T+(f.includes(".")?f:f+".webp"):""};ls.set("mk_paying",{t:r.t,e:v("e"),name:v("n").split(" ")[0],kind:k,cp:T0.rw?T0.rw.id:"",items:cart.filter(x=>x.c!=="Päivän pizza").map(x=>({...x,img:im(x)}))})}catch(e){}
       send.textContent="Siirrytään maksamaan…";location.href=r.pay_url;return}
-    $("#odDoneT").innerHTML=`Tilausnumerosi on <b>#${r.no}</b>.${r.discount?" Sait alennusta "+eur(r.discount)+".":""} Lähetimme vahvistuksen osoitteeseen ${esc(v("e"))}.${r.earn?(BON.pts==null?" Tästä tilauksesta kertyy <b>+"+r.earn+" bonuspistettä</b> – <a href=\"tili.html\" style=\"color:#E3A51C;font-weight:700\">luo tili samalla sähköpostilla</a>, niin näet ja voit käyttää ne.":" Saat tilauksesta <b>+"+r.earn+" bonuspistettä</b>, kun se on luovutettu."):""}<br><br>Saat toisen viestin, kun olemme hyväksyneet tilauksen ja ${k==="kuljetus"?"arvioineet toimitusajan":"tiedämme valmistumisajan"}. Kiireellisissä asioissa soita 045 353 7000.`;
+    $("#odDoneT").innerHTML=`Tilausnumerosi on <b>#${r.no}</b>.${r.discount?" Sait alennusta "+eur(r.discount)+".":""}${r.gift?" Lahjakortilla maksettiin "+eur(r.gift)+".":""} Lähetimme vahvistuksen osoitteeseen ${esc(v("e"))}.${r.earn?(BON.pts==null?" Tästä tilauksesta kertyy <b>+"+r.earn+" bonuspistettä</b> – <a href=\"tili.html\" style=\"color:#E3A51C;font-weight:700\">luo tili samalla sähköpostilla</a>, niin näet ja voit käyttää ne.":" Saat tilauksesta <b>+"+r.earn+" bonuspistettä</b>, kun se on luovutettu."):""}<br><br>Saat toisen viestin, kun olemme hyväksyneet tilauksen ja ${k==="kuljetus"?"arvioineet toimitusajan":"tiedämme valmistumisajan"}. Kiireellisissä asioissa soita 045 353 7000.`;
     try{const im=x=>{const f=IMG[x.c==="Päivän pizza"?x.n:x.n]||(x.c==="Wings"?"wings":"");return f?T+(f.includes(".")?f:f+".webp"):""};ls.set("mk_last",{no:r.no,date:new Date().toISOString(),total:r.total,name:v("n").split(" ")[0],items:cart.filter(x=>x.c!=="Päivän pizza").map(x=>({...x,img:im(x)}))})}catch(e){}
-    if(T0.rw)BON.cps=BON.cps.filter(c=>c.id!==T0.rw.id);RWSEL=null;cart=[];save();draw();$("#odCart").classList.remove("open");$("#odDone").hidden=false}
+    if(T0.rw)BON.cps=BON.cps.filter(c=>c.id!==T0.rw.id);RWSEL=null;GC=null;cart=[];save();draw();$("#odCart").classList.remove("open");$("#odDone").hidden=false}
   catch(x){if(x.j&&x.j.need){
       if(x.j.need==="verify"||VC==="RESEND"){try{await call({action:"verify_send",e:v("e"),p:v("p")})}catch(y){VC="";alert(y.message);draw();return}}
       const c=await codeAsk(v("e"),x.j.need==="code"||VC?x.j.error:"");if(!c){VC="";draw();return}
@@ -308,6 +309,12 @@ async function payReturn(){const q=new URLSearchParams(location.search),t=q.get(
   else{D.querySelector("h3").textContent=r&&r.status==="maksu"?"Maksu käsittelyssä":"Maksua ei löytynyt";
     DT.innerHTML=r&&r.status==="maksu"?"Maksusi on vielä käsittelyssä. Saat vahvistuksen sähköpostiin heti, kun se on valmis. Älä tee tilausta uudelleen – soita tarvittaessa 045 353 7000.":"Tilausta ei veloitettu. Ostoskorisi on tallessa – voit yrittää uudelleen tai soittaa 045 353 7000."}
   try{localStorage.removeItem("mk_paying")}catch(e){}}
+async function gcUse(code){const m=$("#odGcMsg"),b=$("#odGcBtn");code=String(code||"").trim().toUpperCase().replace(/\s+/g,"");if(!code){GC=null;m.textContent="";draw();return}
+  b.disabled=true;m.textContent="Tarkistetaan…";try{const r=await call({action:"gift_check",code});GC={code:r.code,balance:r.balance};m.innerHTML=`Lahjakortti käytössä · saldo <b>${eur(r.balance)}</b> <button type="button" class="od-gcx" id="odGcX">Poista</button>`;$("#odGcIn").value=r.code;$("#odGc").open=true}
+  catch(x){GC=null;m.textContent=x.message}b.disabled=false;draw()}
+$("#odGcBtn").onclick=()=>gcUse($("#odGcIn").value);$("#odGcIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();gcUse(e.target.value)}});
+document.addEventListener("click",e=>{if(e.target.id==="odGcX"){GC=null;$("#odGcIn").value="";$("#odGcMsg").textContent="";draw()}});
+{const q=new URLSearchParams(location.search).get("lahjakortti");if(q){$("#odGcIn").value=q;setTimeout(()=>gcUse(q),400)}}
 menu();draw();load().then(()=>{kindUi();draw()});bonusLoad();payReturn();
 {const q=new URLSearchParams(location.search).get("tarjous");if(q&&offOf(q))setTimeout(()=>open("Tarjous",q),300)}
 setInterval(()=>{if(document.visibilityState==="visible")load()},120000);

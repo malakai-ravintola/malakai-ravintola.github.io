@@ -35,6 +35,14 @@ export const infoBox = (rows: [string, string][]) => `<table role="presentation"
   rows.map(([a, b], i) => `<tr><td style="padding:10px 16px;${i ? `border-top:1px solid ${LINE};` : ""}font:13px Arial,Helvetica,sans-serif;color:${MUT};width:38%">${esc(a)}</td><td style="padding:10px 16px;${i ? `border-top:1px solid ${LINE};` : ""}font:bold 14px Arial,Helvetica,sans-serif;color:${INK}">${esc(b)}</td></tr>`).join("") + `</table>`;
 export const btn = (href: string, t: string, alt = false) => `<a href="${href}" style="display:inline-block;background:${alt ? "#ffffff" : R};color:${alt ? INK : "#ffffff"};border:${alt ? `1.5px solid ${INK}` : `1.5px solid ${R}`};text-decoration:none;font:bold 15px Arial,Helvetica,sans-serif;padding:13px 24px;border-radius:999px;margin:4px 6px 4px 0">${t}</a>`;
 export const big = (t: string, sub = "") => `<div style="background:${INK};border-radius:14px;padding:18px 20px;margin:18px 0;text-align:center"><div style="font:bold 12px Arial,Helvetica,sans-serif;letter-spacing:2px;color:${Y};text-transform:uppercase">${esc(sub)}</div><div style="font:bold 34px Arial,Helvetica,sans-serif;color:#ffffff;padding-top:4px">${esc(t)}</div></div>`;
+// Lahjakortti sähköpostiin: musta kortti, kultainen kehys, summa ja koodi
+export const giftCard = (amt: string, code: string, exp: string, msg = "", from = "") => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0"><tr><td style="background:${INK};border:2px solid ${Y};border-radius:18px;padding:26px 24px;text-align:center">
+<img src="${IMG}logo.png" width="64" height="64" alt="" style="display:inline-block;border:0;border-radius:50%">
+<div style="font:bold 12px Arial,Helvetica,sans-serif;letter-spacing:4px;color:${Y};padding-top:12px">LAHJAKORTTI</div>
+<div style="font:normal 54px Georgia,'Times New Roman',serif;color:#ffffff;padding:6px 0 4px">${esc(amt)}</div>
+${msg ? `<div style="font:italic 16px/1.5 Georgia,'Times New Roman',serif;color:#E8E2D6;padding:6px 10px 12px">“${esc(msg)}”${from ? `<br><span style="font:13px Arial,Helvetica,sans-serif;color:#BDBDBD">– ${esc(from)}</span>` : ""}</div>` : ""}
+<div style="display:inline-block;background:#ffffff;color:${INK};font:bold 24px 'Courier New',Courier,monospace;letter-spacing:3px;padding:12px 20px;border-radius:10px;margin-top:6px">${esc(code)}</div>
+<div style="font:13px Arial,Helvetica,sans-serif;color:#BDBDBD;padding-top:12px">Voimassa ${esc(exp)} asti · Malakai Ravintola, Lempäälä</div></td></tr></table>`;
 export const p = (t: string) => `<p style="margin:0 0 14px;font:16px/1.55 Arial,Helvetica,sans-serif;color:${INK}">${t}</p>`;
 export const textToHtml = (t: string) => esc(t).split(/\n{2,}/).map((x) => p(x.replace(/\n/g, "<br>"))).join("");
 export function shell(o: { pre: string; tag?: string; title: string; body: string; foot?: string }) {
@@ -63,6 +71,8 @@ export function orderSummary(o: any) {
   const rows: [string, string, string?][] = [["Välisumma", eur(o.subtotal)]];
   if (+o.fee) rows.push(["Kuljetus", eur(o.fee)]);
   if (+o.discount) rows.push([o.discount_note || "Alennus", "−" + eur(o.discount), "disc"]);
-  rows.push(["Yhteensä", eur(o.total), "tot"], [`josta ALV 13,5 %`, eur(vat), "small"], ["Maksutapa", o.pay === "netti" ? "Maksettu netissä" : `${o.pay === "kateinen" ? "Käteisellä" : "Kortilla"} ${del ? "toimitettaessa" : "noudettaessa"}`, "small"]);
+  rows.push(["Yhteensä", eur(o.total), "tot"], [`josta ALV 13,5 %`, eur(vat), "small"]);
+  if (+o.gift_amt) rows.push(["Lahjakortilla", "−" + eur(o.gift_amt), "disc"]);
+  rows.push(["Maksutapa", o.pay === "lahjakortti" ? "Lahjakortti" : o.pay === "netti" ? (+o.gift_amt ? `Loput ${eur(o.total - o.gift_amt)} maksettu netissä` : "Maksettu netissä") : `${o.pay === "kateinen" ? "Käteisellä" : "Kortilla"} ${del ? "toimitettaessa" : "noudettaessa"}`, "small"]);
   return itemsHtml(o.items || []) + sumHtml(rows);
 }

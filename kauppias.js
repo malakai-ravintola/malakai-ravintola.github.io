@@ -50,13 +50,14 @@ const IC={
  tilaukset:'<path d="M6 3h12l1 4H5zM5 7h14v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM9 11h6M9 15h6"/>',
  myynti:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
  tuotteet:'<path d="M4 6h16M4 12h16M4 18h10"/>',
+ lahjakortit:'<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8c-1.5-3-5-3.5-5-1s3 1 5 1c2 0 5 .5 5-1s-3.5-2-5 1"/>',
  kampanjat:'<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM15 9a3 3 0 0 1 0 6M18 6a7 7 0 0 1 0 12"/>',
  asiakkaat:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 4 6"/>',
  yritys:'<path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/>',
  ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'};
 const svg=k=>{const s=document.createElementNS("http://www.w3.org/2000/svg","svg");s.setAttribute("viewBox","0 0 24 24");s.setAttribute("fill","none");s.setAttribute("stroke","currentColor");s.setAttribute("stroke-width","1.8");s.setAttribute("stroke-linecap","round");s.setAttribute("stroke-linejoin","round");s.innerHTML=IC[k];return s};
-const NAV=[["koti","Koti"],["tilaukset","Tilaukset"],["myynti","Myyntiraportit"],["tuotteet","Tuotteet"],["kampanjat","Kampanjat"],["asiakkaat","Asiakkaat"],["yritys","Yritystiedot"]];
-const TITLE={koti:"Hei Hardi!",tilaukset:"Tilaukset",myynti:"Myyntiraportit",tuotteet:"Tuotteet",kampanjat:"Kampanjat",asiakkaat:"Asiakkaat",yritys:"Yritystiedot"};
+const NAV=[["koti","Koti"],["tilaukset","Tilaukset"],["myynti","Myyntiraportit"],["tuotteet","Tuotteet"],["kampanjat","Kampanjat"],["lahjakortit","Lahjakortit"],["asiakkaat","Asiakkaat"],["yritys","Yritystiedot"]];
+const TITLE={koti:"Hei Hardi!",tilaukset:"Tilaukset",myynti:"Myyntiraportit",tuotteet:"Tuotteet",kampanjat:"Kampanjat",lahjakortit:"Lahjakortit",asiakkaat:"Asiakkaat",yritys:"Yritystiedot"};
 
 function boot(){document.body.classList.add("in");
   $("#mn").onclick=()=>$("#dr").classList.add("open");$("#drx").onclick=()=>$("#dr").classList.remove("open");
@@ -97,7 +98,7 @@ const sumT=a=>Math.round(a.reduce((x,o)=>x+ +o.total,0)*100)/100;
 // ---------- Näkymät
 function render(){nav();newbar();const m=$("#m");m.textContent="";$("#ttl").textContent=TITLE[view]||(view="koti",TITLE.koti);
   if(ORD===null){m.append(mk("div",{class:"card"},mk("p",{class:"mut",text:"Ladataan…"})));return}
-  ({koti:vKoti,tilaukset:vTil,myynti:vRep,tuotteet:vProd,kampanjat:vCamp,asiakkaat:vCust,yritys:vYri})[view](m)}
+  ({koti:vKoti,tilaukset:vTil,myynti:vRep,tuotteet:vProd,kampanjat:vCamp,lahjakortit:vGift,asiakkaat:vCust,yritys:vYri})[view](m)}
 
 const dl1=(a,b,lbl)=>{const p=pct(a,b);return mk("div",{class:"dl"},mk("i",{class:p>=0?"up":"dn",text:(p>=0?"↑ ":"↓ ")+Math.abs(p)+" %"})," "+lbl)};
 function todayHours(){const k=wd(hToday()),h=(SITE.hours||{})[k];return h&&h[0]?h[0].replace(":",".")+"–"+h[1].replace(":","."):"suljettu"}
@@ -146,7 +147,7 @@ function ordCard(o){const del=o.kind==="kuljetus",pre=preOf(o.want),want=wantTxt
       del?mk("div",null,"Osoite: ",mk("b",{text:o.address+(o.apt?" "+o.apt:"")+", "+o.zip+" "+(o.city||"")}),o.door?mk("span",null," · Ovikoodi: ",mk("b",{text:o.door})):null,o.dnote?mk("div",null,"Kuljettajalle: ",mk("b",{text:o.dnote})):null," ",mk("a",{href:"https://maps.google.com/?q="+encodeURIComponent(o.address+", "+o.zip+" "+(o.city||"")),target:"_blank",rel:"noopener",text:"kartta"})):null),
     mk("ul",null,(o.items||[]).map(i=>mk("li",null,mk("b",{text:i.q+" × "+i.n}),i.opt?mk("small",{text:i.opt}):null,i.m?mk("em",{text:"Toive: "+i.m}):null))),
     o.note?mk("div",{class:"meta"},"Lisätiedot: ",mk("b",{text:o.note})):null,
-    mk("div",{class:"tot"},eur(o.total),mk("span",{text:"  sis. ALV "+eur(vatOf(+o.total))+" · "+(o.pay==="netti"?"MAKSETTU NETISSÄ":o.pay==="kateinen"?"KÄTEINEN":"KORTTI")+(o.fee>0?" · kuljetus "+eur(o.fee):"")+(o.discount>0?" · "+(o.discount_note||"alennus")+" −"+eur(o.discount):"")})));
+    mk("div",{class:"tot"},eur(o.total),mk("span",{text:"  sis. ALV "+eur(vatOf(+o.total))+" · "+(o.pay==="lahjakortti"?"LAHJAKORTTI":o.pay==="netti"?"MAKSETTU NETISSÄ":o.pay==="kateinen"?"KÄTEINEN":"KORTTI")+(+o.gift_amt?" (lahjakortti "+eur(+o.gift_amt)+")":"")+(o.fee>0?" · kuljetus "+eur(o.fee):"")+(o.discount>0?" · "+(o.discount_note||"alennus")+" −"+eur(o.discount):"")})));
   if(o.status==="uusi"){const now=new Date();
     c.append(mk("div",{class:"mut",text:"Hyväksy ja valitse "+(del?"toimitusaika":"valmistumisaika")+":"}),
       mk("div",{class:"etas"},(o.want==="heti"?[10,15,20,30,45,60]:[0]).map(mn=>{const t=o.want==="heti"?hm(new Date(now.getTime()+mn*60e3)):(pre?pre.t:o.want);return act(o.want==="heti"?mn+" min":"Vahvista "+wantTxt(o.want),()=>setOrd(o,"hyvaksytty",{eta:t}),"g")})),
@@ -192,28 +193,33 @@ function vRep(m){if(!repM)repM=hToday().slice(0,7);
   const pr={};ok.forEach(o=>(o.items||[]).forEach(i=>{const k=i.n+(i.opt&&/Perhe|Normaali/.test(i.opt)?" ("+i.opt.split(" · ")[0]+")":"");pr[k]=pr[k]||{q:0,s:0};pr[k].q+=+i.q;pr[k].s+=i.unit*i.q}));
   m.append(mk("section",{class:"card"},mk("h3",{text:"Myynti päivittäin"}),Object.keys(days).length?tb(["Päivä","Tilauksia","Myynti","ALV","Veroton"],Object.keys(days).sort().map(d=>{const g=sumT(days[d]),v=Math.round(days[d].reduce((x,o)=>x+vatOf(+o.total),0)*100)/100;return mk("tr",null,mk("td",{text:wd(d)+" "+fd(d)}),mk("td",{text:days[d].length}),mk("td",{text:eur(g)}),mk("td",{text:eur(v)}),mk("td",{text:eur(g-v)}))})):mk("p",{class:"mut",text:"Ei myyntiä."})),
     mk("section",{class:"card"},mk("h3",{text:"Myydyt tuotteet"}),Object.keys(pr).length?tb(["Tuote","Kpl","Myynti"],Object.entries(pr).sort((a,b)=>b[1].s-a[1].s).map(([k,v])=>mk("tr",null,mk("td",{text:k}),mk("td",{text:v.q}),mk("td",{text:eur(v.s)})))):mk("p",{class:"mut",text:"Ei myyntiä."})),
-    mk("section",{class:"card"},mk("h3",{text:"Kaikki tilaukset"}),REP.length?tb(["Nro","Pvm","Klo","Asiakas","Tapa","Maksu","Yhteensä","ALV","Tila"],REP.map(o=>mk("tr",{class:o.status==="peruttu"?"x":""},mk("td",{text:"#"+o.no}),mk("td",{text:fd(hDate(o.created_at))}),mk("td",{text:hm(o.created_at)}),mk("td",{text:o.name}),mk("td",{text:o.kind==="kuljetus"?"Kuljetus":"Nouto"}),mk("td",{text:o.pay==="netti"?"Netti":o.pay==="kateinen"?"Käteinen":"Kortti"}),mk("td",{text:eur(o.total)}),mk("td",{text:eur(vatOf(+o.total))}),mk("td",{text:o.status==="peruttu"?"Hylätty":"Myyty"})))):mk("p",{class:"mut",text:"Ei tilauksia tässä kuussa."})));
+    mk("section",{class:"card"},mk("h3",{text:"Kaikki tilaukset"}),REP.length?tb(["Nro","Pvm","Klo","Asiakas","Tapa","Maksu","Yhteensä","ALV","Tila"],REP.map(o=>mk("tr",{class:o.status==="peruttu"?"x":""},mk("td",{text:"#"+o.no}),mk("td",{text:fd(hDate(o.created_at))}),mk("td",{text:hm(o.created_at)}),mk("td",{text:o.name}),mk("td",{text:o.kind==="kuljetus"?"Kuljetus":"Nouto"}),mk("td",{text:o.pay==="lahjakortti"?"Lahjakortti":o.pay==="netti"?"Netti":o.pay==="kateinen"?"Käteinen":"Kortti"}),mk("td",{text:eur(o.total)}),mk("td",{text:eur(vatOf(+o.total))}),mk("td",{text:o.status==="peruttu"?"Hylätty":"Myyty"})))):mk("p",{class:"mut",text:"Ei tilauksia tässä kuussa."})));
   m.append(mk("section",{class:"card noprint"},mk("h3",{text:"Lataa kirjanpitoon"}),mk("p",{class:"mut",text:"Kirjanpitoraportti (PDF tai Excel) sisältää kaiken yhdessä tiedostossa: yhteenvedon, tilaukset, Stripen maksut, kulut ja palautukset sekä tilitykset pankkiin. Lähetä se tilitoimistolle kerran kuussa."}),
     mk("div",{class:"row"},
       act("Kirjanpitoraportti (PDF)",()=>pdfRep(ok,canc,days,pr),"y"),act("Kirjanpitoraportti (Excel)",()=>xlsRep(ok,canc,days,pr),"o"),
-      act("Tilaukset (CSV)",async()=>dl(`malakai-tilaukset-${repM}.csv`,["tilausnro;pvm;klo;asiakas;puhelin;sahkoposti;tapa;tuotteet_eur;kuljetus_eur;alennus_eur;yhteensa_eur;alv_13_5_eur;veroton_eur;tila;maksutapa"].concat(REP.map(o=>["#"+o.no,fd(hDate(o.created_at)),hm(o.created_at),q(o.name),q(o.phone),q(o.email),o.kind,fe2(o.subtotal),fe2(o.fee),fe2(o.discount),fe2(o.total),fe2(vatOf(+o.total)),fe2(+o.total-vatOf(+o.total)),o.status==="peruttu"?"hylatty":"myyty",o.pay==="netti"?"netti":o.pay==="kateinen"?"kateinen":"kortti"].join(";"))).join("\n")),"o"),
+      act("Tilaukset (CSV)",async()=>dl(`malakai-tilaukset-${repM}.csv`,["tilausnro;pvm;klo;asiakas;puhelin;sahkoposti;tapa;tuotteet_eur;kuljetus_eur;alennus_eur;yhteensa_eur;alv_13_5_eur;veroton_eur;tila;maksutapa"].concat(REP.map(o=>["#"+o.no,fd(hDate(o.created_at)),hm(o.created_at),q(o.name),q(o.phone),q(o.email),o.kind,fe2(o.subtotal),fe2(o.fee),fe2(o.discount),fe2(o.total),fe2(vatOf(+o.total)),fe2(+o.total-vatOf(+o.total)),o.status==="peruttu"?"hylatty":"myyty",o.pay==="lahjakortti"?"lahjakortti":o.pay==="netti"?"netti":o.pay==="kateinen"?"kateinen":"kortti"].join(";"))).join("\n")),"o"),
       act("Päivittäin (CSV)",async()=>dl(`malakai-myynti-paivittain-${repM}.csv`,["pvm;tilauksia;myynti_sis_alv_eur;alv_13_5_eur;veroton_eur"].concat(Object.keys(days).sort().map(d=>{const g=sumT(days[d]),v=Math.round(days[d].reduce((x,o)=>x+vatOf(+o.total),0)*100)/100;return[fd(d),days[d].length,fe2(g),fe2(v),fe2(g-v)].join(";")})).concat([["YHTEENSA",ok.length,fe2(gross),fe2(vat),fe2(net)].join(";")]).join("\n")),"o"),
       act("Tuotteet (CSV)",async()=>dl(`malakai-tuotteet-${repM}.csv`,["tuote;kpl;myynti_eur"].concat(Object.entries(pr).map(([k,v])=>[q(k),v.q,fe2(v.s)].join(";"))).join("\n")),"o"))))}
 
 // ---------- Kirjanpitoraportti (Excel): yhteenveto, tilaukset, Stripe-tapahtumat, tilitykset, päivittäin, tuotteet
 let XLSXP=null;const xlsLib=()=>XLSXP||(XLSXP=new Promise((res,rej)=>{if(window.XLSX)return res(window.XLSX);const s=document.createElement("script");s.src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";s.onload=()=>res(window.XLSX);s.onerror=()=>{XLSXP=null;rej(new Error("Excel-kirjaston lataus epäonnistui"))};document.head.append(s)}));
 async function repData(ok,canc,days,pr){const [y,mo]=repM.split("-").map(Number);
-  const r2=n=>Math.round((+n||0)*100)/100,V=o=>r2(vatOf(+o.total)),PAY=o=>o.pay==="netti"?"Netti (Stripe)":o.pay==="kateinen"?"Käteinen":"Kortti";
+  const r2=n=>Math.round((+n||0)*100)/100,V=o=>r2(vatOf(+o.total)),PAY=o=>o.pay==="lahjakortti"?"Lahjakortti":o.pay==="netti"?(+o.gift_amt?"Netti + lahjakortti":"Netti (Stripe)"):o.pay==="kateinen"?"Käteinen":"Kortti";
   const from=Math.floor(new Date(y,mo-1,1).getTime()/1000),to=Math.floor(new Date(y,mo,1).getTime()/1000);
   let S={tx:[],po:[]};try{S=await api("stripe_month",{from,to})}catch(e){S={tx:[],po:[],txErr:e.message}}
+  const fI=new Date(from*1000).toISOString(),tI=new Date(to*1000).toISOString();
+  const [gs,gu,ga]=await Promise.all([SB.from("gift_cards").select("amount").gte("paid_at",fI).lt("paid_at",tI),SB.from("gift_card_uses").select("amount,note").gte("created_at",fI).lt("created_at",tI),SB.from("gift_cards").select("balance,expires_at").eq("status","aktiivinen")]);
+  const GS=gs.data||[],GU=gu.data||[],GA=(ga.data||[]).filter(g=>!g.expires_at||Date.parse(g.expires_at)>Date.now());
+  const gUse=k=>r2(GU.filter(u=>k?/Kassa/.test(u.note||""):!/Kassa/.test(u.note||"")).reduce((s,u)=>s+ +u.amount,0));
   const dt=s=>{const d=new Date(s*1000);return d.toLocaleDateString("fi-FI",{timeZone:"Europe/Helsinki"})},TY={charge:"Maksu",payment:"Maksu",refund:"Palautus",payment_refund:"Palautus",payout:"Tilitys pankkiin",stripe_fee:"Stripen maksu",adjustment:"Oikaisu",application_fee:"Kulu"};
   const tx=S.tx||[],po=S.po||[],chg=tx.filter(x=>x.type==="charge"||x.type==="payment"),rf=tx.filter(x=>/refund/.test(x.type)),oth=tx.filter(x=>!/charge|payment|refund|payout/.test(x.type)||x.type==="payment_refund");
   const sm=(a,k)=>r2(a.reduce((s,x)=>s+(+x[k]||0),0)),fees=r2(tx.filter(x=>x.type!=="payout").reduce((s,x)=>s+(+x.fee||0),0))+r2(-oth.filter(x=>x.type==="stripe_fee").reduce((s,x)=>s+x.amount,0));
-  const gross=sm(ok,"total"),vat=r2(ok.reduce((s,o)=>s+V(o),0)),by=k=>ok.filter(o=>o.pay===k);
+  const gross=sm(ok,"total"),vat=r2(ok.reduce((s,o)=>s+V(o),0)),by=k=>ok.filter(o=>o.pay===k),paid=a=>r2(a.reduce((s,o)=>s+ +o.total-(+o.gift_amt||0),0)),giftPaid=sm(ok,"gift_amt");
   const MN=["tammikuu","helmikuu","maaliskuu","huhtikuu","toukokuu","kesäkuu","heinäkuu","elokuu","syyskuu","lokakuu","marraskuu","joulukuu"][mo-1];
   const sum=[["Malakai Ravintola – nettitilausten kirjanpitoraportti"],["Y-tunnus 3305891-1 · Tampereentie 414, 33880 Lempäälä"],["Kausi",MN+" "+y],["Laadittu",new Date().toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})],[],
     ["MYYNTI (toimitetut tilaukset)","€"],["Tuotemyynti",sm(ok,"subtotal")],["Kuljetusmaksut",sm(ok,"fee")],["Alennukset ja bonuskupongit",-sm(ok,"discount")],["Myynti yhteensä (sis. ALV)",gross],["josta ALV 13,5 %",vat],["Veroton myynti",r2(gross-vat)],["Tilauksia (kpl)",ok.length],["Hylätyt / perutut (kpl)",canc.length],[],
-    ["MAKSUTAVAT","kpl","€"],["Maksettu netissä (Stripe)",by("netti").length,sm(by("netti"),"total")],["Kortilla paikan päällä",by("kortti").length,sm(by("kortti"),"total")],["Käteisellä paikan päällä",by("kateinen").length,sm(by("kateinen"),"total")],[],
+    ["MAKSUTAVAT","kpl","€"],["Maksettu netissä (Stripe)",by("netti").length,paid(by("netti"))],["Kortilla paikan päällä",by("kortti").length,paid(by("kortti"))],["Käteisellä paikan päällä",by("kateinen").length,paid(by("kateinen"))],["Lahjakortilla",ok.filter(o=>+o.gift_amt>0).length,giftPaid],[],
+    ["LAHJAKORTIT","kpl","€"],["Myydyt lahjakortit (maksettu Stripellä)",GS.length,r2(GS.reduce((s,g)=>s+ +g.amount,0))],["Käytetty nettitilauksissa","",gUse(false)],["Käytetty kassalla","",gUse(true)],["Voimassa oleva saldo yhteensä",GA.length,r2(GA.reduce((s,g)=>s+ +g.balance,0))],["Huom: lahjakortin myynti ei ole ALV-myyntiä – ALV 13,5 % tilitetään, kun lahjakortti käytetään."],[],
     ["STRIPE (nettimaksut)","€"],["Maksut brutto",sm(chg,"amount")],["Palautukset asiakkaille",sm(rf,"amount")],["Stripen kulut (sis. maksukulut)",-r2(sm(tx.filter(x=>x.type!=="payout"),"fee")+(-sm(oth.filter(x=>x.type==="stripe_fee"),"amount")))],["Netto Stripe-saldoon",r2(sm(tx.filter(x=>x.type!=="payout"),"net"))],["Tilitykset pankkitilille",r2(-sm(tx.filter(x=>x.type==="payout"),"amount"))||sm(po.filter(p=>p.status!=="failed"&&p.status!=="canceled"),"amount")],
     [],["Huom: Stripen kulut laskutetaan Irlannista (Stripe Payments Europe Ltd.) – käännetty verovelvollisuus. Kuukausittainen kululasku löytyy Stripestä: Settings → Documents."]].concat(S.txErr?[["Stripe-tietoja ei saatu: "+S.txErr]]:[]);
   const ord=[["Tilausnro","Pvm","Klo","Asiakas","Tapa","Maksutapa","Tuotteet €","Kuljetus €","Alennus €","Yhteensä €","ALV 13,5 % €","Veroton €","Tila","Palautettu","Stripe-viite"]].concat(REP.map(o=>["#"+o.no,fd(hDate(o.created_at)),hm(o.created_at),o.name,o.kind==="kuljetus"?"Kuljetus":"Nouto",PAY(o),r2(o.subtotal),r2(o.fee),r2(o.discount),r2(o.total),V(o),r2(+o.total-V(o)),o.status==="peruttu"?"Hylätty":"Myyty",o.pay_status==="palautettu"?"Kyllä":"",o.stripe_pi||""]));
@@ -221,7 +227,7 @@ async function repData(ok,canc,days,pr){const [y,mo]=repM.split("-").map(Number)
   const spo=[["Luotu","Pankissa","Summa €","Tila","Viite"]].concat(po.slice().sort((a,b)=>a.created-b.created).map(p=>[dt(p.created),dt(p.arrival),p.amount,{paid:"Maksettu",pending:"Odottaa",in_transit:"Matkalla",failed:"Epäonnistui",canceled:"Peruttu"}[p.status]||p.status,p.id]));
   const dd=[["Päivä","Tilauksia","Myynti €","ALV €","Veroton €"]].concat(Object.keys(days).sort().map(d=>{const g=r2(days[d].reduce((s,o)=>s+ +o.total,0)),v=r2(days[d].reduce((s,o)=>s+V(o),0));return[fd(d),days[d].length,g,v,r2(g-v)]}));
   const pp=[["Tuote","Kpl","Myynti €"]].concat(Object.entries(pr).sort((a,b)=>b[1].s-a[1].s).map(([k,v])=>[k,v.q,r2(v.s)]));
-  return {sum,ord,stx,spo,dd,pp,MN,y,gross,vat,ok,canc,by,sm,chg,rf,tx,po,oth,S,r2}}
+  return {sum,ord,stx,spo,dd,pp,MN,y,gross,vat,ok,canc,by,sm,chg,rf,tx,po,oth,S,r2,paid,giftPaid,GS,GA,gUse}}
 async function xlsRep(ok,canc,days,pr){const X=await xlsLib(),D=await repData(ok,canc,days,pr);
   const wb=X.utils.book_new(),add=(rows,name,w)=>{const ws=X.utils.aoa_to_sheet(rows);ws["!cols"]=w.map(c=>({wch:c}));X.utils.book_append_sheet(wb,ws,name)};
   add(D.sum,"Yhteenveto",[42,14,14]);add(D.ord,"Tilaukset",[10,11,7,22,10,15,11,11,10,11,12,11,9,10,30]);add(D.stx,"Stripe-tapahtumat",[11,18,30,11,14,11,14,30]);add(D.spo,"Tilitykset pankkiin",[11,11,11,12,30]);add(D.dd,"Myynti päivittäin",[14,10,12,10,12]);add(D.pp,"Tuotteet",[34,8,12]);
@@ -243,7 +249,9 @@ async function pdfRep(ok,canc,days,pr){const J=await pdfLib(),D=await repData(ok
   const kv=(rows,b)=>rows.map(r=>[r[0],{content:E(r[1]),styles:{halign:"right",fontStyle:b&&b.includes(r[0])?"bold":"normal"}}]);
   const sm=D.sm,by=D.by,R=D.r2;
   sec("Myynti",["Erä","Summa"],kv([["Tuotemyynti",sm(D.ok,"subtotal")],["Kuljetusmaksut",sm(D.ok,"fee")],["Alennukset ja bonuskupongit",-sm(D.ok,"discount")],["Myynti yhteensä (sis. ALV)",D.gross],["josta ALV 13,5 %",D.vat],["Veroton myynti",R(D.gross-D.vat)]],["Myynti yhteensä (sis. ALV)"]),{columnStyles:{1:{cellWidth:45}}});
-  sec("Maksutavat",["Maksutapa","Kpl","Summa"],[["Maksettu netissä (Stripe)",by("netti").length,sm(by("netti"),"total")],["Kortilla paikan päällä",by("kortti").length,sm(by("kortti"),"total")],["Käteisellä paikan päällä",by("kateinen").length,sm(by("kateinen"),"total")],["Hylätyt / perutut tilaukset",D.canc.length,""]].map(r=>[r[0],{content:String(r[1]),styles:{halign:"right"}},{content:r[2]===""?"":E(r[2]),styles:{halign:"right"}}]),{columnStyles:{1:{cellWidth:20},2:{cellWidth:45}}});
+  sec("Maksutavat",["Maksutapa","Kpl","Summa"],[["Maksettu netissä (Stripe)",by("netti").length,D.paid(by("netti"))],["Kortilla paikan päällä",by("kortti").length,D.paid(by("kortti"))],["Käteisellä paikan päällä",by("kateinen").length,D.paid(by("kateinen"))],["Lahjakortilla",D.ok.filter(o=>+o.gift_amt>0).length,D.giftPaid],["Hylätyt / perutut tilaukset",D.canc.length,""]].map(r=>[r[0],{content:String(r[1]),styles:{halign:"right"}},{content:r[2]===""?"":E(r[2]),styles:{halign:"right"}}]),{columnStyles:{1:{cellWidth:20},2:{cellWidth:45}}});
+  sec("Lahjakortit",["Erä","Kpl","Summa"],[["Myydyt lahjakortit",D.GS.length,R(D.GS.reduce((s,g)=>s+ +g.amount,0))],["Käytetty nettitilauksissa","",D.gUse(false)],["Käytetty kassalla","",D.gUse(true)],["Voimassa oleva saldo yhteensä",D.GA.length,R(D.GA.reduce((s,g)=>s+ +g.balance,0))]].map(r=>[r[0],{content:String(r[1]),styles:{halign:"right"}},{content:E(r[2]),styles:{halign:"right"}}]),{columnStyles:{1:{cellWidth:20},2:{cellWidth:45}}});
+  doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(...MUT);doc.text("Lahjakortin myynti ei ole ALV-myyntiä – ALV 13,5 % tilitetään, kun lahjakortti käytetään.",14,yy-4);yy+=4;
   const st=D.sum.slice(D.sum.findIndex(r=>r[0]==="STRIPE (nettimaksut)")+1).filter(r=>r.length===2&&typeof r[1]==="number");
   sec("Stripe – nettimaksut",["Erä","Summa"],kv(st,["Netto Stripe-saldoon"]),{columnStyles:{1:{cellWidth:45}}});
   doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(...MUT);doc.text(doc.splitTextToSize("Stripen kulut laskuttaa Stripe Payments Europe Ltd. (Irlanti) – käännetty verovelvollisuus. Kuukausittainen kululasku: Stripe > Settings > Documents."+(D.S.txErr?" Stripe-tietoja ei saatu: "+D.S.txErr:""),182),14,yy-4);yy+=6;
@@ -255,6 +263,30 @@ async function pdfRep(ok,canc,days,pr){const J=await pdfLib(),D=await repData(ok
   sec("Myydyt tuotteet",["Tuote","Kpl","Myynti"],num(D.pp.slice(1),[2]));
   const n=doc.internal.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(7.5);doc.setTextColor(...MUT);doc.text("Malakai Ravintola · Kirjanpitoraportti "+D.MN+" "+D.y,14,290);doc.text("Sivu "+i+" / "+n,W-14,290,{align:"right"})}
   doc.save(`Malakai-kirjanpito-${repM}.pdf`);toast("PDF ladattu")}
+
+// ---------- Lahjakortit: haku, käyttö kassalla, lista
+let GCL=null,GCQ="";
+async function gcLoad(){const{data,error}=await SB.from("gift_cards").select("*,gift_card_uses(amount,note,order_no,created_at)").neq("status","maksu").order("created_at",{ascending:false}).limit(300);if(error)throw new Error(error.message);GCL=data||[]}
+function vGift(m){if(GCL===null){m.append(mk("p",{class:"mut",text:"Ladataan…"}));gcLoad().then(render).catch(e=>{GCL=[];toast(e.message,true);render()});return}
+  const st={aktiivinen:"Voimassa",kaytetty:"Käytetty",peruttu:"Peruttu"},now=Date.now(),act0=GCL.filter(g=>g.status==="aktiivinen"&&(!g.expires_at||Date.parse(g.expires_at)>now));
+  const sumA=(a,k)=>a.reduce((s,g)=>s+ +g[k],0);
+  m.append(mk("div",{class:"tiles"},mk("div",{class:"tile"},mk("small",{text:"Myyty yhteensä"}),mk("b",{text:GCL.length+" kpl · "+eur(sumA(GCL,"amount"))})),mk("div",{class:"tile"},mk("small",{text:"Voimassa oleva saldo"}),mk("b",{text:eur(sumA(act0,"balance"))})),mk("div",{class:"tile"},mk("small",{text:"Käytetty"}),mk("b",{text:eur(sumA(GCL,"amount")-sumA(GCL,"balance"))}))));
+  const q=mk("input",{placeholder:"MALA-XXXX-XXXX tai nimi / sähköposti",value:GCQ,autocapitalize:"characters"});q.oninput=()=>{GCQ=q.value;draw()};
+  const list=mk("div");m.append(mk("section",{class:"card"},mk("h3",{text:"Hae lahjakortti"}),mk("p",{class:"mut",text:"Kun asiakas maksaa lahjakortilla kassalla, hae koodi ja veloita summa – saldo päivittyy heti."}),lab("Koodi tai nimi",q)),list,
+    mk("section",{class:"card"},mk("h3",{text:"Lahjakorttisivu asiakkaille"}),mk("p",{class:"mut",text:"Asiakkaat ostavat lahjakortin osoitteesta malakairavintola.fi/lahjakortti.html – maksu Stripellä, kortti lähetetään sähköpostiin."}),mk("div",{class:"row"},mk("a",{class:"btn o",href:"lahjakortti.html",target:"_blank",rel:"noopener",text:"Avaa lahjakorttisivu"}))));
+  const card=g=>{const exp=g.expires_at?fd(hDate(g.expires_at)):"–",old=g.expires_at&&Date.parse(g.expires_at)<now;
+    const amt=mk("input",{type:"number",min:"0.01",step:"0.01",placeholder:"Summa €",style:"max-width:140px"});
+    const uses=(g.gift_card_uses||[]).slice().sort((a,b)=>a.created_at<b.created_at?-1:1);
+    return mk("section",{class:"card"},mk("div",{class:"row",style:"justify-content:space-between;align-items:center"},mk("h3",{style:"margin:0;font-family:Courier New,monospace;letter-spacing:.08em",text:g.code}),mk("span",{class:"pill",text:old?"Vanhentunut":st[g.status]||g.status})),
+      mk("div",{class:"kv"},mk("span",{text:"Saldo / arvo"}),mk("b",{text:eur(+g.balance)+" / "+eur(+g.amount)})),
+      mk("div",{class:"kv"},mk("span",{text:"Ostaja"}),mk("b",{text:(g.buyer_name||"")+" · "+g.buyer_email})),
+      g.mode==="gift"?mk("div",{class:"kv"},mk("span",{text:"Lahjan saaja"}),mk("b",{text:(g.recipient_name||"")+" · "+(g.recipient_email||"")})):null,
+      mk("div",{class:"kv"},mk("span",{text:"Ostettu · voimassa"}),mk("b",{text:(g.paid_at?fd(hDate(g.paid_at)):"–")+" · "+exp+" asti"})),
+      uses.length?mk("div",{class:"mut",style:"margin-top:8px;font-size:.85rem"},uses.map(u=>mk("div",{text:fd(hDate(u.created_at))+" · "+(+u.amount<0?"+"+eur(-u.amount):"−"+eur(+u.amount))+" · "+(u.note||"")+(u.order_no?" #"+u.order_no:"")}))):null,
+      g.status==="aktiivinen"&&!old&&+g.balance>0?mk("div",{class:"row",style:"margin-top:10px;align-items:center"},amt,act("Veloita kassalla",async()=>{const v=Math.round(+amt.value*100)/100;if(!(v>0))throw new Error("Kirjoita summa");if(!confirm(`Veloitetaanko ${eur(Math.min(v,+g.balance))} lahjakortilta ${g.code}?`))return;const r=await api("gift_use",{code:g.code,amount:v});toast(`Veloitettu ${eur(r.taken)} · saldoa jäljellä ${eur(r.balance)}`);await gcLoad();render()},"y")):null,
+      mk("div",{class:"row",style:"margin-top:8px"},act("Lähetä koodi uudelleen",async()=>{const to=prompt("Sähköpostiosoite:",g.mode==="gift"?g.recipient_email:g.buyer_email);if(!to)return;await api("gift_resend",{id:g.id,to});toast("Lähetetty: "+to)},"o")))};
+  const draw=()=>{list.textContent="";const v=GCQ.trim().toLowerCase().replace(/\s+/g,"");const L=v?GCL.filter(g=>[g.code,g.buyer_name,g.buyer_email,g.recipient_name,g.recipient_email].some(x=>String(x||"").toLowerCase().replace(/\s+/g,"").includes(v))):GCL.slice(0,20);
+    if(!L.length)list.append(mk("p",{class:"mut",text:v?"Ei osumia.":"Ei vielä myytyjä lahjakortteja."}));else L.forEach(g=>list.append(card(g)))};draw()}
 
 function vProd(m){const out=new Set(OCFG.soldout||[]),hid=new Set(OCFG.hidden||[]),M=SITE.menu||{},sq=mk("input",{type:"search",placeholder:"Hae tuotetta…"}),list=mk("div");
   const save=async(msg)=>{OCFG={...OCFG,soldout:[...out],hidden:[...hid]};try{await saveCfg(msg)}catch(e){toast(e.message,true)}};

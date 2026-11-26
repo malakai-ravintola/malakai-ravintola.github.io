@@ -300,3 +300,8 @@
 .od-bn-n{margin:10px 0 0;color:var(--om);font-size:.82rem}
 .od-bn-r{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))!important}
 .od-testpay{margin:8px 0 0;padding:8px 10px;border:1px dashed #E3A51C;border-radius:8px;background:#FFF8E6;color:#5b4300;font-size:.82rem;line-height:1.4}
+.od-gc{margin:12px 0 4px;border:1px solid #2a2a2a;border-radius:12px;padding:10px 12px;background:#0f0f0f}
+.od-gc summary{cursor:pointer;font:700 .92rem Inter,sans-serif;color:#E3A51C;list-style:none}.od-gc summary::-webkit-details-marker{display:none}.od-gc summary::before{content:"🎁 "}
+.od-gcr{display:flex;gap:8px;margin-top:10px}.od-gcr input{flex:1;min-width:0;text-transform:uppercase;letter-spacing:.08em;font-family:"Courier New",monospace!important}
+.od-gcr .btn{padding:10px 16px}
+.od-gcx{background:none;border:0;color:#9a9a9a;text-decoration:underline;cursor:pointer;font:inherit;margin-left:6px}
