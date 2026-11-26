@@ -13,6 +13,7 @@ const FI={"Invalid login credentials":"Väärä sähköposti tai salasana.","Ema
 const fi=e=>FI[e?.message]||(/rate limit/i.test(e?.message||"")?"Liian monta yritystä. Odota hetki ja yritä uudelleen.":(e?.message||"Jokin meni vikaan. Yritä uudelleen."));
 if(!C.url||!window.supabase){M.textContent="";M.append(mk("p",{class:"ac-mut",text:"Tilipalvelu ei latautunut. Tarkista nettiyhteys ja päivitä sivu."}));return}
 const SB=supabase.createClient(C.url,C.anon);
+const MYE=()=>String((USER&&USER.email)||"").toLowerCase();
 let USER=null,ORD=null,CFG=null,CUS=null,mode="in",poll=null,recovery=/type=recovery/.test(location.hash);
 
 async function pub(body){const r=await fetch(C.url+"/functions/v1/Public",{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+C.anon},body:JSON.stringify(body)});return r.json()}
@@ -21,15 +22,15 @@ SB.auth.onAuthStateChange((ev,s)=>{if(ev==="PASSWORD_RECOVERY"){recovery=true;US
 SB.auth.getSession().then(({data})=>{USER=data.session?.user||null;if(USER&&!recovery)load();else render()});
 
 async function load(){
-  const [o,c,g]=await Promise.all([SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city,rating").order("created_at",{ascending:false}).limit(60),
-    SB.from("customers").select("orders,spent,first_order,points").maybeSingle(),pub({action:"order_cfg"}).catch(()=>null)]);
+  const [o,c,g]=await Promise.all([SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city,rating").eq("email",MYE()).order("created_at",{ascending:false}).limit(60),
+    SB.from("customers").select("orders,spent,first_order,points").eq("email",MYE()).maybeSingle(),pub({action:"order_cfg"}).catch(()=>null)]);
   ORD=o.error?[]:o.data;CUS=c.data||null;CFG=g||CFG||{};
-  try{const bl=await SB.from("bonus_log").select("delta,note,created_at").order("created_at",{ascending:false}).limit(30);BLOG=bl.error?[]:bl.data}catch(e){BLOG=[]}
+  try{const bl=await SB.from("bonus_log").select("delta,note,created_at").eq("email",MYE()).order("created_at",{ascending:false}).limit(30);BLOG=bl.error?[]:bl.data}catch(e){BLOG=[]}
   const me=USER.user_metadata||{};ls.set("mk_me",{...(ls.get("mk_me")||{}),n:me.name||"",p:me.phone||"",e:USER.email,a:me.address||"",apt:me.apt||"",door:me.door||"",z:me.zip||"",ci:me.city||"Lempäälä"});
   try{const last=ORD.find(o=>o.status!=="peruttu"&&(o.items||[]).some(i=>i.c!=="Päivän pizza"));if(last)ls.set("mk_last",{no:last.no,date:last.created_at,total:last.total,name:(USER.user_metadata?.name||"").split(" ")[0],items:(last.items||[]).filter(i=>i.c!=="Päivän pizza").map(i=>({...toCart(i),img:IMGF(i.n,i.c)}))});else localStorage.removeItem("mk_last")}catch(e){}
-  render();clearInterval(poll);poll=setInterval(async()=>{if(document.hidden||!USER)return;const r=await SB.from("orders").select("id,status,eta,reason").in("status",["uusi","hyvaksytty","valmis"]);
+  render();clearInterval(poll);poll=setInterval(async()=>{if(document.hidden||!USER)return;const r=await SB.from("orders").select("id,status,eta,reason").eq("email",MYE()).in("status",["uusi","hyvaksytty","valmis"]);
     const open=(ORD||[]).filter(x=>["uusi","hyvaksytty","valmis"].includes(x.status));if(!open.length&&!(r.data||[]).length)return;
-    const fresh=await SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city,rating").order("created_at",{ascending:false}).limit(60);if(!fresh.error){ORD=fresh.data;render()}},20000)}
+    const fresh=await SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city,rating").eq("email",MYE()).order("created_at",{ascending:false}).limit(60);if(!fresh.error){ORD=fresh.data;render()}},20000)}
 
 // ---------- Näkymät
 function render(){M.textContent="";

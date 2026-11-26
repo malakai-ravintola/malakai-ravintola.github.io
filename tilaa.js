@@ -172,7 +172,7 @@ const bRules=()=>(CFG&&CFG.bonus)||{rate:1,rewards:[{id:"b2",eur:2,pts:40},{id:"
 const formEmail=()=>{const f=$("#odForm");return f?f.elements.e.value.trim().toLowerCase():""};
 function rwOk(r,t0){return !!r&&BON.pts!=null&&BON.pts>=r.pts&&formEmail()===BON.email&&t0>=r.eur*(bRules().minMul||2)}
 async function bonusLoad(){if(!SBC)return;try{const{data:{session}}=await SBC.auth.getSession();if(!session){BON={pts:null,email:"",at:""};return bonus()}
-  BON.email=String(session.user.email||"").toLowerCase();BON.at=session.access_token;const{data}=await SBC.from("customers").select("points").maybeSingle();BON.pts=+(data&&data.points)||0;
+  BON.email=String(session.user.email||"").toLowerCase();BON.at=session.access_token;const{data}=await SBC.from("customers").select("points").eq("email",BON.email).maybeSingle();BON.pts=+(data&&data.points)||0;
   const f=$("#odForm");if(f&&!f.elements.e.value)f.elements.e.value=BON.email}catch(e){}bonus();draw()}
 function bonus(){const el=$("#odStamps");if(!el)return;if(!cart.length){el.hidden=true;return}el.hidden=false;
   const B=bRules(),s=sub(),fee=kind()==="kuljetus"&&CFG?CFG.fee:0,pct=FIRST&&CFG?CFG.firstPct:0,t0=Math.round((s+fee-(pct?Math.round((s+fee)*pct)/100:0))*100)/100;
