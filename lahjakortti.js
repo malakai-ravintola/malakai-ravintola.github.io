@@ -25,5 +25,10 @@ async function back(){const q=new URLSearchParams(location.search),g=q.get("g"),
   let r=null;for(let i=0;i<12;i++){try{r=await call({action:"gift_status",g})}catch(_){}if(r&&r.status!=="maksu")break;await new Promise(z=>setTimeout(z,1500))}
   if(r&&(r.status==="aktiivinen"||r.status==="kaytetty"))D.innerHTML=`<div class="gc-ok"><div class="gc-ic">✓</div><h2>Kiitos! Lahjakortti on matkalla</h2><p>${r.gift?`Lähetimme ${eur(r.amount)} lahjakortin osoitteeseen <b>${esc(r.to)}</b>. Saat kuitin omaan sähköpostiisi.`:`Lähetimme ${eur(r.amount)} lahjakortin osoitteeseen <b>${esc(r.to)}</b>.`}</p><p class="gc-small">Viesti saapuu yleensä minuutin sisällä – tarkista tarvittaessa roskaposti.</p><div class="gc-row"><a class="btn r" href="tilaa.html">Tilaa ruokaa</a><a class="btn" href="lahjakortti.html">Osta toinen lahjakortti</a></div></div>`;
   else D.innerHTML=`<div class="gc-ok"><h2>Maksu käsittelyssä</h2><p>Lahjakortti lähetetään sähköpostiin heti, kun maksu on vahvistunut. Älä osta uudelleen – soita tarvittaessa 045 353 7000.</p></div>`}
+async function bal(){const i=$("#gcBalIn"),o=$("#gcBalRes"),c=i.value.trim().toUpperCase().replace(/\s+/g,"");if(!c)return;o.hidden=false;o.className="gc-balres";o.textContent="Tarkistetaan…";
+  try{const r=await call({action:"gift_check",code:c});o.innerHTML=`Saldo <b>${eur(r.balance)}</b>${r.expires?` · voimassa ${new Date(r.expires).toLocaleDateString("fi-FI")} asti`:""}<br><a href="tilaa.html?lahjakortti=${encodeURIComponent(r.code)}">Käytä nettitilauksessa →</a>`}
+  catch(x){o.className="gc-balres bad";o.textContent=x.message}}
+$("#gcBalBtn").onclick=bal;$("#gcBalIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();bal()}});
+{const q=new URLSearchParams(location.search).get("saldo");if(q){$("#gcBalIn").value=q;bal();setTimeout(()=>$("#saldo").scrollIntoView({block:"center"}),300)}}
 upd();back();
 })();

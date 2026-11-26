@@ -99,3 +99,7 @@
 .gc-ok h2{font:600 1.6rem "Playfair Display",serif!important;margin:0 0 10px}.gc-ok p{color:#d6d6d6;font:500 1rem/1.55 Inter,sans-serif!important}
 .gc-ic{width:58px;height:58px;margin:0 auto 12px;border-radius:50%;background:#E3A51C;color:#111;font:900 1.8rem/58px Inter}
 .gc-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.gc-bal{margin-top:22px;background:#121212;border:1px solid #262626;border-radius:18px;padding:18px}
+.gc-bal h2{font:700 1.05rem Inter,sans-serif!important;margin:0 0 4px;color:#fff}
+.gc-balr{display:flex;gap:8px;margin-top:10px}.gc-balr input{flex:1;min-width:0;background:#0b0b0b;border:1px solid #333;border-radius:12px;color:#fff;font:700 1rem "Courier New",monospace;letter-spacing:.08em;padding:12px 14px;text-transform:uppercase}
+.gc-balres{margin:12px 0 0;font:500 .95rem/1.5 Inter,sans-serif!important;color:#e8e2d6}.gc-balres b{color:#E3A51C;font-size:1.15rem}.gc-balres a{color:#E3A51C}.gc-balres.bad{color:#ffb4ba}
