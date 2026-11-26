@@ -68,7 +68,7 @@ function vReset(){$("#acH").innerHTML="Uusi <em>salasana</em>";$("#acSub").textC
 
 function vTop(){const nm=USER.user_metadata?.name||"";const ini=(nm||USER.email).split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
   M.append(mk("div",{class:"ac-card ac-top"},mk("span",{class:"ac-av",text:ini}),mk("div",null,mk("b",{text:nm||USER.email}),mk("small",{text:USER.email+(CUS?.first_order?" · asiakkaana "+fdt(CUS.first_order)+" alkaen":"")})),
-    mk("div",{class:"ac-quick"},mk("a",{class:"ac-btn",href:"tilaa.html",text:"Tilaa nyt"}),mk("button",{class:"ac-btn o",text:"Kirjaudu ulos",onclick:async()=>{clearInterval(poll);try{localStorage.removeItem("mk_last")}catch(e){}await SB.auth.signOut();toast("Kirjauduit ulos")}}))))}
+    mk("div",{class:"ac-quick"},mk("a",{class:"ac-btn",href:"tilaa.html",text:"Tilaa nyt"}),mk("button",{class:"ac-btn o",text:"Kirjaudu ulos",onclick:async()=>{clearInterval(poll);try{localStorage.removeItem("mk_last")}catch(e){}await SB.auth.signOut({scope:"local"});toast("Kirjauduit ulos")}}))))}
 
 const STEP={uusi:0,hyvaksytty:1,valmis:2,luovutettu:3};
 function vLive(){const act=ORD.filter(o=>["uusi","hyvaksytty","valmis"].includes(o.status));

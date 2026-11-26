@@ -152,8 +152,8 @@ body:not(.auth) .top,body:not(.auth) .hero,body:not(.auth) .dr,body:not(.auth) m
 <main class="w" id="main"></main>
 <div class="save" id="saveBar"><div class="w"><span id="saveTxt">Ei tallentamattomia muutoksia</span><button class="o" id="undo" disabled>Peru muutokset</button><button id="saveBtn" disabled>Tallenna ja julkaise</button></div></div>
 <div id="toast" hidden></div>
-<script src="data.js?v=1795695058"></script>
-<script src="config.js?v=1795695058"></script>
+<script src="data.js?v=1795695773"></script>
+<script src="config.js?v=1795695773"></script>
 <script>
 (function(){
 const REPO="malakai-ravintola/malakai-ravintola.github.io",BR="main",FILE="data.js";
@@ -309,7 +309,7 @@ if(C.url&&C.anon){const s=document.createElement("script");s.src="https://cdn.js
     SB.auth.getSession().then(async({data})=>{const ok=data.session&&String(data.session.user?.email||"").toLowerCase()===OWNER;if(!ok){if(data.session)await SB.auth.signOut({scope:"local"});return gate()}start();sbLoad()})};
   s.onerror=()=>{const g=$("#gate");g.textContent="Kirjautumisen lataus epäonnistui. Tarkista nettiyhteys ja päivitä sivu.";g.hidden=false};document.head.append(s)}
 else{const g=$("#gate");g.textContent="Kirjautuminen ei ole käytössä.";g.hidden=false}
-$("#lo").onclick=()=>SB&&SB.auth.signOut();
+$("#lo").onclick=()=>SB&&SB.auth.signOut({scope:"local"});
 function gate(){const g=$("#gate");g.textContent="";g.hidden=false;const em=mk("input",{type:"email",autocomplete:"username",required:true}),pw=mk("input",{type:"password",autocomplete:"current-password",required:true}),b=mk("button",{text:"Kirjaudu"});
   const f=mk("form",{class:"card"},mk("h2",{text:"Malakai ylläpito"}),mk("p",{class:"muted",text:"Vain omistajalle. Kirjaudu sähköpostilla ja salasanalla."}),lab("Sähköposti",em),lab("Salasana",pw),b);
   f.onsubmit=async e=>{e.preventDefault();b.disabled=true;const {data,error}=await SB.auth.signInWithPassword({email:em.value.trim(),password:pw.value});
@@ -609,7 +609,7 @@ function vRes(m){m.append(mk("h2",{text:"Varaukset"}));if(sbGate(m))return;const
   let arr=RES.filter(F[rf][1]);if(rf==="menneet"||rf==="peruttu"||rf==="kaikki")arr=arr.slice().reverse();
   const c=mk("div",{class:"card"});if(!arr.length)c.append(mk("p",{class:"muted",text:"Ei varauksia."}));
   let last="";arr.forEach(r=>{if(r.date!==last){last=r.date;c.append(mk("div",{class:"dhead",text:(r.date===t?"Tänään · ":"")+wd(r.date)+" "+fd(r.date)}))}c.append(resRow(r))});
-  m.append(c,act("Kirjaudu ulos varausjärjestelmästä",async()=>{await SB.auth.signOut();RES=SUB=null;render()},"o"))}
+  m.append(c,act("Kirjaudu ulos varausjärjestelmästä",async()=>{await SB.auth.signOut({scope:"local"});RES=SUB=null;render()},"o"))}
 function dayView(m){
   if(!dDay){const up=RES.filter(r=>r.date>=hToday()&&r.status!=="peruttu").map(r=>r.date).sort();dDay=up[0]||hToday()}
   const di=mk("input",{type:"date",value:dDay});di.onchange=()=>{dDay=di.value;render()};

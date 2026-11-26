@@ -27,9 +27,11 @@ function loginView(){const em=mk("input",{type:"email",autocomplete:"username",r
   $("#hd").hidden=true;$("#m").textContent="";$("#m").append(f)}
 SB.auth.onAuthStateChange(ev=>{if(ev==="SIGNED_OUT")location.reload()});
 SB.auth.getSession().then(async({data})=>{if(!isOwner(data.session)){if(data.session)await SB.auth.signOut({scope:"local"});return loginView()}boot()});
-async function api(action,d){const{data:{session}}=await SB.auth.getSession();if(!session)throw new Error("Kirjaudu uudelleen");
+async function api(action,d,again){const{data:{session}}=await SB.auth.getSession();if(!session)throw new Error("Kirjaudu uudelleen");
   const r=await fetch(C.url+"/functions/v1/admin",{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+session.access_token},body:JSON.stringify({action,...d})});
-  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Virhe "+r.status);return j}
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401&&!again){const{data:rf,error:re}=await SB.auth.refreshSession();if(!re&&rf?.session)return api(action,d,true);await SB.auth.signOut({scope:"local"}).catch(()=>{});location.reload();throw new Error("Kirjaudu uudelleen")}
+  if(!r.ok)throw new Error(j.error||"Virhe "+r.status);return j}
 
 // ---------- Tila
 let tab="uudet",sub="valmis",view="aktiiviset",ORD=null,CFG={},AC=null,seen=new Set(),wake=null;
@@ -253,6 +255,6 @@ function vSet(m){const tgl=(t,sub,on,fn,ok)=>mk("div",{class:"pr"},mk("span",nul
   mk("h3",{text:"Estetyt asiakkaat"}),
   ((CFG.blocked||{}).e||[]).length?((CFG.blocked||{}).e||[]).map((em,i)=>mk("div",{class:"pr"},mk("span",null,em,mk("br"),mk("small",{text:((CFG.blocked||{}).p||[])[i]||""})),btn("Poista esto",async()=>{const B={e:[...CFG.blocked.e],p:[...(CFG.blocked.p||[])]};B.e.splice(i,1);B.p.splice(i,1);CFG={...CFG,blocked:B};await saveCfg("Esto poistettu")},"o"))):mk("p",{style:"color:var(--mut)",text:"Ei estettyjä asiakkaita."}),
   mk("p",{style:"color:var(--mut);margin-top:18px",text:"Vinkki: pidä tämä sivu auki ja tabletti laturissa. Näytön lukitus kannattaa ottaa pois."}),
-  btn("Kirjaudu ulos",async()=>{await SB.auth.signOut()},"x"));
+  btn("Kirjaudu ulos",async()=>{await SB.auth.signOut({scope:"local"})},"x"));
   m.append(box)}
 })();

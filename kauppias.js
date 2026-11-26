@@ -37,9 +37,11 @@ function loginView(){document.body.classList.remove("in");$("#mn").hidden=true;$
 SB.auth.onAuthStateChange(ev=>{if(ev==="SIGNED_OUT")location.reload()});
 SB.auth.getSession().then(async({data})=>{if(!isOwner(data.session)){if(data.session)await SB.auth.signOut({scope:"local"});return loginView()}boot()});
 
-async function api(action,d){const {data:{session}}=await SB.auth.getSession();if(!session)throw new Error("Kirjaudu uudelleen");
+async function api(action,d,again){const{data:{session}}=await SB.auth.getSession();if(!session)throw new Error("Kirjaudu uudelleen");
   const r=await fetch(C.url+"/functions/v1/admin",{method:"POST",headers:{"Content-Type":"application/json",apikey:C.anon,Authorization:"Bearer "+session.access_token},body:JSON.stringify({action,...d})});
-  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Virhe "+r.status);return j}
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401&&!again){const{data:rf,error:re}=await SB.auth.refreshSession();if(!re&&rf?.session)return api(action,d,true);await SB.auth.signOut({scope:"local"}).catch(()=>{});location.reload();throw new Error("Kirjaudu uudelleen")}
+  if(!r.ok)throw new Error(j.error||"Virhe "+r.status);return j}
 
 // ---------- Tila
 let view=(location.hash||"#koti").slice(1),ORD=null,OCFG={},CUS=null,period="d",oSound=ls.get("ord_sound")==="1",oAC=null,oSeen=new Set(),oWake=null,oShowDone=false,repM=null,REP=null,repKey="";
@@ -58,7 +60,7 @@ const TITLE={koti:"Hei Hardi!",tilaukset:"Tilaukset",myynti:"Myyntiraportit",tuo
 
 function boot(){document.body.classList.add("in");
   $("#mn").onclick=()=>$("#dr").classList.add("open");$("#drx").onclick=()=>$("#dr").classList.remove("open");
-  $("#av").onclick=()=>go("yritys");$("#lo").onclick=()=>SB.auth.signOut();
+  $("#av").onclick=()=>go("yritys");$("#lo").onclick=()=>SB.auth.signOut({scope:"local"});
   addEventListener("hashchange",()=>{const v=location.hash.slice(1);if(v&&v!==view){view=v;render()}});
   ordLoad().then(render).catch(e=>{toast(e.message,true);ORD=[];render()});
   setInterval(()=>{if(!document.hidden||view==="tilaukset")ordLoad().catch(()=>{})},10000);
@@ -249,5 +251,5 @@ function vYri(m){const c=OCFG,kv=(k,v)=>mk("div",{class:"kv"},mk("span",{text:k}
     mk("div",{class:"g3"},f("dtime","Kuljetuksen toimitusaika (min)",{type:"number",min:"10"}),f("area","Toimitusalue (näkyy asiakkaalle)"),f("note","Ilmoitus tilaussivulle")),
     mk("div",{class:"g3"},f("preDays","Ennakkotilaus päiviä eteenpäin (0 = pois)",{type:"number",min:"0",max:"7"})),
     act("Tallenna asetukset",async()=>saveCfg("Asetukset tallennettu"),"y")),
-    mk("section",{class:"card"},mk("h2",{text:"Tili"}),mk("p",{class:"mut",text:"Kauppiasportaaliin ja ylläpitoon pääsee vain omistajan sähköpostilla ja salasanalla. Kirjaudu ulos, jos käytät yhteistä laitetta."}),act("Kirjaudu ulos",async()=>SB.auth.signOut(),"r")))}
+    mk("section",{class:"card"},mk("h2",{text:"Tili"}),mk("p",{class:"mut",text:"Kauppiasportaaliin ja ylläpitoon pääsee vain omistajan sähköpostilla ja salasanalla. Kirjaudu ulos, jos käytät yhteistä laitetta."}),act("Kirjaudu ulos",async()=>SB.auth.signOut({scope:"local"}),"r")))}
 })();
