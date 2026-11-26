@@ -153,7 +153,7 @@ function card(o,ro){const del=o.kind==="kuljetus",pre=preOf(o.want);
       o.want==="heti"?etaPick(o,del)
         :btn("Hyväksy "+wantTxt(o.want),()=>setOrd(o,"hyvaksytty",{eta:pre?pre.t:o.want}),"g wide"),
       btn("Hylkää tilaus",()=>rejectSheet(o),"x")))}
-  else if(o.status==="hyvaksytty")c.append(cdown(o),mk("div",{class:"acts"},btn(del?"Lähti kuljetukseen":"Valmis noudettavaksi",()=>setOrd(o,"valmis",{notify:true}),"g wide")));
+  else if(o.status==="hyvaksytty")c.append(cdown(o),mk("div",{class:"acts"},btn(del?"Lähti kuljetukseen":"Valmis noudettavaksi",()=>setOrd(o,"valmis",{notify:true}),"g wide"),btn("Peru tilaus",()=>rejectSheet(o),"x")));
   else if(o.status==="valmis")c.append(mk("div",{class:"acts"},btn(del?"Toimitettu":"Asiakas nouti",()=>setOrd(o,"luovutettu"),"g wide"),!del?btn("Ei noudettu – estä asiakas",()=>blockSheet(o),"x"):null));
   if(o.status==="luovutettu"||o.status==="peruttu"){c.append(mk("div",{class:"st "+(o.status==="peruttu"?"no":"ok"),text:o.status==="peruttu"?"Hylätty"+(o.reason?": "+o.reason:""):(del?"Toimitettu ":"Noudettu ")+(o.done_at?hm(o.done_at):"")}));
     c.append(mk("div",{class:"acts",style:"padding-top:0"},btn("Estä asiakas",()=>blockSheet(o),"x")))}
@@ -183,7 +183,7 @@ function etaPick(o,del){let v=ETA[o.id]??(del?Math.min(60,+CFG.dtime||45):Math.m
   upd();return mk("div",null,mk("div",{class:"ep"},mi,mk("div",{class:"ec"},val,clk),pl),quick,ok)}
 
 function rejectSheet(o){const ta=mk("textarea",{placeholder:"Syy asiakkaalle"});
-  const s=sheetBox("Hylkää tilaus #"+o.no,mk("p",{text:o.pay_status==="maksettu"?"Asiakas saa sähköpostin, jossa syy kerrotaan. Netissä maksettu "+eur(o.total)+" palautetaan asiakkaalle automaattisesti.":"Asiakas saa sähköpostin, jossa syy kerrotaan."}),
+  const s=sheetBox((o.status==="hyvaksytty"?"Peru tilaus #":"Hylkää tilaus #")+o.no,mk("p",{text:o.pay_status==="maksettu"?"Asiakas saa sähköpostin, jossa syy kerrotaan. Netissä maksettu "+eur(o.total)+" palautetaan asiakkaalle automaattisesti.":"Asiakas saa sähköpostin, jossa syy kerrotaan."}),
     mk("div",{class:"chips"},["Tuote on loppu","Liian kiireinen hetki","Osoite liian kaukana","Suljemme pian"].map(t=>mk("button",{text:t,onclick:()=>ta.value=t}))),ta,
     mk("div",{class:"row2"},btn("Peruuta",async()=>s.remove(),"o"),btn("Hylkää",async()=>{await setOrd(o,"peruttu",{reason:ta.value.trim()});s.remove()},"y")))}
 function storeSheet(){const oi=openInfo(),pa=paused();let s;
