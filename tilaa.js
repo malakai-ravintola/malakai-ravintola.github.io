@@ -263,7 +263,7 @@ async function load(){
   else if(!CFG.isOpen){st.textContent=CFG.preDays>0?"Kiinni nyt · ennakkotilaus auki":"Kiinni juuri nyt";note.hidden=false;note.className="od-note bad";note.className="od-note";note.innerHTML=CFG.open!=null&&CFG.now<CFG.open?`Avaamme tänään klo ${clock(CFG.open).replace(":",".")}. Voit jo nyt tehdä <b>ennakkotilauksen</b> – valitse aika alta.`:"Olemme tältä päivältä kiinni. Voit tehdä <b>ennakkotilauksen</b> huomiselle – valitse aika alta."}
   else{st.textContent=CFG.delNow?"Nouto ja kotiinkuljetus":"Nouto";if(CFG.note){note.hidden=false;note.className="od-note";note.textContent=CFG.note}}
   hdr();
-  const d=$('input[name="kind"][value="kuljetus"]');d.disabled=!CFG.delivery;{const kk=document.querySelector("#odForm .od-kind");if(kk)kk.classList.toggle("solo",!CFG.delivery)}$("#odDelLab").title=CFG.delivery?"":"Kotiinkuljetus ei ole juuri nyt käytössä";
+  const d=$('input[name="kind"][value="kuljetus"]');d.disabled=!CFG.delivery;{const kk=document.querySelector("#odForm .od-kind");if(kk)kk.classList.toggle("solo",!CFG.delivery);const so=$("#odSoon");if(so)so.hidden=!!CFG.delivery}$("#odDelLab").title=CFG.delivery?"":"Kotiinkuljetus ei ole juuri nyt käytössä";
   if(!CFG.delivery)$('input[name="kind"][value="nouto"]').checked=true;
   const me=ls.get("mk_me")||{};["n","p","e","a","apt","door","z","ci"].forEach(k=>{const i=$("#odForm [name="+k+"]");if(i&&me[k])i.value=me[k]});
   const pr=$("#odPromo");if(pr&&CFG.firstPct>0){pr.hidden=false;pr.querySelector("b").textContent="−"+CFG.firstPct+" %"}
