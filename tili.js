@@ -188,7 +188,7 @@ function sub(title,body,hash){const ov=mk("div",{class:"bd-ov",role:"dialog","ar
   ov.append(mk("div",{class:"bd"},mk("div",{class:"sb-top"},mk("button",{class:"bd-back",type:"button","aria-label":"Takaisin",html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>',onclick:close}),mk("h2",{text:title})),mk("div",{class:"sb-body"},body)));
   ov.addEventListener("keydown",e=>{if(e.key==="Escape")close()});document.body.append(ov);document.body.style.overflow="hidden";if(hash)history.replaceState(null,"","#"+hash);ov.querySelector(".bd-back").focus();return ov}
 const row=(k,t,s,fn)=>mk(typeof fn==="string"?"a":"button",{class:"hb-row",type:typeof fn==="string"?null:"button",href:typeof fn==="string"?fn:null,onclick:typeof fn==="string"?null:fn},mk("span",{class:"hb-i",html:ico(k)}),mk("span",{class:"hb-t"},mk("b",{text:t}),s?mk("small",{text:s}):null),mk("span",{class:"hb-c",html:ico("chev",2)}));
-const YTUNNUS=""; // lisää Y-tunnus tähän, esim. "1234567-8"
+const YTUNNUS="3305891-1";
 function receipt(o){const vat=Math.round(+o.total*13.5/113.5*100)/100,d=new Date(o.created_at);
   const w=mk("div",{class:"rc"},mk("div",{class:"rc-h"},mk("b",{text:"MALAKAI RAVINTOLA"}),YTUNNUS?mk("span",{text:"Y-tunnus "+YTUNNUS}):null,mk("span",{text:"Tampereentie 414, 33880 Lempäälä"}),mk("span",{text:"045 353 7000"}),mk("span",{text:"malakairavintola.fi"})),
     mk("div",{class:"rc-m"},mk("span",{text:"Tilaus #"+o.no}),mk("span",{text:d.toLocaleDateString("fi-FI",{timeZone:TZ})+" klo "+d.toLocaleTimeString("fi-FI",{timeZone:TZ,hour:"2-digit",minute:"2-digit"})})),
