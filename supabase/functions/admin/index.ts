@@ -104,6 +104,25 @@ Deno.serve(async (req) => {
       if (sub && o.email) { try { sent = await mail(o.email, sub, txt, undefined, html || undefined); } catch (e) { err = (e as Error).message; } }
       return j({ ok: true, mail: sent, refunded, error: err || undefined });
     }
+    // Kirjanpitoraportti: Stripen tapahtumat (maksut, kulut, palautukset) ja tilitykset pankkiin valitulta ajalta
+    if (b.action === "stripe_month") {
+      const key = (Deno.env.get("STRIPE_SECRET_KEY") ?? "").trim();
+      if (!key) return j({ tx: [], po: [], note: "Stripe ei käytössä" });
+      const from = Math.floor(+b.from || 0), to = Math.floor(+b.to || 0);
+      const list = async (path: string) => {
+        const out: any[] = []; let after = "";
+        for (let i = 0; i < 20; i++) {
+          const r = await fetch(`https://api.stripe.com/v1/${path}?limit=100&created[gte]=${from}&created[lt]=${to}${after ? "&starting_after=" + after : ""}`, { headers: { Authorization: "Bearer " + key } });
+          const d = await r.json(); if (!r.ok) throw new Error(d?.error?.message || "Stripe " + r.status);
+          out.push(...d.data); if (!d.has_more || !d.data.length) break; after = d.data[d.data.length - 1].id;
+        }
+        return out;
+      };
+      const res: any = { live: /_live_/.test(key) };
+      try { res.tx = (await list("balance_transactions")).map((x: any) => ({ id: x.id, created: x.created, available_on: x.available_on, type: x.type, desc: x.description || "", amount: x.amount / 100, fee: x.fee / 100, net: x.net / 100, src: typeof x.source === "string" ? x.source : x.source?.id || "" })); } catch (e) { res.tx = []; res.txErr = (e as Error).message; }
+      try { res.po = (await list("payouts")).map((x: any) => ({ id: x.id, created: x.created, arrival: x.arrival_date, amount: x.amount / 100, status: x.status })); } catch (e) { res.po = []; res.poErr = (e as Error).message; }
+      return j(res);
+    }
     if (b.action === "sms") {
       if (!(await sms(String(b.to), String(b.text).slice(0, 600)))) return j({ error: "Tekstiviestit eivät ole käytössä (46elks-avaimet puuttuvat)" }, 400);
       return j({ ok: true });
