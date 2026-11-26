@@ -17,8 +17,6 @@ const dp=(S.daily||{})[dk];
 if(dp&&dp.name)L.push({t:"Päivän pizza: "+dp.name,img:IMG[dp.name]?"media/tilaa/"+IMG[dp.name]+".webp?v=16":dp.img,tag:"Vain tänään",p:eur(S.dailyPrice),d:"Joka päivä eri pizza erikoishintaan.",dt:"Tänään "+pd(today),href:"tilaa.html#paivan-pizza",badge:"Päivän pizza"});
 L.push({t:"Ensimmäinen nettitilaus",art:'<div class="tf-art"><b>−20%</b><small>KOKO TILAUKSESTA</small></div>',tag:"Uudelle asiakkaalle",p:"−20 %",d:"Alennus lasketaan kassalla automaattisesti.",dt:"Aina voimassa",href:"tilaa.html"});
 L.push({t:"Bonuskupongit",art:'<div class="tf-art y"><b>−25 €</b><small>300 PISTEELLÄ</small></div>',tag:"Oma tili",p:"1 € = 1 p",d:"50 p = −1 € … 300 p = −25 €. Kupongit omalle tilille.",dt:"Kierros alkaa alusta 300 p jälkeen",href:"kupongit.html"});
-const B=S.buffet||{};
-if(B.arki)L.push({t:"Pizzabuffet",img:"media/tilaa/opera.webp?v=16",tag:"Ravintolassa",p:eur(B.arki.pizza),d:`Ma–pe ${B.arki.aika} · ${eur(B.arki.pizza)}${B.vkl?` · la–su ${B.vkl.aika} · ${eur(B.vkl.pizza)}`:""}`,dt:"Joka päivä",href:"index.html#lounas"});
 const wk=Object.keys(DN).filter(k=>(S.daily||{})[k]&&S.daily[k].name);
 $("#tfMain").innerHTML=`<p class="tf-n">${L.length} tarjousta</p><div class="tf-g">${L.map(card).join("")}</div>`+
   (wk.length?`<section class="tf-wk"><h2>Päivän pizzat tällä viikolla · ${eur(S.dailyPrice)}</h2><ul>${wk.map(k=>`<li class="${k===dk?"on":""}"><b>${DN[k]}</b><span>${esc(S.daily[k].name)}</span></li>`).join("")}</ul></section>`:"");
