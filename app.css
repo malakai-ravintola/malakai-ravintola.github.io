@@ -103,3 +103,5 @@
 .gc-bal h2{font:700 1.05rem Inter,sans-serif!important;margin:0 0 4px;color:#fff}
 .gc-balr{display:flex;gap:8px;margin-top:10px}.gc-balr input{flex:1;min-width:0;background:#0b0b0b;border:1px solid #333;border-radius:12px;color:#fff;font:700 1rem "Courier New",monospace;letter-spacing:.08em;padding:12px 14px;text-transform:uppercase}
 .gc-balres{margin:12px 0 0;font:500 .95rem/1.5 Inter,sans-serif!important;color:#e8e2d6}.gc-balres b{color:#E3A51C;font-size:1.15rem}.gc-balres a{color:#E3A51C}.gc-balres.bad{color:#ffb4ba}
+.gc-ck input{width:20px!important;height:20px!important;min-width:20px;flex:0 0 20px;margin:0!important;padding:0!important;accent-color:#E3A51C}
+.gc-ck{justify-content:flex-start!important;text-align:left;font-size:.95rem!important}
