@@ -38,7 +38,7 @@ const offPrice=o=>+String(o.price).replace(/[^\d,.]/g,"").replace(",",".")||0;
 const PIZZAS=()=>((M.Pizza||{}).items||[]).filter(i=>+i[2]>0&&i[0]!=="Oma valinta").map(i=>i[0]);
 const offUntil=o=>o.until?(+o.until.slice(8))+"."+(+o.until.slice(5,7))+".":"";
 function price(x){
-  if(x.c==="Tarjous"){const o=offOf(x.n);return o?offPrice(o):0}
+  if(x.c==="Tarjous"){const o=offOf(x.n);return o?Math.round((offPrice(o)+(x.tx||[]).reduce((a,l)=>a+(l||[]).length,0)*XT.n)*100)/100:0}
   const ex=(x.x||[]).length*(x.c==="Päivän pizza"?XT.n:(XT[x.s]||XT.n));
   if(x.c==="Päivän pizza")return Math.round((+S.dailyPrice+ex)*100)/100;
   const cat=M[x.c],it=cat&&cat.items.find(i=>i[0]===x.n);if(!it)return 0;
@@ -50,7 +50,7 @@ function price(x){
   if(hasPot(x.c,x.n))u+=POT[x.pt]||0;
   if(hasDip(cat,it))u+=Math.max(0,(x.d||[]).length-freeDips(it))*DIP;
   return Math.round(u*100)/100}
-function optTxt(x){if(x.c==="Tarjous")return"Pizzat: "+(x.t||[]).join(", ")+" · 1,5 l juoma · vain nouto";const o=[];const xs=(x.x||[]).length?"Lisätäytteet: "+x.x.join(", "):"";if(x.c==="Päivän pizza")return["Päivän pizza",(x.sp||[]).length?"Mausteet: "+x.sp.join(", "):"",xs].filter(Boolean).join(" · ");
+function optTxt(x){if(x.c==="Tarjous")return"Pizzat: "+(x.t||[]).map((p,i)=>p+((x.tx||[])[i]&&x.tx[i].length?" (+ "+x.tx[i].join(", ")+")":"")).join(", ")+" · 1,5 l juoma · vain nouto";const o=[];const xs=(x.x||[]).length?"Lisätäytteet: "+x.x.join(", "):"";if(x.c==="Päivän pizza")return["Päivän pizza",(x.sp||[]).length?"Mausteet: "+x.sp.join(", "):"",xs].filter(Boolean).join(" · ");
   const cat=M[x.c],it=cat&&cat.items.find(i=>i[0]===x.n);if(!it)return"";
   if(x.n==="Oma valinta")o.push(x.s==="p"?"Perhe":"Normaali",(x.t||[]).join(", "));else if(+it[3]>0)o.push(x.s==="p"?"Perhe":"Normaali");
   if(x.o)o.push(x.n==="Dippi"?x.o:"Kastike "+x.o);if(x.dr)o.push(x.dr);if(x.hot)o.push("Tulinen");if((x.sp||[]).length)o.push("Mausteet: "+x.sp.join(", "));if(x.l)o.push(x.l);if(x.pt)o.push("Perunat: "+x.pt);if((x.d||[]).length)o.push("Dipit: "+x.d.join(", "));if(x.meal)o.push("Ateria");if(xs)o.push(xs);return o.join(" · ")}
@@ -110,7 +110,7 @@ function sheet(x,{title,img,pr,desc,o,nonote}){$("#odMN").closest("label").hidde
 $("#odMS").addEventListener("scroll",()=>{const s=$("#odMS"),I=$("#odMI");$("#odMTop").classList.toggle("on",I.hidden||s.scrollTop>I.offsetHeight-40)},{passive:true});
 function open(c,n){
   if(c==="Tarjous"){const of=offOf(n);if(!of)return;const k=offN(of),P=PIZZAS(),x={c,n,q:1,t:[]};
-    let o=`<div class="od-opt"><div class="od-gh"><b>Valitse ${k} pizzaa</b><small>Normaalikoko</small></div>`+Array.from({length:k},(_,i)=>`<label class="od-sel">Pizza ${i+1}<select name="op${i}"><option value="">Valitse…</option>${P.map(p=>`<option>${esc(p)}</option>`).join("")}</select></label>`).join("")+`</div>`;
+    let o=`<div class="od-opt"><div class="od-gh"><b>Valitse ${k} pizzaa</b><small>Normaalikoko</small></div>`+Array.from({length:k},(_,i)=>`<label class="od-sel">Pizza ${i+1}<select name="op${i}"><option value="">Valitse…</option>${P.map(p=>`<option>${esc(p)}</option>`).join("")}</select></label><details class="od-tx"><summary>+ Lisätäytteet pizzaan ${i+1} <small>+${eur(XT.n)} / täyte</small></summary>${grp("Lisätäytteet – pizza "+(i+1),"Valinnainen · +"+eur(XT.n)+" / täyte","tx"+i,"checkbox",toppings.map(t=>[t,t,"+"+eur(XT.n)]),()=>false)}</details>`).join("")+`</div>`;
     if(/juoma/i.test(of.text||""))o+=`<p class="od-small">+ 1,5 l juoma sisältyy. Kirjoita juomatoive alle lisätoiveeseen.</p>`;
     o+=`<p class="od-small">🛍️ Tarjous koskee vain noutoa. Voimassa ${offUntil(of)} asti.</p>`;
     return sheet(x,{title:n,img:"tarjous-3-pizzaa",pr:esc(of.price),desc:of.text||"",o})}
@@ -135,7 +135,7 @@ function open(c,n){
   sheet(x,{title,nonote:!!DR.length,img:DR.length?dImg(DR[0],n):n==="Dippi"?(dImgOf(String(it[1]).split(",")[0].trim())||"dipit"):IMG[c==="Sticky Fingers"?"Sticky Fingers 6 kpl":n]||(c==="Wings"?"wings":""),pr,desc,o})}
 function read(){const f=$("#odMO"),x=cur,v=k=>{const e=f.querySelector(`input[name="${k}"]:checked`);return e?e.value:""},vs=k=>[...f.querySelectorAll(`input[name="${k}"]:checked`)].map(i=>i.value);
   x.m=$("#odMN").value.trim();x.q=+$("#odMq").textContent;
-  if(x.c==="Tarjous"){x.t=[...f.querySelectorAll("select[name^=op]")].map(s=>s.value);return x}
+  if(x.c==="Tarjous"){x.t=[...f.querySelectorAll("select[name^=op]")].map(s=>s.value);x.tx=x.t.map((_,i)=>vs("tx"+i));if(!x.tx.some(l=>l.length))delete x.tx;return x}
   if(x.c==="Sticky Fingers"&&v("sz"))x.n=v("sz");
   x.s=v("s")||"n";x.o=v("o");x.t=vs("t");x.x=vs("x");x.meal=!!v("meal");x.l=v("l");x.pt=v("pt");x.d=vs("d");x.dr=v("dr");x.hot=!!v("hot");x.sp=vs("sp");if(!x.sp.length)delete x.sp;if(!x.hot)delete x.hot;
   ["o","l","pt","dr"].forEach(k=>{if(!x[k])delete x[k]});if(!x.d.length)delete x.d;return x}
@@ -271,7 +271,7 @@ $("#odForm").onsubmit=async e=>{e.preventDefault();const f=e.target,send=$("#odS
   ls.set("mk_me",{n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),z:v("z"),ci:v("ci")});
   send.disabled=true;send.textContent="Lähetetään…";clearTimeout(fT);await checkFirst();if(RWSEL&&SBC){try{const{data:{session}}=await SBC.auth.getSession();if(session)BON.at=session.access_token}catch(e){}}const T0=totals();send.disabled=true;send.textContent="Lähetetään…";
   try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),dn:v("dn"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,vt:(ls.get("mk_vt")||{})[v("e").toLowerCase()]||"",vc:VC,rw:T0.rw?T0.rw.id:"",at:T0.rw?BON.at:"",pay:($('input[name="pay"]:checked')||{}).value||"kortti",total:T0.t,
-      items:cart.map(x=>({c:x.c,n:x.n,s:x.s,o:x.o,t:x.t,x:x.x,meal:x.meal,l:x.l,pt:x.pt,d:x.d,dr:x.dr,hot:x.hot,sp:x.sp,q:x.q,m:x.m}))});
+      items:cart.map(x=>({c:x.c,n:x.n,s:x.s,o:x.o,t:x.t,tx:x.tx,x:x.x,meal:x.meal,l:x.l,pt:x.pt,d:x.d,dr:x.dr,hot:x.hot,sp:x.sp,q:x.q,m:x.m}))});
     VC="";if(r.vt){const t=ls.get("mk_vt")||{};t[v("e").toLowerCase()]=r.vt;ls.set("mk_vt",t)}
     $("#odDoneT").innerHTML=`Tilausnumerosi on <b>#${r.no}</b>.${r.discount?" Sait alennusta "+eur(r.discount)+".":""} Lähetimme vahvistuksen osoitteeseen ${esc(v("e"))}.${r.earn?(BON.pts==null?" Tästä tilauksesta kertyy <b>+"+r.earn+" bonuspistettä</b> – <a href=\"tili.html\" style=\"color:#E3A51C;font-weight:700\">luo tili samalla sähköpostilla</a>, niin näet ja voit käyttää ne.":" Saat tilauksesta <b>+"+r.earn+" bonuspistettä</b>, kun se on luovutettu."):""}<br><br>Saat toisen viestin, kun olemme hyväksyneet tilauksen ja ${k==="kuljetus"?"arvioineet toimitusajan":"tiedämme valmistumisajan"}. Kiireellisissä asioissa soita 045 353 7000.`;
     try{const im=x=>{const f=IMG[x.c==="Päivän pizza"?x.n:x.n]||(x.c==="Wings"?"wings":"");return f?T+(f.includes(".")?f:f+".webp"):""};ls.set("mk_last",{no:r.no,date:new Date().toISOString(),total:r.total,name:v("n").split(" ")[0],items:cart.filter(x=>x.c!=="Päivän pizza").map(x=>({...x,img:im(x)}))})}catch(e){}

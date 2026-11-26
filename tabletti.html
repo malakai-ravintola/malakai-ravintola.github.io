@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="fi"><head><meta charset="utf-8"><meta name="build" content="1795700664"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#FFFFFF">
+<!DOCTYPE html><html lang="fi"><head><meta charset="utf-8"><meta name="build" content="1795702666"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#FFFFFF">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Malakai Tilaukset">
 <title>Malakai Tilaukset</title>
 <link rel="icon" href="media/logo-malakai.svg"><link rel="apple-touch-icon" href="media/email/logo.png">
@@ -96,6 +96,12 @@ main{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
 .rd i{width:34px;height:34px;border-radius:50%;border:2.5px solid #4A9FDD;flex:none;position:relative}.rd.on i::after{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--b)}
 .apply{margin-top:24px;width:100%;background:var(--b);color:#fff;border-radius:14px;padding:18px;font-weight:800;font-size:1.25rem}.apply:disabled{background:var(--bl);color:#E8F4FB}
 .star{font-size:1.6rem}.s1,.s2{color:#E8432F}.s3,.s4{color:#F2A922}.s5{color:#4CBB3A}
+.cd{margin:0 18px 14px;padding:14px 16px;border-radius:16px;background:#E8F5FD;color:#0B6FA4}
+.cd-r{display:flex;align-items:baseline;gap:10px}.cd-v{font:900 2.6rem/1 Inter,system-ui;font-variant-numeric:tabular-nums;letter-spacing:-.02em}.cd-l{font-weight:700;font-size:1.05rem}
+.cd-b{height:8px;border-radius:4px;background:rgba(11,111,164,.15);margin-top:10px;overflow:hidden}.cd-b i{display:block;height:100%;background:#139BDF;border-radius:4px;transition:width 1s linear}
+.cd.soon{background:#FFF4D9;color:#7A5400}.cd.soon .cd-b i{background:#E3A51C}
+.cd.late{background:#FDE7E3;color:#A3261A;animation:cdP 1.2s infinite}.cd.late .cd-b i{background:#E8432F}
+@keyframes cdP{50%{background:#FBD3CC}}
 </style></head><body>
 <div id="app">
 <div class="snd" id="snd" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg><b id="sndT">Napauta näyttöä – äänet käyttöön</b><button class="sb2" id="sndOn">Ota äänet käyttöön</button><button class="sx" id="sndX" aria-label="Sulje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
@@ -116,7 +122,7 @@ main{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
 <hr><button class="mi" data-v="asetukset"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.4-2.5 1a7 7 0 0 0-1.7-1L15 3.3h-4L10.6 6a7 7 0 0 0-1.7 1l-2.5-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.4 2.5-1a7 7 0 0 0 1.7 1l.4 2.7h4l.4-2.7a7 7 0 0 0 1.7-1l2.5 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>Asetukset</button>
 </div></div>
 <div class="toast" id="toast" hidden></div>
-<script src="config.js?v=1795700664"></script><script src="data.js?v=1795700664"></script>
+<script src="config.js?v=1795702666"></script><script src="data.js?v=1795702666"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="tabletti.js?v=1795700664"></script>
+<script src="tabletti.js?v=1795702666"></script>
 </body></html>

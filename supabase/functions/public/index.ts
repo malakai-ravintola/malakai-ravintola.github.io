@@ -134,7 +134,9 @@ function priceLine(S: any, day: string, x: any, out: string[] = []) {
     if (t.length !== k || t.some((v: string) => !P.includes(v))) throw new Error(`Valitse tarjoukseen ${k} pizzaa`);
     const pr = +String(of.price).replace(/[^\d,.]/g, "").replace(",", ".");
     if (!(pr > 0)) throw new Error("Tarjousta ei voi tilata netissä");
-    return { c, n, q, unit: pr, opt: ["Pizzat: " + t.join(", "), /juoma/i.test(of.text || "") ? "1,5 l juoma" : "", "vain nouto"].filter(Boolean).join(" · "), m: s(x.m, 120), until: of.until || "" };
+    const tx = t.map((_: string, i: number) => pick(Array.isArray(x.tx) ? x.tx[i] : []));
+    const nx = tx.reduce((a: number, l: string[]) => a + l.length, 0);
+    return { c, n, q, unit: Math.round((pr + nx * XT.n) * 100) / 100, opt: ["Pizzat: " + t.map((p: string, i: number) => p + (tx[i].length ? " (+ " + tx[i].join(", ") + ")" : "")).join(", "), /juoma/i.test(of.text || "") ? "1,5 l juoma" : "", "vain nouto"].filter(Boolean).join(" · "), m: s(x.m, 120), until: of.until || "" };
   }
   const cat = S.menu?.[c], it = cat?.items?.find((i: any[]) => i[0] === n);
   if (!it) throw new Error(`Tuotetta ${n} ei löydy. Päivitä sivu.`);

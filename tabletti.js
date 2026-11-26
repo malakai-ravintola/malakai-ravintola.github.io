@@ -89,7 +89,7 @@ async function load(){try{const since=new Date(Date.now()-3*864e5).toISOString()
   if(ORD&&fresh.length){tab="uudet";view="aktiiviset";if("Notification"in window&&Notification.permission==="granted")try{new Notification("Uusi tilaus #"+fresh[0].no,{body:(fresh[0].kind==="kuljetus"?"Kuljetus":"Nouto")+" · "+eur(fresh[0].total)})}catch(e){}}
   ORD=a.data;a.data.forEach(o=>seen.add(o.id));CFG=(b.data&&b.data.value)||{};
   const busy=$(".sheet")||(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))||view!=="aktiiviset";if(!busy)render();else head()}catch(e){if(!ORD){ORD=[];render()}}}
-async function setOrd(o,status,extra={}){const r=await api("order",{id:o.id,status,...extra});Object.assign(o,{status},extra);
+async function setOrd(o,status,extra={}){const r=await api("order",{id:o.id,status,...extra});Object.assign(o,{status},extra,status==="hyvaksytty"?{handled_at:new Date().toISOString()}:{});
   toast({hyvaksytty:"Hyväksytty",peruttu:"Hylätty",valmis:o.kind==="kuljetus"?"Lähti kuljetukseen":"Valmis noudettavaksi",luovutettu:o.kind==="kuljetus"?"Toimitettu":"Noudettu"}[status]+(r.mail?" · asiakas sai viestin":""));
   if(status==="hyvaksytty"&&!NEW().length)tab="kaynnissa";if(status==="valmis"){tab="valmiit";sub=o.kind==="kuljetus"?"toim":"valmis"}render();load()}
 async function saveCfg(msg){const{error}=await SB.from("settings").upsert({key:"orders",value:CFG,updated_at:new Date().toISOString()});if(error)throw new Error(error.message);toast(msg);render()}
@@ -153,11 +153,22 @@ function card(o,ro){const del=o.kind==="kuljetus",pre=preOf(o.want);
       o.want==="heti"?etaPick(o,del)
         :btn("Hyväksy "+wantTxt(o.want),()=>setOrd(o,"hyvaksytty",{eta:pre?pre.t:o.want}),"g wide"),
       btn("Hylkää tilaus",()=>rejectSheet(o),"x")))}
-  else if(o.status==="hyvaksytty")c.append(mk("div",{class:"acts"},btn(del?"Lähti kuljetukseen":"Valmis noudettavaksi",()=>setOrd(o,"valmis",{notify:true}),"g wide")));
+  else if(o.status==="hyvaksytty")c.append(cdown(o),mk("div",{class:"acts"},btn(del?"Lähti kuljetukseen":"Valmis noudettavaksi",()=>setOrd(o,"valmis",{notify:true}),"g wide")));
   else if(o.status==="valmis")c.append(mk("div",{class:"acts"},btn(del?"Toimitettu":"Asiakas nouti",()=>setOrd(o,"luovutettu"),"g wide"),!del?btn("Ei noudettu – estä asiakas",()=>blockSheet(o),"x"):null));
   if(o.status==="luovutettu"||o.status==="peruttu"){c.append(mk("div",{class:"st "+(o.status==="peruttu"?"no":"ok"),text:o.status==="peruttu"?"Hylätty"+(o.reason?": "+o.reason:""):(del?"Toimitettu ":"Noudettu ")+(o.done_at?hm(o.done_at):"")}));
     c.append(mk("div",{class:"acts",style:"padding-top:0"},btn("Estä asiakas",()=>blockSheet(o),"x")))}
   return c}
+// ---------- Ajastin: laskee alas valmistumisaikaan
+function etaTs(o){if(!o.eta)return null;const p=preOf(o.want),d=p?p.d:hDate(o.handled_at||o.created_at),[h,mi]=o.eta.split(":").map(Number);
+  const base=new Date(d+"T00:00:00");base.setHours(h,mi,0,0);return base.getTime()}
+function cdown(o){const T=etaTs(o);if(!T)return null;const st=Date.parse(o.handled_at||o.created_at)||Date.now();
+  const w=mk("div",{class:"cd","data-t":String(T),"data-s":String(st)},mk("div",{class:"cd-r"},mk("b",{class:"cd-v"}),mk("span",{class:"cd-l"})),mk("div",{class:"cd-b"},mk("i")));tick(w);return w}
+function tick(w){const T=+w.dataset.t,S0=+w.dataset.s,now=Date.now(),left=Math.round((T-now)/1000),tot=Math.max(60,(T-S0)/1000);
+  const v=w.querySelector(".cd-v"),l=w.querySelector(".cd-l"),bar=w.querySelector(".cd-b i");
+  const f=s=>{s=Math.abs(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+":"+String(m).padStart(2,"0"):m)+":"+String(x).padStart(2,"0")};
+  if(left>=0){v.textContent=f(left);l.textContent=left>3600?"valmistumiseen":"jäljellä";w.classList.toggle("soon",left<=300);w.classList.remove("late");bar.style.width=Math.min(100,100*(1-left/tot))+"%"}
+  else{v.textContent="+"+f(left);l.textContent="myöhässä";w.classList.add("late");bar.style.width="100%"}}
+setInterval(()=>document.querySelectorAll(".cd").forEach(tick),1000);
 function sheetBox(title,...kids){const s=mk("div",{class:"sheet",onclick:e=>{if(e.target===s)s.remove()}});
   s.append(mk("div",null,mk("div",{class:"grab"}),mk("div",{class:"shx"},mk("button",{class:"ib",style:"width:48px;height:48px","aria-label":"Sulje",html:svg("x",2.4),onclick:()=>s.remove()})),title?mk("h3",{text:title}):null,...kids));document.body.append(s);return s}
 function blockSheet(o){const s=sheetBox("Estä "+o.name+"?",mk("p",{text:o.phone+" · "+o.email+" – asiakas ei voi enää tilata netistä. Voit poistaa eston Asetuksista."}),
