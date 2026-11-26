@@ -224,16 +224,29 @@ function vCamp(m){const c=OCFG,inp=mk("input",{type:"number",min:"0",max:"50",va
     mk("section",{class:"card"},mk("h2",{text:"Markkinointimateriaalit"}),mk("p",{class:"mut",text:"Tulostettavat QR-tarrat ja flyerit ohjaavat suoraan tilaussivulle."}),
       mk("div",{class:"row"},mk("a",{class:"btn o",href:"media/Malakai-QR-tarra-tulostus.pdf",target:"_blank",rel:"noopener",text:"QR-tarra (PDF)"}),mk("a",{class:"btn o",href:"media/Malakai-QR-flyer-tulostus.pdf",target:"_blank",rel:"noopener",text:"A5-flyer (PDF)"}),mk("a",{class:"btn o",href:"tilaa.html",target:"_blank",rel:"noopener",text:"Tilaussivu"}))))}
 
-async function cusLoad(){const {data,error}=await SB.from("customers").select("*").order("last_order",{ascending:false});if(error)throw new Error(error.message);CUS=data||[]}
+async function cusLoad(){const [a,b]=await Promise.all([SB.from("customers").select("*").order("last_order",{ascending:false}),SB.rpc("owner_accounts")]);if(a.error)throw new Error(a.error.message);CUS=a.data||[];ACC=b.error?[]:(b.data||[])}
+let ACC=null;
+function vAcc(){const L=ACC||[],dt=d=>d?fd(String(d).slice(0,10)):"",now=Date.now(),w=L.filter(a=>now-new Date(a.created_at)<7*864e5).length;
+  const aq=mk("input",{type:"search",placeholder:"Hae tilin luoneista…"}),box=mk("div",{class:"scroll"});
+  const draw=()=>{const v=aq.value.trim().toLowerCase(),rows=L.filter(a=>!v||[a.name,a.phone,a.email].join(" ").toLowerCase().includes(v));box.textContent="";
+    const tb=mk("table",{class:"list"},mk("tr",null,["Nimi","Sähköposti","Puhelin","Tili luotu","Vahvistettu","Viimeksi kirjautunut","Tilauksia","Pisteet"].map(h=>mk("th",{text:h}))));
+    rows.forEach(a=>tb.append(mk("tr",null,mk("td",{text:a.name||"–"}),mk("td",null,mk("a",{href:"mailto:"+a.email,text:a.email})),mk("td",null,a.phone?mk("a",{href:"tel:"+a.phone,text:a.phone}):""),
+      mk("td",{text:dt(a.created_at)}),mk("td",{text:a.confirmed_at?"Kyllä":"Ei vielä"}),mk("td",{text:dt(a.last_sign_in_at)}),mk("td",{text:a.orders}),mk("td",null,mk("b",{text:a.points+" p"})))));
+    if(!rows.length)tb.append(mk("tr",null,mk("td",{colspan:"8",class:"mut",text:"Ei osumia."})));box.append(tb)};aq.oninput=draw;draw();
+  return mk("section",{class:"card"},mk("h2",{text:"Tilin luoneet asiakkaat"}),
+    mk("div",{class:"tiles",style:"margin-bottom:16px"},mk("div",{class:"tile"},mk("small",{text:"Tilejä yhteensä"}),mk("b",{text:String(L.length)})),mk("div",{class:"tile"},mk("small",{text:"Uusia 7 pv"}),mk("b",{text:String(w)})),mk("div",{class:"tile"},mk("small",{text:"Vahvistettu"}),mk("b",{text:String(L.filter(a=>a.confirmed_at).length)})),mk("div",{class:"tile"},mk("small",{text:"Tilanneet"}),mk("b",{text:String(L.filter(a=>a.orders>0).length)}))),
+    L.length?[aq,mk("div",{style:"height:10px"}),box,mk("div",{class:"row",style:"margin-top:14px"},act("Lataa tilit (CSV)",async()=>dl("malakai-asiakastilit.csv",["nimi;sahkoposti;puhelin;tili_luotu;vahvistettu;viimeksi_kirjautunut;tilauksia;pisteet"].concat(L.map(a=>[q(a.name),q(a.email),q(a.phone),q(dt(a.created_at)),a.confirmed_at?"kylla":"ei",q(dt(a.last_sign_in_at)),a.orders,a.points].join(";"))).join("\n")),"o"))]
+      :mk("p",{class:"mut",text:"Kukaan ei ole vielä luonut tiliä. Tilit näkyvät tässä heti, kun asiakas rekisteröityy Oma tili -sivulla."}))}
 function vCust(m){if(CUS===null){m.append(mk("p",{class:"mut",text:"Ladataan…"}));cusLoad().then(render).catch(e=>{CUS=[];toast(e.message,true);render()});return}
   const cq=mk("input",{type:"search",placeholder:"Hae nimellä, puhelimella tai sähköpostilla…"}),box=mk("div",{class:"scroll"});
   const draw=()=>{const v=cq.value.trim().toLowerCase(),rows=CUS.filter(c=>!v||[c.name,c.phone,c.email].join(" ").toLowerCase().includes(v));box.textContent="";
-    const tb=mk("table",{class:"list"},mk("tr",null,["Nimi","Puhelin","Sähköposti","Osoite","Tilauksia","Ostot","Viimeisin","Palautepyyntö"].map(h=>mk("th",{text:h}))));
+    const tb=mk("table",{class:"list"},mk("tr",null,["Nimi","Puhelin","Sähköposti","Osoite","Tilauksia","Ostot","Pisteet","Viimeisin","Palautepyyntö"].map(h=>mk("th",{text:h}))));
     rows.forEach(c=>{const cb=mk("input",{type:"checkbox",style:"width:auto"});cb.checked=c.review_mail!==false;cb.onchange=async()=>{const {error}=await SB.from("customers").update({review_mail:cb.checked}).eq("id",c.id);if(error){toast(error.message,true);cb.checked=!cb.checked}else{c.review_mail=cb.checked;toast(cb.checked?"Palautepyynnöt päällä":"Palautepyynnöt pois tältä asiakkaalta")}};
-      tb.append(mk("tr",null,mk("td",{text:c.name||""}),mk("td",null,c.phone?mk("a",{href:"tel:"+c.phone,text:c.phone}):""),mk("td",null,mk("a",{href:"mailto:"+c.email,text:c.email})),mk("td",{text:[c.address,c.zip,c.city].filter(Boolean).join(" ")}),mk("td",{text:c.orders}),mk("td",{text:eur(c.spent)}),mk("td",{text:c.last_order?fd(c.last_order.slice(0,10)):""}),mk("td",null,cb)))});
+      tb.append(mk("tr",null,mk("td",{text:c.name||""}),mk("td",null,c.phone?mk("a",{href:"tel:"+c.phone,text:c.phone}):""),mk("td",null,mk("a",{href:"mailto:"+c.email,text:c.email})),mk("td",{text:[c.address,c.zip,c.city].filter(Boolean).join(" ")}),mk("td",{text:c.orders}),mk("td",{text:eur(c.spent)}),mk("td",{text:(c.points||0)+" p"}),mk("td",{text:c.last_order?fd(c.last_order.slice(0,10)):""}),mk("td",null,cb)))});
     box.append(tb)};cq.oninput=draw;draw();
   const tot=CUS.reduce((x,c)=>x+ +c.spent,0),rep=CUS.filter(c=>c.orders>1).length;
-  m.append(mk("section",{class:"card"},mk("h2",{text:"Asiakasrekisteri"}),
+  m.append(vAcc());
+  m.append(mk("section",{class:"card"},mk("h2",{text:"Asiakasrekisteri (kaikki tilanneet)"}),
     mk("div",{class:"tiles",style:"margin-bottom:16px"},mk("div",{class:"tile"},mk("small",{text:"Asiakkaita"}),mk("b",{text:String(CUS.length)})),mk("div",{class:"tile"},mk("small",{text:"Palaavia"}),mk("b",{text:String(rep)})),mk("div",{class:"tile"},mk("small",{text:"Ostot yhteensä"}),mk("b",{text:eur(tot)})),mk("div",{class:"tile"},mk("small",{text:"Keskim. / asiakas"}),mk("b",{text:CUS.length?eur(tot/CUS.length):"–"}))),
     CUS.length?[cq,mk("div",{style:"height:10px"}),box,mk("div",{class:"row",style:"margin-top:14px"},act("Lataa asiakkaat (CSV)",async()=>dl("malakai-tilausasiakkaat.csv",["nimi;puhelin;sahkoposti;osoite;postinumero;paikkakunta;tilauksia;ostot_eur;ensimmainen;viimeisin"].concat(CUS.map(c=>[q(c.name),q(c.phone),q(c.email),q(c.address),q(c.zip),q(c.city),c.orders,fe2(c.spent),q(c.first_order?fd(c.first_order.slice(0,10)):""),q(c.last_order?fd(c.last_order.slice(0,10)):"")].join(";"))).join("\n")),"o"))]
       :mk("p",{class:"mut",text:"Asiakkaat tallentuvat tähän automaattisesti ensimmäisestä nettitilauksesta lähtien."}),
