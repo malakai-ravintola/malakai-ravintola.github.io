@@ -25,6 +25,7 @@ async function load(){
   const [o,c,g]=await Promise.all([SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city,rating").eq("email",MYE()).order("created_at",{ascending:false}).limit(60),
     SB.from("customers").select("orders,spent,first_order,points").eq("email",MYE()).maybeSingle(),pub({action:"order_cfg"}).catch(()=>null)]);
   ORD=o.error?[]:o.data;CUS=c.data||null;CFG=g||CFG||{};
+  try{const bc=await SB.from("bonus_coupons").select("id,round,tier,eur,used_at,used_order").eq("email",MYE()).order("round").order("tier");BCP=bc.error?[]:bc.data.map(k=>({...k,eur:+k.eur}))}catch(e){BCP=[]}
   try{const bl=await SB.from("bonus_log").select("delta,note,created_at").eq("email",MYE()).order("created_at",{ascending:false}).limit(30);BLOG=bl.error?[]:bl.data}catch(e){BLOG=[]}
   const me=USER.user_metadata||{};ls.set("mk_me",{...(ls.get("mk_me")||{}),n:me.name||"",p:me.phone||"",e:USER.email,a:me.address||"",apt:me.apt||"",door:me.door||"",z:me.zip||"",ci:me.city||"Lempäälä"});
   try{const last=ORD.find(o=>o.status!=="peruttu"&&(o.items||[]).some(i=>i.c!=="Päivän pizza"));if(last)ls.set("mk_last",{no:last.no,date:last.created_at,total:last.total,name:(USER.user_metadata?.name||"").split(" ")[0],items:(last.items||[]).filter(i=>i.c!=="Päivän pizza").map(i=>({...toCart(i),img:IMGF(i.n,i.c)}))});else localStorage.removeItem("mk_last")}catch(e){}
@@ -39,7 +40,7 @@ function render(){M.textContent="";
   const nm=(USER.user_metadata?.name||USER.email.split("@")[0]).split(" ")[0];
   $("#acH").innerHTML="Hei <em></em>!";$("#acH em").textContent=nm;$("#acSub").textContent="Tervetuloa takaisin – täältä näet tilauksesi ja etusi.";
   if(ORD===null){M.append(mk("p",{class:"ac-mut",text:"Ladataan tilauksia…"}));return}
-  vTop();vLive();M.append(mk("div",{class:"ac-grid"},vStamps(),vPerks()));vHist();vProfile()}
+  vTop();vLive();M.append(mk("div",{class:"ac-grid"},vStamps(),vPerks()));vHist();vProfile();if(location.hash==="#bonus"&&!document.querySelector(".bd-ov"))bDetails()}
 
 function vAuth(){const box=mk("div",{class:"ac-card ac-auth"});
   const tabs=mk("div",{class:"ac-tabs",role:"tablist"},mk("button",{class:mode==="in"?"on":"",text:"Kirjaudu",onclick:()=>{mode="in";render()}}),mk("button",{class:mode==="up"?"on":"",text:"Luo tili",onclick:()=>{mode="up";render()}}));
@@ -83,25 +84,52 @@ function vLive(){const act=ORD.filter(o=>["uusi","hyvaksytty","valmis"].includes
       mk("div",{class:"ac-mut",style:"font-size:.86rem",text:(o.items||[]).map(i=>i.q+" × "+i.n).join(", ")+" · "+eur(o.total)}),
       mk("div",{class:"ac-mut",style:"font-size:.84rem;margin-top:6px",html:'Kysyttävää? Soita <a href="tel:+358453537000" style="color:var(--ay)">045 353 7000</a>'})))})}
 
-let BLOG=[];
-function vStamps(){const B=(CFG&&CFG.bonus)||{rate:1,rewards:[{id:"b2",eur:2,pts:40},{id:"b5",eur:5,pts:100},{id:"b10",eur:10,pts:200}],minMul:2},pts=+(CUS&&CUS.points)||0;
-  const nx=B.rewards.find(r=>r.pts>pts),top=B.rewards[B.rewards.length-1],goal=nx||top,pr=Math.min(100,Math.round(pts/goal.pts*100));
-  const c=mk("div",{class:"ac-card ac-bonus"},mk("h2",{html:"Bonus<em>pisteet</em>"}),
-    mk("div",{class:"ac-big",html:`${pts}<span> pistettä</span>`}),
-    mk("div",{class:"ac-bar"},mk("i",{style:"width:"+pr+"%"})),
-    mk("p",{class:"ac-mut",style:"margin:6px 0 14px",text:nx?`Vielä ${nx.pts-pts} p, niin saat −${nx.eur} € alennuksen.`:`Voit käyttää jopa −${top.eur} € seuraavassa tilauksessa!`}),
-    mk("div",{class:"ac-rw"},B.rewards.map(r=>mk("div",{class:"ac-rwi"+(pts>=r.pts?" on":"")},mk("b",{text:"−"+r.eur+" €"}),mk("small",{text:r.pts+" p"}),mk("span",{text:pts>=r.pts?"Käytettävissä":"Lukittu"})))),
-    pts>=B.rewards[0].pts?mk("a",{class:"ac-btn y",href:"tilaa.html",style:"margin-top:14px",text:"Käytä pisteet tilauksessa →"}):null,
-    mk("p",{class:"ac-mut",style:"font-size:.8rem;margin:12px 0 0",text:`Saat ${B.rate||1} pisteen jokaisesta maksetusta eurosta, kun tilaus on luovutettu. Palkinnon voi käyttää, kun tilaus on vähintään kaksinkertainen alennukseen nähden (esim. −5 € vähintään 10 € tilauksessa).`}));
-  if(BLOG.length)c.append(mk("details",{class:"ac-blog"},mk("summary",{text:"Pistehistoria"}),BLOG.map(l=>mk("div",{class:"ac-kv"},mk("span",{text:fdt(l.created_at)+" · "+(l.note||"")}),mk("b",{style:"color:"+(l.delta>0?"#7BE0A6":"#FF9A8C"),text:(l.delta>0?"+":"")+l.delta+" p"})))));
+let BLOG=[],BCP=[];
+const GIFT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="9" width="17" height="11" rx="1.5"/><path d="M2.5 9h19v3.5h-19zM12 9v11M12 9c-1.5-3.5-5.5-4-5.5-1.5S10 9 12 9zm0 0c1.5-3.5 5.5-4 5.5-1.5S14 9 12 9z"/></svg>';
+const CHK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function bRules(){const B=CFG&&CFG.bonus;return B&&B.tiers?B:{rate:1,round:300,tiers:[{p:50,e:1},{p:90,e:2},{p:120,e:4},{p:150,e:10},{p:200,e:15},{p:250,e:20},{p:300,e:25}],minMul:2}}
+function bState(){const B=bRules(),R=B.round||300,pts=+(CUS&&CUS.points)||0,rn=pts>0?Math.floor((pts-1)/R)+1:1,q=pts-(rn-1)*R;
+  const tiers=B.tiers.map(x=>{const c=BCP.find(k=>k.round===rn&&k.tier===x.p);return{...x,st:c?(c.used_at?"used":"avail"):(q>=x.p?"avail":"lock"),c}});
+  const nx=tiers.find(x=>x.p>q)||null,avail=BCP.filter(k=>!k.used_at).sort((a,b)=>b.eur-a.eur);
+  return{B,R,pts,rn,q,tiers,nx,avail,left:nx?nx.p-q:R-q+B.tiers[0].p,nxe:nx?nx.e:B.tiers[0].e}}
+function bBar(S){const w=mk("div",{class:"bb"}),pct=Math.min(100,S.q/S.R*100);
+  w.append(mk("div",{class:"bb-tr"},mk("i",{style:`width:${pct}%`})));
+  w.append(mk("div",{class:"bb-tip",style:`left:${Math.max(6,Math.min(94,pct))}%`,text:S.q+" p"}));
+  let lastL=-99;S.tiers.forEach(x=>{const l=x.p/S.R*100;w.append(mk("span",{class:"bb-n "+x.st,style:`left:${l}%`,html:x.st==="lock"?GIFT:CHK,title:`−${x.e} € (${x.p} p)`}));
+    if(x.st==="lock"&&l-lastL>=13){w.append(mk("small",{class:"bb-l",style:`left:${l}%`,text:x.p+" p"}));lastL=l}});
+  return w}
+function vStamps(){const S=bState();
+  const c=mk("div",{class:"ac-card ac-bonus",id:"bonus"},
+    mk("div",{class:"bk-h"},mk("h2",{html:"Bonus<em>kupongit</em>"}),mk("button",{class:"bk-more",type:"button",text:"Lisätietoja",onclick:bDetails})),
+    bBar(S),
+    mk("div",{class:"bk-next"},mk("div",null,mk("small",{text:"Seuraava palkinto"}),mk("b",{text:"Bonuskuponki"}),mk("span",{class:"bk-pill",text:"−"+S.nxe+" €"}),mk("p",{class:"ac-mut",text:`Vielä ${S.left} p · 1 € = 1 piste`})),mk("span",{class:"bk-gift",html:GIFT})),
+    S.avail.length?mk("div",{class:"bk-av"},mk("b",{text:"Käytettävissä olevat kupongit"}),mk("div",{class:"bk-cps"},S.avail.map(k=>mk("span",{class:"bk-cp",text:"−"+(+k.eur)+" €"}))),mk("a",{class:"ac-btn y",href:"tilaa.html",style:"margin-top:12px",text:"Käytä tilauksessa →"})):null);
   return c}
+function bDetails(){const S=bState(),ov=mk("div",{class:"bd-ov",role:"dialog","aria-modal":"true","aria-label":"Bonuskupongit"});
+  const close=()=>{ov.remove();document.body.style.overflow="";if(location.hash==="#bonus")history.replaceState(null,"",location.pathname)};
+  const tierRow=x=>mk("div",{class:"bd-t "+x.st},mk("span",{class:"bd-i",html:x.st==="lock"?GIFT:CHK}),mk("div",null,mk("b",{text:`−${x.e} € Bonuskuponki`}),mk("p",{text:`Kun pisteitä on vähintään ${x.p}`}),x.st!=="lock"?mk("span",{class:"bd-badge "+x.st,text:x.st==="used"?"Käytetty":"Käytettävissä"}):null));
+  const old=S.avail.filter(k=>k.round<S.rn);
+  ov.append(mk("div",{class:"bd"},
+    mk("div",{class:"bd-top"},mk("button",{class:"bd-back",type:"button","aria-label":"Takaisin",html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>',onclick:close}),mk("h2",{text:"Bonuskupongit"}),
+      mk("div",{class:"bd-stats"},mk("div",{class:"bd-st"},mk("span",{html:GIFT}),mk("b",{text:S.left+" p"}),mk("small",{text:"Seuraavaan kuponkiin"})),mk("div",{class:"bd-st"},mk("span",{html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9.5 9.5h3.8a1.7 1.7 0 0 1 0 3.4h-2.6a1.7 1.7 0 0 0 0 3.4H14.5" stroke-linecap="round"/></svg>'}),mk("b",{text:S.q+" p"}),mk("small",{text:"Kertyneet"})))),
+    mk("p",{class:"bd-round",text:`Kierros ${S.rn} · ${S.R} p:n jälkeen alkaa uusi kierros`}),
+    mk("section",{class:"bd-sec"},mk("h3",{text:"Saldon kertyminen"}),bBar(S)),
+    mk("section",{class:"bd-sec"},mk("h3",{text:"Bonuskupongit, jotka voit ansaita"}),S.tiers.map(tierRow)),
+    old.length?mk("section",{class:"bd-sec"},mk("h3",{text:"Käyttämättömät kupongit aiemmilta kierroksilta"}),old.map(k=>mk("div",{class:"bd-t avail"},mk("span",{class:"bd-i",html:CHK}),mk("div",null,mk("b",{text:`−${+k.eur} € Bonuskuponki`}),mk("span",{class:"bd-badge avail",text:"Käytettävissä"}))))):null,
+    mk("section",{class:"bd-sec"},mk("h3",{text:"Bonuskuponkien ehdot"}),mk("p",{class:"bd-txt",text:`Saat 1 pisteen jokaisesta maksetusta eurosta, kun nettitilauksesi on noudettu tai toimitettu. Kun kertyneet pisteet ylittävät rajan, saat kupongin omalle tilillesi: 50 p = −1 €, 90 p = −2 €, 120 p = −4 €, 150 p = −10 €, 200 p = −15 €, 250 p = −20 € ja 300 p = −25 €. ${S.R} pisteen jälkeen alkaa uusi kierros. Yhteen tilaukseen voi käyttää yhden kupongin, ja tilauksen on oltava vähintään kaksinkertainen kupongin arvoon nähden. Kupongin käyttö ei vähennä pisteitä. Perutusta tilauksesta kuponki palautuu. Kuponkeja ei voi vaihtaa rahaksi.`})),
+    mk("section",{class:"bd-sec"},
+      mk("details",{class:"bd-acc"},mk("summary",{text:"Miten osallistun bonuskuponkeihin?"}),mk("p",{text:"Luo oma tili samalla sähköpostilla, jolla tilaat. Tilaa malakairavintola.fi:n kautta – pisteet kirjautuvat automaattisesti, kun tilaus on luovutettu. Kupongit näkyvät tällä sivulla ja kassalla, kun olet kirjautunut."})),
+      mk("details",{class:"bd-acc"},mk("summary",{text:"Lisätietoja"}),mk("p",{text:"Pisteet kertyvät vain nettitilauksista (nouto ja kotiinkuljetus). Kupongin valitset kassalla kohdasta Bonuspisteesi. Kysyttävää? Soita 045 353 7000."})),
+      BLOG.length?mk("details",{class:"bd-acc"},mk("summary",{text:"Pistehistoria"}),BLOG.map(l=>mk("div",{class:"ac-kv"},mk("span",{text:fdt(l.created_at)+" · "+(l.note||"")}),l.delta?mk("b",{style:"color:"+(l.delta>0?"#7BE0A6":"#FF9A8C"),text:(l.delta>0?"+":"")+l.delta+" p"}):null))):null)));
+  document.body.append(ov);document.body.style.overflow="hidden";ov.querySelector(".bd-back").focus();
+  ov.addEventListener("keydown",e=>{if(e.key==="Escape")close()})}
 
 function vPerks(){const fp=+(CFG?.firstPct??15),ev=+(CFG?.loyEvery??10),pc=+(CFG?.loyPct??20),n=ORD.filter(o=>o.status!=="peruttu").length;
   const saved=ORD.filter(o=>o.status!=="peruttu").reduce((a,o)=>a+ +(o.discount||0),0);
   const P=(on,b,t,s)=>mk("div",{class:"ac-perk"+(on?"":" off")},mk("b",{class:"n",text:b}),mk("div",null,mk("strong",{text:t}),mk("small",{text:s})));
   const c=mk("div",{class:"ac-card"},mk("h2",{html:"Omat <em>edut</em>"}));
   if(fp>0)c.append(P(n===0,"−"+fp+"%","Uuden asiakkaan etu",n===0?"Käytössä ensimmäisessä nettitilauksessasi – lasketaan automaattisesti.":"Käytetty ✓"));
-  c.append(P(true,"1 €","Bonuspisteet","Jokainen euro = 1 piste. Pisteillä −2 €, −5 € tai −10 € alennus."));
+  c.append(P(true,"1 €","Bonuspisteet","1 € = 1 piste. Kupongit −1 € … −25 € (50–300 p)."));
   c.append(P(true,"💳","Maksa vasta noudettaessa","Kortilla tai käteisellä – ei ennakkomaksua."));
   if(saved>0)c.append(mk("div",{class:"ac-kv"},mk("span",{text:"Olet säästänyt etuina yhteensä"}),mk("b",{style:"color:var(--ay)",text:eur(saved)})));
   return c}

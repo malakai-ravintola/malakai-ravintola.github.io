@@ -166,29 +166,34 @@ const kind=()=>($('input[name="kind"]:checked')||{}).value||"nouto";
 function totals(){const s=sub(),fee=kind()==="kuljetus"&&CFG?CFG.fee:0,pct=FIRST&&CFG?CFG.firstPct:(LOY&&LOY.now?LOY.pct:0),d=pct?Math.round((s+fee)*pct)/100:0,t0=Math.round((s+fee-d)*100)/100;
   const rw=rwOk(RWSEL,t0)?RWSEL:null;return{s,fee,d,pct,rw,t:Math.round((t0-(rw?rw.eur:0))*100)/100}}
 // ---------- Bonuspisteet (1 € = 1 piste)
-let BON={pts:null,email:"",at:""},RWSEL=null;
+let BON={pts:null,email:"",at:"",cps:[]},RWSEL=null;
 const SBC=window.supabase&&C.url?supabase.createClient(C.url,C.anon):null;
-const bRules=()=>(CFG&&CFG.bonus)||{rate:1,rewards:[{id:"b2",eur:2,pts:40},{id:"b5",eur:5,pts:100},{id:"b10",eur:10,pts:200}],minMul:2};
+const bRules=()=>(CFG&&CFG.bonus&&CFG.bonus.tiers)?CFG.bonus:{rate:1,round:300,tiers:[{p:50,e:1},{p:90,e:2},{p:120,e:4},{p:150,e:10},{p:200,e:15},{p:250,e:20},{p:300,e:25}],minMul:2};
 const formEmail=()=>{const f=$("#odForm");return f?f.elements.e.value.trim().toLowerCase():""};
-function rwOk(r,t0){return !!r&&BON.pts!=null&&BON.pts>=r.pts&&formEmail()===BON.email&&t0>=r.eur*(bRules().minMul||2)}
-async function bonusLoad(){if(!SBC)return;try{const{data:{session}}=await SBC.auth.getSession();if(!session){BON={pts:null,email:"",at:""};return bonus()}
-  BON.email=String(session.user.email||"").toLowerCase();BON.at=session.access_token;const{data}=await SBC.from("customers").select("points").eq("email",BON.email).maybeSingle();BON.pts=+(data&&data.points)||0;
+function rwOk(r,t0){return !!r&&BON.cps.some(c=>c.id===r.id)&&formEmail()===BON.email&&t0>=r.eur*(bRules().minMul||2)}
+async function bonusLoad(){if(!SBC)return;try{const{data:{session}}=await SBC.auth.getSession();if(!session){BON={pts:null,email:"",at:"",cps:[]};return bonus()}
+  BON.email=String(session.user.email||"").toLowerCase();BON.at=session.access_token;
+  const[c,k]=await Promise.all([SBC.from("customers").select("points").eq("email",BON.email).maybeSingle(),SBC.from("bonus_coupons").select("id,eur,tier,round").eq("email",BON.email).is("used_at",null).order("eur",{ascending:false})]);
+  BON.pts=+(c.data&&c.data.points)||0;BON.cps=(k.data||[]).map(x=>({id:x.id,eur:+x.eur,tier:x.tier}));
   const f=$("#odForm");if(f&&!f.elements.e.value)f.elements.e.value=BON.email}catch(e){}bonus();draw()}
+function nextTier(p){const B=bRules(),r=B.round||300,q=p%r,n=B.tiers.find(x=>x.p>q);return n?{e:n.e,left:n.p-q}:{e:B.tiers[0].e,left:r-q+B.tiers[0].p}}
 function bonus(){const el=$("#odStamps");if(!el)return;if(!cart.length){el.hidden=true;return}el.hidden=false;
   const B=bRules(),s=sub(),fee=kind()==="kuljetus"&&CFG?CFG.fee:0,pct=FIRST&&CFG?CFG.firstPct:0,t0=Math.round((s+fee-(pct?Math.round((s+fee)*pct)/100:0))*100)/100;
   const T=totals(),earn=Math.floor(T.t*(B.rate||1));
-  if(BON.pts==null){el.innerHTML=`<div class="od-bn-g"><span class="od-bn-ic">★</span><div><b>Luo tili – bonukset kertyvät</b><span>Tästä tilauksesta <strong>+${earn} pistettä</strong>. Pisteillä saat −2 €, −5 € tai −10 €.</span></div><a href="tili.html" target="_blank" rel="noopener" class="od-bn-a">Luo tili →</a></div>`;return}
-  const other=formEmail()&&formEmail()!==BON.email;
-  el.innerHTML=`<div class="od-bn-h"><div><b>Bonuspisteesi <em>${BON.pts} p</em></b><span>${other?"Käytä tilisi sähköpostia ("+esc(BON.email)+"), niin voit käyttää pisteitä.":"Tästä tilauksesta +"+earn+" p, kun tilaus on luovutettu."}</span></div></div>
-  <div class="od-bn-r">${B.rewards.map(r=>{const ok=BON.pts>=r.pts&&!other,big=t0>=r.eur*(B.minMul||2),on=RWSEL&&RWSEL.id===r.id&&rwOk(r,t0);
-    return`<button type="button" class="od-bn${on?" on":""}" data-rw="${r.id}" ${ok&&big?"":"disabled"}><b>−${r.eur} €</b><small>${r.pts} p</small>${!ok?`<i>Puuttuu ${Math.max(0,r.pts-BON.pts)} p</i>`:!big?`<i>Tilaus väh. ${eur(r.eur*(B.minMul||2))}</i>`:on?"<i>Käytössä ✓</i>":"<i>Käytä</i>"}</button>`}).join("")}</div>`}
-document.addEventListener("click",e=>{const b=e.target.closest("[data-rw]");if(!b||b.disabled)return;const r=bRules().rewards.find(x=>x.id===b.dataset.rw);RWSEL=RWSEL&&RWSEL.id===r.id?null:r;draw()});
+  if(BON.pts==null){el.innerHTML=`<div class="od-bn-g"><span class="od-bn-ic">★</span><div><b>Luo tili – kerää bonuskuponkeja</b><span>Tästä tilauksesta <strong>+${earn} pistettä</strong>. Jo 50 pisteellä −1 € kuponki, 300 pisteellä −25 €.</span></div><a href="tili.html" target="_blank" rel="noopener" class="od-bn-a">Luo tili →</a></div>`;return}
+  const other=formEmail()&&formEmail()!==BON.email,nx=nextTier(BON.pts);
+  const sel=RWSEL&&rwOk(RWSEL,t0)?RWSEL.id:"";
+  el.innerHTML=`<div class="od-bn-h"><div><b>Bonuspisteesi <em>${BON.pts} p</em></b><span>${other?"Käytä tilisi sähköpostia ("+esc(BON.email)+"), niin voit käyttää kuponkeja.":`Tästä tilauksesta +${earn} p · seuraava kuponki −${nx.e} € vielä ${nx.left} p päässä`}</span></div><a href="tili.html#bonus" target="_blank" rel="noopener" class="od-bn-a">Lisätietoja</a></div>`+
+   (BON.cps.length?`<div class="od-bn-r">${BON.cps.map(c=>{const big=t0>=c.eur*(B.minMul||2),on=sel===c.id;
+    return`<button type="button" class="od-bn${on?" on":""}" data-cp="${c.id}" ${!other&&big?"":"disabled"}><b>−${c.eur} €</b><small>Bonuskuponki</small><i>${other?"Tilin sähköposti":!big?"Tilaus väh. "+eur(c.eur*(B.minMul||2)):on?"Käytössä ✓":"Käytä"}</i></button>`}).join("")}</div>`
+   :`<p class="od-bn-n">Sinulla ei ole vielä kuponkeja. Ensimmäinen tulee 50 pisteellä.</p>`)}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-cp]");if(!b||b.disabled)return;const c=BON.cps.find(x=>x.id===b.dataset.cp);RWSEL=RWSEL&&RWSEL.id===c.id?null:c;draw()});
 function draw(){
   cart=cart.filter(x=>price(x)>0&&!valid(x)&&!isOut(x.c,x.n)&&(x.c!=="Päivän pizza"||(dp&&x.n===dp.name)));save();
   const L=$("#odLines");
   L.innerHTML=cart.length?cart.map((x,i)=>`<div class="od-line"><b>${esc(x.n)}</b><em>${eur(price(x)*x.q)}</em>${optTxt(x)?`<small>${esc(optTxt(x))}</small>`:""}${x.m?`<small>Toive: ${esc(x.m)}</small>`:""}<div class="od-q"><button type="button" data-i="${i}" data-d="-1" aria-label="Vähemmän">−</button><b>${x.q}</b><button type="button" data-i="${i}" data-d="1" aria-label="Enemmän">+</button></div></div>`).join(""):'<p class="od-empty">Ostoskori on tyhjä. Lisää tuotteita listalta.</p>';
   const T=totals(),n=cart.reduce((a,x)=>a+x.q,0);
-  $("#odSum").innerHTML=`<div><span>Tuotteet</span><span>${eur(T.s)}</span></div>`+(kind()==="kuljetus"?`<div><span>Kuljetus</span><span>${eur(T.fee)}</span></div>`:"")+(T.d?`<div class="disc"><span>${FIRST?"Uuden asiakkaan etu":"Kanta-asiakasetu"} −${T.pct} %</span><span>−${eur(T.d)}</span></div>`:"")+(T.rw?`<div class="disc"><span>Bonus (${T.rw.pts} p)</span><span>−${eur(T.rw.eur)}</span></div>`:"")+`<div class="tot"><span>Yhteensä</span><span>${eur(T.t)}</span></div>`+`<div class="vat"><span>Veroton hinta</span><span>${eur(T.t-vat(T.t))}</span></div><div class="vat"><span>ALV 13,5 % (sisältyy hintaan)</span><span>${eur(vat(T.t))}</span></div>`;
+  $("#odSum").innerHTML=`<div><span>Tuotteet</span><span>${eur(T.s)}</span></div>`+(kind()==="kuljetus"?`<div><span>Kuljetus</span><span>${eur(T.fee)}</span></div>`:"")+(T.d?`<div class="disc"><span>${FIRST?"Uuden asiakkaan etu":"Kanta-asiakasetu"} −${T.pct} %</span><span>−${eur(T.d)}</span></div>`:"")+(T.rw?`<div class="disc"><span>Bonuskuponki</span><span>−${eur(T.rw.eur)}</span></div>`:"")+`<div class="tot"><span>Yhteensä</span><span>${eur(T.t)}</span></div>`+`<div class="vat"><span>Veroton hinta</span><span>${eur(T.t-vat(T.t))}</span></div><div class="vat"><span>ALV 13,5 % (sisältyy hintaan)</span><span>${eur(vat(T.t))}</span></div>`;
   upsell();bonus();$("#odBarN").textContent=n;$("#odBarT").textContent=eur(T.t);$("#odBar").hidden=!n;
   const send=$("#odSend"),why=!CFG?"Ladataan…":!CFG.on?"Nettitilaus ei ole käytössä":!$("#odWhen").value?"Ei vapaita aikoja":(kind()==="kuljetus"&&cart.some(x=>x.c==="Tarjous"))?"Tarjous on vain noutona – valitse Nouto":!n?"Ostoskori on tyhjä":(kind()==="kuljetus"&&T.s<CFG.min?"Vähimmäistilaus kuljetukseen "+eur(CFG.min):"");
   send.disabled=!!why;send.textContent=why||"Lähetä tilaus · "+eur(T.t)}
@@ -270,12 +275,12 @@ $("#odForm").onsubmit=async e=>{e.preventDefault();const f=e.target,send=$("#odS
   if(k==="kuljetus"){if(!/\d/.test(v("a"))){alert("Lisää katuosoitteeseen talon numero.");f.elements.a.focus();return}if(!/^\d{5}$/.test(v("z"))){alert("Tarkista postinumero (5 numeroa).");f.elements.z.focus();return}}
   ls.set("mk_me",{n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),z:v("z"),ci:v("ci")});
   send.disabled=true;send.textContent="Lähetetään…";clearTimeout(fT);await checkFirst();if(RWSEL&&SBC){try{const{data:{session}}=await SBC.auth.getSession();if(session)BON.at=session.access_token}catch(e){}}const T0=totals();send.disabled=true;send.textContent="Lähetetään…";
-  try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),dn:v("dn"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,vt:(ls.get("mk_vt")||{})[v("e").toLowerCase()]||"",vc:VC,rw:T0.rw?T0.rw.id:"",at:T0.rw?BON.at:"",pay:($('input[name="pay"]:checked')||{}).value||"kortti",total:T0.t,
+  try{const r=await call({action:"order",kind:k,n:v("n"),p:v("p"),e:v("e"),a:v("a"),apt:v("apt"),door:v("door"),dn:v("dn"),z:v("z"),ci:v("ci"),m:v("m"),w:v("w"),website:f.elements.website.value,vt:(ls.get("mk_vt")||{})[v("e").toLowerCase()]||"",vc:VC,cp:T0.rw?T0.rw.id:"",at:T0.rw?BON.at:"",pay:($('input[name="pay"]:checked')||{}).value||"kortti",total:T0.t,
       items:cart.map(x=>({c:x.c,n:x.n,s:x.s,o:x.o,t:x.t,tx:x.tx,x:x.x,meal:x.meal,l:x.l,pt:x.pt,d:x.d,dr:x.dr,hot:x.hot,sp:x.sp,q:x.q,m:x.m}))});
     VC="";if(r.vt){const t=ls.get("mk_vt")||{};t[v("e").toLowerCase()]=r.vt;ls.set("mk_vt",t)}
     $("#odDoneT").innerHTML=`Tilausnumerosi on <b>#${r.no}</b>.${r.discount?" Sait alennusta "+eur(r.discount)+".":""} Lähetimme vahvistuksen osoitteeseen ${esc(v("e"))}.${r.earn?(BON.pts==null?" Tästä tilauksesta kertyy <b>+"+r.earn+" bonuspistettä</b> – <a href=\"tili.html\" style=\"color:#E3A51C;font-weight:700\">luo tili samalla sähköpostilla</a>, niin näet ja voit käyttää ne.":" Saat tilauksesta <b>+"+r.earn+" bonuspistettä</b>, kun se on luovutettu."):""}<br><br>Saat toisen viestin, kun olemme hyväksyneet tilauksen ja ${k==="kuljetus"?"arvioineet toimitusajan":"tiedämme valmistumisajan"}. Kiireellisissä asioissa soita 045 353 7000.`;
     try{const im=x=>{const f=IMG[x.c==="Päivän pizza"?x.n:x.n]||(x.c==="Wings"?"wings":"");return f?T+(f.includes(".")?f:f+".webp"):""};ls.set("mk_last",{no:r.no,date:new Date().toISOString(),total:r.total,name:v("n").split(" ")[0],items:cart.filter(x=>x.c!=="Päivän pizza").map(x=>({...x,img:im(x)}))})}catch(e){}
-    if(T0.rw&&BON.pts!=null)BON.pts-=T0.rw.pts;RWSEL=null;cart=[];save();draw();$("#odCart").classList.remove("open");$("#odDone").hidden=false}
+    if(T0.rw)BON.cps=BON.cps.filter(c=>c.id!==T0.rw.id);RWSEL=null;cart=[];save();draw();$("#odCart").classList.remove("open");$("#odDone").hidden=false}
   catch(x){if(x.j&&x.j.need){
       if(x.j.need==="verify"||VC==="RESEND"){try{await call({action:"verify_send",e:v("e"),p:v("p")})}catch(y){VC="";alert(y.message);draw();return}}
       const c=await codeAsk(v("e"),x.j.need==="code"||VC?x.j.error:"");if(!c){VC="";draw();return}

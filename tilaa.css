@@ -296,3 +296,6 @@
 .od-xtra summary{cursor:pointer;list-style:none;padding:11px 14px;font-weight:700;font-size:.9rem;color:var(--oy)}.od-xtra summary::-webkit-details-marker{display:none}
 .od-xtra summary small{color:var(--om);font-weight:500;margin-left:4px}.od-xtra[open] summary{border-bottom:1px solid var(--ol)}
 .od-xtra .od-opt{margin:0;border:0;background:none}
+
+.od-bn-n{margin:10px 0 0;color:var(--om);font-size:.82rem}
+.od-bn-r{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))!important}
