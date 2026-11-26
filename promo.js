@@ -7,7 +7,7 @@ const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:
 const KEY="mk_promo_netti";
 // Kun uutuusikkuna näytetään, muu ponnahdusikkuna odottaa seuraavaan käyntiin
 const seen=LS.get(KEY)==="1";
-if(!seen){try{sessionStorage.setItem("popSeen","1")}catch(e){}}
+
 const css=`
 .np-bg{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);display:grid;place-items:center;padding:18px;opacity:0;transition:opacity .35s}
 .np-bg.on{opacity:1}
@@ -32,7 +32,7 @@ const css=`
 .np-cta .a1{background:#B3121F;color:#fff;box-shadow:0 10px 30px rgba(179,18,31,.45)}.np-cta .a1 span{display:inline-block;animation:npArr 1.1s ease-in-out infinite}
 .np-cta .a2{border:1.5px solid #E3A51C;color:#E3A51C}
 @keyframes npArr{50%{transform:translateX(5px)}}
-.np-bub{position:absolute;top:calc(100% + 16px);right:-8px;z-index:60;width:max-content;max-width:220px;background:#E3A51C;color:#111;border-radius:14px;padding:10px 14px;font:700 .85rem/1.3 Inter,sans-serif;text-align:left;box-shadow:0 12px 30px rgba(0,0,0,.5);animation:npBob 1.4s ease-in-out infinite;pointer-events:none}
+.np-bub{position:absolute;top:calc(100% + 16px);right:-8px;z-index:60;width:max-content;max-width:190px;background:#E3A51C;color:#111;border-radius:14px;padding:10px 14px;font:700 .85rem/1.3 Inter,sans-serif;text-align:left;box-shadow:0 12px 30px rgba(0,0,0,.5);animation:npBob 1.4s ease-in-out infinite;pointer-events:none}
 .np-bub::before{content:"";position:absolute;top:-8px;right:20px;width:16px;height:16px;background:#E3A51C;transform:rotate(45deg);border-radius:3px}
 .np-bub small{display:block;font-weight:600;opacity:.8}
 .np-bub b{display:block;font-size:.95rem}
@@ -58,6 +58,6 @@ function modal(){const bg=document.createElement("div");bg.className="np-bg";bg.
   bg.querySelector(".np-x").onclick=close;bg.onclick=e=>{if(e.target===bg)close()};
   bg.querySelectorAll(".np-cta a").forEach(x=>x.addEventListener("click",()=>LS.set(KEY,"1")))}
 
-const go=()=>{if(!seen)setTimeout(modal,1200);else if(LS.get(KEY+"_acc")!=="1")setTimeout(bubble,800)};
+const go=()=>{if(LS.get(KEY+"_acc")!=="1")setTimeout(bubble,900)};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",go);else go();
 })();
