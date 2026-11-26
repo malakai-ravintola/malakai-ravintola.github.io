@@ -170,11 +170,18 @@
 .od-day .od-tx small{color:var(--oy);font-weight:700}
 
 /* Lisämyynti */
-.od-ups{margin:12px 0 4px;padding:12px;border:1px dashed var(--ol);border-radius:14px}
-.od-ups p{margin:0 0 8px;font-weight:700;font-size:.9rem}
-.od-ups div{display:flex;flex-wrap:wrap;gap:6px}
-.od-ups button{display:inline-flex;align-items:center;gap:6px;background:#1a1a1a;border:1px solid var(--ol);color:#fff;border-radius:999px;padding:8px 12px;font:600 .85rem Inter,sans-serif;cursor:pointer}
-.od-ups button:hover{border-color:var(--oy)}.od-ups em{font-style:normal;color:var(--oy);font-weight:800}
+.od-ups{margin:14px 0 6px;padding:14px 0 4px;border-top:1px solid var(--ol)}
+.od-ups-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+.od-ups-h b{font:700 1.02rem Inter,sans-serif;letter-spacing:-.01em}.od-ups-h span{font-size:.78rem;color:#9a958d;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.od-ups-r{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.od-uc{position:relative;display:flex;flex-direction:column;text-align:left;background:#161616;border:1px solid #2a2a2a;border-radius:16px;padding:0;overflow:hidden;color:#fff;cursor:pointer;transition:border-color .15s,transform .15s}
+.od-uc:hover{border-color:var(--oy);transform:translateY(-1px)}
+.od-uc-i{display:grid;place-items:center;aspect-ratio:4/3;background:radial-gradient(circle at 50% 60%,#2a2520,#141414 70%)}
+.od-uc-i img{width:82%;height:82%;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.od-uc-t{display:flex;flex-direction:column;gap:2px;padding:10px 12px 12px}
+.od-uc-t b{font:700 .9rem/1.25 Inter,sans-serif}.od-uc-t small{max-width:calc(100% - 30px);color:#9a958d;font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.od-uc-t em{font-style:normal;font-weight:800;color:var(--oy);font-size:.92rem;margin-top:4px}
+.od-uc-p{position:absolute;right:10px;bottom:10px;width:30px;height:30px;border-radius:50%;background:var(--oy);color:#111;display:grid;place-items:center;font:800 1.2rem/1 Inter,sans-serif;font-style:normal}
 /* Leimakortti */
 .od-stamps{margin:14px 0 0;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(227,165,28,.16),rgba(227,165,28,.04));border:1px solid rgba(227,165,28,.45)}
 .od-st-h b{display:block;font-size:.95rem}.od-st-h span{display:block;color:var(--om);font-size:.8rem;margin-top:2px}
@@ -271,3 +278,4 @@
 .od-drow img{width:34px;height:48px;object-fit:contain;flex:none}
 .od-mnote[hidden]{display:none!important}
 .od-rph{width:34px;height:34px;flex:none;border-radius:50%;background:radial-gradient(circle at 40% 35%,#3a3a3a,#222);border:1px solid #333}
+.od-vbox{width:min(420px,100%)!important;text-align:center}.od-vbox h3{font-size:1.6rem!important}.od-vcode{width:100%;font:800 2rem Inter,sans-serif!important;letter-spacing:.5em;text-align:center;padding:14px!important;margin:14px 0 4px;background:#0b0b0b;color:#fff;border:2px solid var(--oy);border-radius:12px}.od-verr{color:#ff9a8c;font-weight:700;margin:8px 0 0}.od-vre{background:none;border:0;color:var(--om);text-decoration:underline;margin-top:12px;cursor:pointer}

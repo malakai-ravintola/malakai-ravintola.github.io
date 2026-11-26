@@ -21,14 +21,14 @@ SB.auth.onAuthStateChange((ev,s)=>{if(ev==="PASSWORD_RECOVERY"){recovery=true;US
 SB.auth.getSession().then(({data})=>{USER=data.session?.user||null;if(USER&&!recovery)load();else render()});
 
 async function load(){
-  const [o,c,g]=await Promise.all([SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city").order("created_at",{ascending:false}).limit(60),
+  const [o,c,g]=await Promise.all([SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city,rating").order("created_at",{ascending:false}).limit(60),
     SB.from("customers").select("orders,spent,first_order").maybeSingle(),pub({action:"order_cfg"}).catch(()=>null)]);
   ORD=o.error?[]:o.data;CUS=c.data||null;CFG=g||CFG||{};
   const me=USER.user_metadata||{};ls.set("mk_me",{...(ls.get("mk_me")||{}),n:me.name||"",p:me.phone||"",e:USER.email,a:me.address||"",apt:me.apt||"",door:me.door||"",z:me.zip||"",ci:me.city||"Lempäälä"});
   try{const last=ORD.find(o=>o.status!=="peruttu"&&(o.items||[]).some(i=>i.c!=="Päivän pizza"));if(last)ls.set("mk_last",{no:last.no,date:last.created_at,total:last.total,name:(USER.user_metadata?.name||"").split(" ")[0],items:(last.items||[]).filter(i=>i.c!=="Päivän pizza").map(i=>({...toCart(i),img:IMGF(i.n,i.c)}))});else localStorage.removeItem("mk_last")}catch(e){}
   render();clearInterval(poll);poll=setInterval(async()=>{if(document.hidden||!USER)return;const r=await SB.from("orders").select("id,status,eta,reason").in("status",["uusi","hyvaksytty","valmis"]);
     const open=(ORD||[]).filter(x=>["uusi","hyvaksytty","valmis"].includes(x.status));if(!open.length&&!(r.data||[]).length)return;
-    const fresh=await SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city").order("created_at",{ascending:false}).limit(60);if(!fresh.error){ORD=fresh.data;render()}},20000)}
+    const fresh=await SB.from("orders").select("id,no,created_at,kind,want,items,subtotal,fee,discount,discount_note,total,status,eta,reason,pay,address,zip,city,rating").order("created_at",{ascending:false}).limit(60);if(!fresh.error){ORD=fresh.data;render()}},20000)}
 
 // ---------- Näkymät
 function render(){M.textContent="";
@@ -112,6 +112,11 @@ function reorder(o){const items=(o.items||[]).filter(i=>i.c!=="Päivän pizza").
   if(!items.length)return toast("Tilauksen tuotteita ei voi tilata uudelleen (päivän pizza vaihtuu päivittäin).",true);
   const cart=ls.get("mk_cart")||[];ls.set("mk_cart",cart.concat(items));toast(skip?"Lisätty ostoskoriin (päivän pizzaa ei lisätty)":"Lisätty ostoskoriin");setTimeout(()=>location.href="tilaa.html",700)}
 
+function rateRow(o){const w=mk("div",{class:"ac-rate"});
+  if(o.rating){w.append(mk("span",{class:"ac-mut",text:"Arviosi "}),mk("b",{style:"color:#E3A51C;letter-spacing:2px",text:"★".repeat(o.rating)+"☆".repeat(5-o.rating)}));return w}
+  w.append(mk("span",{class:"ac-mut",text:"Arvioi tilaus "}),...[1,2,3,4,5].map(n=>mk("button",{type:"button","aria-label":n+" tähteä",text:"★",style:"background:none;border:0;color:#5a5a5a;font-size:1.5rem;cursor:pointer;padding:0 2px",
+    onmouseenter:e=>[...w.querySelectorAll("button")].forEach((b,i)=>b.style.color=i<n?"#E3A51C":"#5a5a5a"),
+    onclick:async()=>{const r=await pub({action:"rate",id:o.id,e:USER.email,r:n}).catch(()=>({}));if(r&&r.ok){o.rating=n;toast("Kiitos arviosta!");render()}else toast((r&&r.error)||"Arvio ei onnistunut",true)}})));return w}
 function vHist(){const c=mk("div",{class:"ac-card"},mk("h2",{html:"Tilaus<em>historia</em>"}));
   const done=ORD.filter(o=>!["uusi","hyvaksytty","valmis"].includes(o.status));
   if(!done.length){c.append(mk("p",{class:"ac-mut",text:ORD.length?"Aiemmat tilaukset näkyvät tässä, kun ne on luovutettu.":"Et ole vielä tilannut netistä. Ensimmäisestä tilauksesta saat alennuksen!"}),ORD.length?null:mk("a",{class:"ac-btn y",href:"tilaa.html",text:"Tee ensimmäinen tilaus →"}));M.append(c);return}
@@ -120,7 +125,8 @@ function vHist(){const c=mk("div",{class:"ac-card"},mk("h2",{html:"Tilaus<em>his
       mk("small",{text:(o.kind==="kuljetus"?"Kotiinkuljetus":"Nouto")+" · klo "+hm(o.created_at)+(o.discount>0?" · "+(o.discount_note||"etu")+" −"+eur(o.discount):"")}),
       mk("p",{text:(o.items||[]).map(i=>i.q+" × "+i.n+(i.opt?" ("+i.opt+")":"")).join(", ")}),
       mk("div",{class:"row"},mk("span",{class:"ac-pill "+(can?"r":"g"),text:can?"PERUTTU":"LUOVUTETTU"}),can&&o.reason?mk("small",{class:"ac-mut",text:o.reason}):null,
-        mk("span",{style:"flex:1"}),mk("button",{class:"ac-btn o",text:"Tilaa uudelleen",onclick:()=>reorder(o)}))))});
+        mk("span",{style:"flex:1"}),mk("button",{class:"ac-btn o",text:"Tilaa uudelleen",onclick:()=>reorder(o)})),
+      o.status==="luovutettu"?rateRow(o):null))});
     if(done.length>show)list.append(mk("button",{class:"ac-link",text:"Näytä lisää ("+(done.length-show)+")",onclick:()=>{show+=10;draw()}}))};draw();
   const sum=done.filter(o=>o.status!=="peruttu");
   c.append(mk("div",{class:"ac-mut",style:"font-size:.86rem;margin:-4px 0 6px",text:sum.length+" tilausta · yhteensä "+eur(sum.reduce((a,o)=>a+ +o.total,0))}),list);M.append(c)}

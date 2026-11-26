@@ -152,6 +152,10 @@ function ordCard(o){const del=o.kind==="kuljetus",pre=preOf(o.want),want=wantTxt
   else if(o.status==="hyvaksytty")c.append(mk("div",{class:"row"},act(del?"Lähti kuljetukseen":"Valmis noudettavaksi",()=>setOrd(o,"valmis",{notify:true}),"y"),act(del?"Toimitettu":"Noudettu",()=>setOrd(o,"luovutettu"),"o")));
   else if(o.status==="valmis")c.append(mk("div",{class:"row"},act(del?"Toimitettu":"Noudettu",()=>setOrd(o,"luovutettu"),"g")));
   else c.append(mk("div",{class:"st "+(o.status==="peruttu"?"dn":"up"),text:o.status==="peruttu"?"Hylätty"+(o.reason?": "+o.reason:""):"Luovutettu "+(o.done_at?hm(o.done_at):"")}));
+  const bl=OCFG.blocked||{e:[],p:[]},isB=(bl.e||[]).includes(o.email)||(bl.p||[]).includes(o.phone);
+  c.append(mk("div",{class:"row",style:"margin-top:8px"},act(isB?"Poista esto":"🚫 Estä asiakas",async()=>{const B={e:[...(bl.e||[])],p:[...(bl.p||[])]};
+    if(isB){B.e=B.e.filter(x=>x!==o.email);B.p=B.p.filter(x=>x!==o.phone)}else{if(!confirm("Estetäänkö "+o.name+" ("+o.phone+", "+o.email+")? Hän ei voi enää tilata netistä."))return;B.e.push(o.email);B.p.push(o.phone)}
+    OCFG={...OCFG,blocked:B};await saveCfg(isB?"Esto poistettu":"Asiakas estetty")},"o")));
   return c}
 function vTil(m){const c=OCFG;
   const sB=act(oSound?"🔔 Äänimerkki päällä":"🔕 Ota äänimerkki käyttöön",async()=>{oSound=!oSound;ls.set("ord_sound",oSound?"1":null);if(oSound){beep();if("Notification"in window&&Notification.permission==="default")Notification.requestPermission()}render()},oSound?"o":"y");

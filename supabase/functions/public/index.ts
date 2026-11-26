@@ -74,7 +74,37 @@ const hel = () => {
   return { day: ["su", "ma", "ti", "ke", "to", "pe", "la"][k], min: (+g("hour") % 24) * 60 + +g("minute") };
 };
 const hm = (t: string) => { const [a, b] = String(t || "").split(":"); return +a * 60 + (+b || 0); };
+const DEL_CUT = 30; // kotiinkuljetus päättyy 30 min ennen sulkemista
 const clock = (m: number) => String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+// ---------- Tilaajan tarkistus: oikea sähköposti + puhelin, vahvistuskoodi, estolista
+const DISPOSABLE = ["mailinator.com", "guerrillamail.com", "10minutemail.com", "tempmail.com", "temp-mail.org", "yopmail.com", "trashmail.com", "sharklasers.com", "getnada.com", "dispostable.com", "maildrop.cc", "fakeinbox.com", "throwawaymail.com", "emailondeck.com", "mintemail.com", "tempmailo.com", "moakt.com", "mohmal.com", "tempail.com", "burnermail.io", "spamgourmet.com", "mailnesia.com", "inboxkitten.com"];
+const phoneOk = (p: string) => /^\+358\d{7,10}$/.test(p) || /^\+(?!358)\d{8,15}$/.test(p);
+async function emailOk(e: string) {
+  const m = e.match(/^[^\s@]+@([^\s@]+\.[a-z]{2,})$/i);
+  if (!m) return "Tarkista sähköpostiosoite";
+  const d = m[1].toLowerCase();
+  if (DISPOSABLE.some((x) => d === x || d.endsWith("." + x))) return "Käytä omaa sähköpostiosoitettasi – kertakäyttöiset osoitteet eivät käy.";
+  try { const mx = await Deno.resolveDns(d, "MX"); if (!mx.length) return "Sähköpostiosoitteen verkkotunnusta ei löydy – tarkista osoite."; }
+  catch (err) { if (/NotFound|NXDomain|no record|not found/i.test(String((err as Error)?.name) + " " + String(err))) return "Sähköpostiosoitteen verkkotunnusta ei löydy – tarkista osoite."; }
+  return "";
+}
+const isBlocked = (c: any, e: string, p: string) => (c.blocked?.e || []).includes(e) || (c.blocked?.p || []).includes(p);
+const rnd = (n: number) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => b.toString(16).padStart(2, "0")).join("");
+const code6 = () => String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
+async function sendCode(email: string, phone: string) {
+  const c = await cfg();
+  if (isBlocked(c, email, phone)) return { error: "Nettitilausta ei voi tehdä näillä tiedoilla. Soita 045 353 7000.", st: 403 };
+  const bad = await emailOk(email); if (bad) return { error: bad, st: 400 };
+  if (!phoneOk(phone)) return { error: "Tarkista puhelinnumero (esim. 040 123 4567).", st: 400 };
+  const { data: r } = await db.from("verify_codes").select("*").eq("email", email).maybeSingle();
+  const inWin = r && Date.now() - new Date(r.window_start).getTime() < 3600e3;
+  if (inWin && r.sends >= 5) return { error: "Liian monta koodipyyntöä. Odota hetki tai soita 045 353 7000.", st: 429 };
+  const code = code6();
+  await db.from("verify_codes").upsert({ email, code, expires: new Date(Date.now() + 15 * 60e3).toISOString(), tries: 0, sends: inWin ? r.sends + 1 : 1, window_start: inWin ? r.window_start : new Date().toISOString() });
+  await mail(email, `Vahvistuskoodisi: ${code} – Malakai Ravintola`, `Vahvistuskoodisi on ${code}\n\nKirjoita koodi tilaussivulle vahvistaaksesi sähköpostiosoitteesi. Koodi on voimassa 15 minuuttia.\n\nJos et tilannut Malakaista, voit jättää tämän viestin huomiotta.\n\nMalakai Ravintola, 045 353 7000`, undefined,
+    E.shell({ pre: `Vahvistuskoodi ${code}`, tag: "Vahvista tilaus", title: "Vahvistuskoodisi", body: E.big(code, "Koodi") + E.p("Kirjoita koodi tilaussivulle. Koodi on voimassa 15 minuuttia. Vahvistus tehdään vain kerran – seuraavat tilaukset tältä laitteelta menevät suoraan läpi.") + E.p("Jos et tilannut Malakaista, voit jättää tämän viestin huomiotta.") }));
+  return { ok: true };
+}
 async function cfg() { const { data } = await db.from("settings").select("value").eq("key", "orders").maybeSingle(); return data?.value ?? { on: false }; }
 function needsSauce(cat: any, it: any[]) { return /Med tai Hot/i.test((cat.note || "") + " " + (it[1] || "")); }
 const LIHA: Record<string, number> = { Tuplaliha: 5, Triplaliha: 10 };
@@ -189,14 +219,16 @@ async function sendReviews() {
 async function orderCfg() {
   const [S, c] = await Promise.all([site(), cfg()]), now = hel(), h = S.hours?.[now.day];
   const open = h && h[0] ? hm(h[0]) : null, close = h && h[1] ? hm(h[1]) : null;
-  const isOpen = open !== null && close !== null && now.min >= open && now.min <= close - 15;
+  const paused = !!c.pauseUntil && Date.now() < Date.parse(c.pauseUntil);
+  const isOpen = !paused && open !== null && close !== null && now.min >= open && now.min <= close - 15;
+  const delNow = !!c.delivery && isOpen && close !== null && now.min <= close - DEL_CUT;
   const pre = c.preDays === 0 ? 0 : Math.min(7, +c.preDays || 2), t0 = today();
   const days = Array.from({ length: pre + 1 }, (_, i) => {
     const d = new Date(t0 + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + i); const date = d.toISOString().slice(0, 10);
     const hh = S.hours?.[["su", "ma", "ti", "ke", "to", "pe", "la"][d.getUTCDay()]];
     return { date, open: hh && hh[0] ? hm(hh[0]) : null, close: hh && hh[1] ? hm(hh[1]) : null };
   });
-  return { days, preDays: pre, on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
+  return { days, preDays: pre, paused, pauseUntil: paused ? c.pauseUntil : null, delCut: DEL_CUT, delNow, on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
     soldout: Array.isArray(c.soldout) ? c.soldout : [], hidden: Array.isArray(c.hidden) ? c.hidden : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, loyEvery: loyOf(c).every, loyPct: loyOf(c).pct, day: now.day, now: now.min, open, close, isOpen };
 }
 async function placeOrder(b: any) {
@@ -208,6 +240,9 @@ async function placeOrder(b: any) {
     address: kind === "kuljetus" ? s(b.a, 120) : null, zip: kind === "kuljetus" ? s(b.z, 10) : null, city: kind === "kuljetus" ? s(b.ci, 40) : null,
     apt: kind === "kuljetus" ? s(b.apt, 30) || null : null, door: kind === "kuljetus" ? s(b.door, 30) || null : null, dnote: kind === "kuljetus" ? s(b.dn, 300) || null : null };
   if (!o.name || o.phone.replace(/\D/g, "").length < 7 || !/^\S+@\S+\.\S+$/.test(o.email)) return j({ error: "Täytä nimi, puhelin ja sähköposti" }, 400);
+  if (!phoneOk(o.phone)) return j({ error: "Tarkista puhelinnumero (esim. 040 123 4567)." }, 400);
+  const RAW = await cfg();
+  if (isBlocked(RAW, o.email, o.phone)) return j({ error: "Nettitilausta ei voi tehdä näillä tiedoilla. Soita 045 353 7000." }, 403);
   if (kind === "kuljetus" && (!o.address || !/\d/.test(o.address) || !/^\d{5}$/.test(o.zip || "") || !o.city)) return j({ error: "Täytä toimitusosoite talon numeron kanssa, postinumero ja paikkakunta" }, 400);
   const raw = Array.isArray(b.items) ? b.items.slice(0, 40) : [];
   if (!raw.length) return j({ error: "Ostoskori on tyhjä" }, 400);
@@ -219,11 +254,12 @@ async function placeOrder(b: any) {
   let want = "heti";
   const lead = kind === "kuljetus" ? C.dtime : C.prep, wv = s(b.w, 16) || "heti";
   if (wv === "heti") {
-    if (!C.isOpen) return j({ error: "Olemme juuri nyt kiinni. Valitse ennakkotilaukselle aika tai soita 045 353 7000." }, 400);
+    if (!C.isOpen) return j({ error: C.paused ? "Nettitilaus on hetken tauolla. Valitse ennakkotilaukselle aika tai soita 045 353 7000." : "Olemme juuri nyt kiinni. Valitse ennakkotilaukselle aika tai soita 045 353 7000." }, 400);
+    if (kind === "kuljetus" && !C.delNow) return j({ error: `Kotiinkuljetus päättyy ${DEL_CUT} min ennen sulkemista. Valitse nouto tai soita 045 353 7000.` }, 400);
   } else {
     const m = wv.match(/^(?:(\d{4}-\d{2}-\d{2}) )?(\d{2}:\d{2})$/);
     const di = m ? (m[1] ? C.days.findIndex((d) => d.date === m[1]) : 0) : -1, D0 = di >= 0 ? C.days[di] : null, w = m ? hm(m[2]) : -1;
-    if (!m || !D0 || D0.open === null || (m[1] && di === 0) || w < D0.open + lead - 5 || w > (D0.close ?? 0) || (di === 0 && w < C.now + lead - 5))
+    if (!m || !D0 || D0.open === null || (m[1] && di === 0) || w < D0.open + lead - 5 || w > (D0.close ?? 0) - (kind === "kuljetus" ? DEL_CUT : 0) || (di === 0 && w < C.now + lead - 5))
       return j({ error: "Valittu aika ei ole enää vapaana. Valitse toinen aika." }, 400);
     want = (di > 0 ? D0.date + " " : "") + clock(w);
   }
@@ -239,6 +275,9 @@ async function placeOrder(b: any) {
   o.discount = discount; o.discount_note = D.note;
   o.want = want; o.items = items; o.subtotal = subtotal; o.fee = fee; o.total = Math.round((subtotal + fee - discount) * 100) / 100;
   if (typeof b.total === "number" && Math.abs(b.total - o.total) > 0.01) return j({ error: "Hinnat ovat muuttuneet. Tarkista ostoskori ja lähetä uudelleen.", total: o.total }, 409);
+  const { count: openN } = await db.from("orders").select("id", { count: "exact", head: true }).eq("status", "uusi").or(`email.eq."${o.email.replace(/"/g, "")}",phone.eq."${o.phone.replace(/"/g, "")}"`);
+  if ((openN ?? 0) >= 2) return j({ error: "Sinulla on jo tilauksia odottamassa hyväksyntää. Odota vahvistusta tai soita 045 353 7000." }, 429);
+  { const bad = await emailOk(o.email); if (bad) return j({ error: bad }, 400); }
   const { data: row, error } = await db.from("orders").insert(o).select("id,no").single();
   if (error) throw error;
   const when = whenTxt(want);
@@ -285,6 +324,14 @@ Deno.serve(async (req) => {
     }
     if (b.action === "order_cfg") return j(await orderCfg());
     if (b.action === "order") return await placeOrder(b);
+    if (b.action === "rate") {
+      const id = s(b.id, 40), e = s(b.e, 120).toLowerCase(), r = Math.round(+b.r);
+      if (!/^[0-9a-f-]{36}$/.test(id) || !(r >= 1 && r <= 5)) return j({ error: "Virheellinen arvio" }, 400);
+      const { data, error } = await db.from("orders").update({ rating: r, rating_note: s(b.t, 300) || null, rated_at: new Date().toISOString() }).eq("id", id).eq("email", e).eq("status", "luovutettu").is("rating", null).select("id");
+      if (error) throw error;
+      return data?.length ? j({ ok: true }) : j({ error: "Tilausta ei voi arvioida" }, 400);
+    }
+    if (b.action === "verify_send") { const r: any = await sendCode(s(b.e, 120).toLowerCase(), norm(s(b.p, 30))); return j(r.ok ? { ok: true } : { error: r.error }, r.ok ? 200 : r.st); }
     if (b.action === "first") {
       const c = await cfg(), pct = c.firstPct === 0 ? 0 : +c.firstPct || 15, L = loyOf(c), n = await orderCount(s(b.e, 120), s(b.p, 30)), D = discountFor(n, pct, L);
       return j({ first: n === 0 && pct > 0, pct, count: Math.max(0, n), every: L.every, loyPct: L.pct, loy: D.loy });
