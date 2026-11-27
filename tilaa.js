@@ -11,7 +11,7 @@ const clock=m=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStar
 const VAT=13.5,vat=t=>Math.round(t*VAT/(100+VAT)*100)/100;
 const DK=["su","ma","ti","ke","to","pe","la"];
 const helDay=()=>{const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Helsinki",weekday:"short"}).format(new Date()).toLowerCase();return DK[["sun","mon","tue","wed","thu","fri","sat"].indexOf(p)]};
-const toppings=(String((M.Pizza||{}).note||"").split("Täytteet:")[1]||"").split(",").map(t=>t.trim().replace(/\.$/,"")).filter(Boolean);
+const toppings=(String((M.Pizza||{}).note||"").split("Täytteet:")[1]||"").split(",").map(t=>t.trim().replace(/\.$/,"")).filter(Boolean).filter(t=>!/^(parmankinkku|artisokka|parmesan)/i.test(t)); // ei nettitilauksessa
 const sauce=(cat,it)=>/Med tai Hot/i.test((cat.note||"")+" "+(it[1]||""));
 const SAUCES=c=>["Med","Hot"];const SPICE=["Tuore valkosipuli","Oregano"];
 const LIHA={Tuplaliha:5,Triplaliha:10},POT={"Ranskalaiset":0,"Ristikkoperunat":1,"Kierreperunat":1,"Crispers-ranskanperunat":1},DIP=1.5;
