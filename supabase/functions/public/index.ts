@@ -35,6 +35,10 @@ async function mail(to: string, subject: string, text: string, replyTo?: string,
 // ---------- Stripe (avaimet Supabasen salaisuuksissa: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET)
 const SK = () => (Deno.env.get("STRIPE_SECRET_KEY") ?? "").trim();
 const payMode = () => /^(sk|rk)_live_/.test(SK()) ? "live" : /^(sk|rk)_test_/.test(SK()) ? "test" : "";
+// Nettitilausten verkkomaksu (Stripe). false = asiakas maksaa paikan päällä kortilla tai käteisellä.
+// Stripe-avaimet ja koodi säilyvät; laita true, kun verkkomaksu otetaan taas käyttöön. Lahjakorttien osto käyttää Stripeä aina.
+const ORDER_PAY_ONLINE = false;
+const orderPay = () => ORDER_PAY_ONLINE ? payMode() : "";
 async function stripe(path: string, params?: Record<string, string>, idem?: string) {
   const r = await fetch("https://api.stripe.com/v1/" + path, { method: params ? "POST" : "GET",
     headers: { Authorization: "Bearer " + SK(), ...(params ? { "Content-Type": "application/x-www-form-urlencoded" } : {}), ...(idem ? { "Idempotency-Key": idem } : {}) },
@@ -340,7 +344,7 @@ async function orderCfg() {
     return { date, open: hh && hh[0] ? hm(hh[0]) : null, close: hh && hh[1] ? hm(hh[1]) : null };
   });
   return { days, preDays: pre, paused, pauseUntil: paused ? c.pauseUntil : null, delCut: DEL_CUT, delNow, on: !!c.on, delivery: !!c.delivery, fee: +c.fee || 0, min: +c.min || 0, area: c.area || "", prep: +c.prep || 20, dtime: +c.dtime || 45, note: c.note || "",
-    pay: payMode(), bonus: BONUS, soldout: Array.isArray(c.soldout) ? c.soldout : [], hidden: Array.isArray(c.hidden) ? c.hidden : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, loyEvery: loyOf(c).every, loyPct: loyOf(c).pct, day: now.day, now: now.min, open, close, isOpen };
+    pay: orderPay(), bonus: BONUS, soldout: Array.isArray(c.soldout) ? c.soldout : [], hidden: Array.isArray(c.hidden) ? c.hidden : [], firstPct: c.firstPct === 0 ? 0 : +c.firstPct || 15, loyEvery: loyOf(c).every, loyPct: loyOf(c).pct, day: now.day, now: now.min, open, close, isOpen };
 }
 // Tilaus vastaanotettu (maksettu tai maksetaan paikan päällä): asiakastiedot + sähköpostit
 async function afterPlaced(o: any) {
@@ -375,7 +379,7 @@ async function placeOrder(b: any) {
   if (!C.on) return j({ error: "Nettitilaus ei ole juuri nyt käytössä. Soita 045 353 7000." }, 400);
   const kind = b.kind === "kuljetus" ? "kuljetus" : "nouto";
   if (kind === "kuljetus" && !C.delivery) return j({ error: "Kotiinkuljetus ei ole juuri nyt käytössä. Valitse nouto." }, 400);
-  const PM = payMode(); let online = PM === "live" || (PM === "test" && b.pt === true);
+  const PM = orderPay(); let online = PM === "live" || (PM === "test" && b.pt === true);
   const o: any = { name: s(b.n, 80), phone: norm(s(b.p, 30)), email: s(b.e, 120).toLowerCase(), kind, note: s(b.m, 400), pay: online ? "netti" : b.pay === "kateinen" ? "kateinen" : "kortti",
     address: kind === "kuljetus" ? s(b.a, 120) : null, zip: kind === "kuljetus" ? s(b.z, 10) : null, city: kind === "kuljetus" ? s(b.ci, 40) : null,
     apt: kind === "kuljetus" ? s(b.apt, 30) || null : null, door: kind === "kuljetus" ? s(b.door, 30) || null : null, dnote: kind === "kuljetus" ? s(b.dn, 300) || null : null };
