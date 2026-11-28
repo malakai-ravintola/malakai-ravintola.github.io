@@ -37,7 +37,7 @@ const SK = () => (Deno.env.get("STRIPE_SECRET_KEY") ?? "").trim();
 const payMode = () => /^(sk|rk)_live_/.test(SK()) ? "live" : /^(sk|rk)_test_/.test(SK()) ? "test" : "";
 // Nettitilausten verkkomaksu (Stripe). false = asiakas maksaa paikan päällä kortilla tai käteisellä.
 // Stripe-avaimet ja koodi säilyvät; laita true, kun verkkomaksu otetaan taas käyttöön. Lahjakorttien osto käyttää Stripeä aina.
-const ORDER_PAY_ONLINE = false;
+const ORDER_PAY_ONLINE = true;
 const orderPay = () => ORDER_PAY_ONLINE ? payMode() : "";
 async function stripe(path: string, params?: Record<string, string>, idem?: string) {
   const r = await fetch("https://api.stripe.com/v1/" + path, { method: params ? "POST" : "GET",
